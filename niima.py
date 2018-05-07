@@ -32,6 +32,22 @@ class Data1(object):
     def tables(self):
         return {x[0] for x in self.conn.execute('SELECT name FROM sqlite_master WHERE type="table"')}
 
+    @staticmethod
+    def _user_selector(user):
+        """SQL WHERE user={user} line, if needed."""
+        if user.lower() == "all":
+            return ""
+        elif user:
+            return "AND user=:user"
+        raise ValueError("Specify user or user='all' for all of them")
+
+    @staticmethod
+    def _sql_limit(limit):
+        """SQL LIMIT line, if needed."""
+        if limit is None: return ""
+        assert isinstance(limit, int)
+        return 'LIMIT %s'%limit
+
 
     def users(self, table=None):
         """Set of all users in all tables"""
@@ -53,7 +69,7 @@ class Data1(object):
         return user_stats
 
 
-    def quality(self, table, user):
+    def quality(self, table, user, limit=None):
         n_intervals = 5
         interval_width = 60/n_intervals
         df = pd.read_sql("""SELECT day, hour, interval,
@@ -65,14 +81,16 @@ class Data1(object):
                                 CAST(strftime('%M', time, 'unixepoch', 'localtime')/:interval_width AS INTEGER) AS interval,
                                 count(*) as bin_count
                                FROM "{table}"
-                               WHERE user=:user
+                               WHERE 1 {user_selector}
                                GROUP BY day, hour, interval)
                              GROUP BY day, hour
-                        """.format(table=table), self.conn, params={'user':user, 'interval_width':interval_width})
+                             {limit}
+                        """.format(table=table, user_selector=self._user_selector(user), limit=self._sql_limit(limit)),
+                        self.conn, params={'user':user, 'interval_width':interval_width})
         return df
 
 
-    def hourly(self, table, user, columns='hr'):
+    def hourly(self, table, user, columns='hr', limit=None):
         if isinstance(columns, str):
             columns = [columns]
         column_selector = ",\n".join("    avg({0}) AS {0}_mean, stdev({0}) AS {0}_std, count({0}) AS {0}_count".format(c) for c in columns)
@@ -83,18 +101,23 @@ class Data1(object):
                                 CAST(strftime('%H', time, 'unixepoch', 'localtime') AS INTEGER) AS hour,
                                 count(*) as count {column_selector}
                             FROM "{table}"
-                               WHERE user=:user
+                               WHERE 1 {user_selector}
                             GROUP BY day, hour
-                        """.format(table=table, column_selector=column_selector), self.conn, params={'user':user})
+                            {limit}
+                         """.format(table=table, column_selector=column_selector,
+                                    user_selector=self._user_selector(user), limit=self._sql_limit(limit)),
+                         self.conn, params={'user':user})
         return df
 
 
-    def raw(self, table, user):
+    def raw(self, table, user, limit=None):
         df = pd.read_sql("""SELECT
                                 *
                             FROM "{table}"
-                               WHERE user=:user
-                        """.format(table=table), self.conn, params={'user':user})
+                               WHERE 1 {user_selector}
+                            {limit}
+                        """.format(table=table, user_selector=self._user_selector(user), limit=self._sql_limit(limit)),
+                        self.conn, params={'user':user})
         if 'time' in df:
             df['datetime'] = pd.to_datetime(df['time'],unit='s')
         return df
