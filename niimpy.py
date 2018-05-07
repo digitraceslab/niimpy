@@ -9,6 +9,10 @@ import pandas as pd
 
 SQLITE3_EXTENSIONS_FILENAME = '/m/cs/scratch/networks-nima/darst/sqlite-extension-functions.so'
 
+class ALL:
+    """Sentinel value for all users"""
+    pass
+
 #def datetime_selector(x):
 #    selectors = [ ]
 #    if isinstance(x, int):
@@ -35,7 +39,7 @@ class Data1(object):
     @staticmethod
     def _user_selector(user):
         """SQL WHERE user={user} line, if needed."""
-        if user.lower() == "all":
+        if user is ALL:
             return ""
         elif user:
             return "AND user=:user"
