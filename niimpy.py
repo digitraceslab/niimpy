@@ -7,7 +7,9 @@ import sys
 
 import pandas as pd
 
-SQLITE3_EXTENSIONS_FILENAME = '/m/cs/scratch/networks-nima/darst/sqlite-extension-functions.so'
+# https://sqlite.org/contrib/download/extension-functions.c?get=25
+#SQLITE3_EXTENSIONS_FILENAME = '/m/cs/scratch/networks-nima/darst/sqlite-extension-functions.so'
+SQLITE3_EXTENSIONS_FILENAME = os.path.join(__file__, 'sqlite-extension-functions.so')
 
 class ALL:
     """Sentinel value for all users"""
@@ -28,9 +30,10 @@ class Data1(object):
             self.conn.enable_load_extension(True)
             self.conn.load_extension(SQLITE3_EXTENSIONS_FILENAME)
         else:
-            print("SQLite3 extension module not available, some functions will not work.  Request that this be improved.",
-                  file=sys.stderr)
-            print("==>", SQLITE3_EXTENSIONS_FILENAME, file=sys.stderr)
+            #print("SQLite3 extension module not available, some functions will not work.  Request that this be improved.",
+            #      file=sys.stderr)
+            #print("==>", SQLITE3_EXTENSIONS_FILENAME, file=sys.stderr)
+            pass
 
 
     def tables(self):
