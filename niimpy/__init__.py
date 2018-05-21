@@ -129,3 +129,10 @@ class Data1(object):
             df['datetime'] = pd.to_datetime(df['time'],unit='s')
         return df
 
+    def get_survey_score(self, table, user, survey):
+        questions = self.raw(table=table, user=user)
+        answers=questions[questions['id'].str.startswith(survey+'_')]
+        answers['answer'] = pd.to_numeric(answers['answer'])
+        survey_score=answers.groupby(['user','time'])['answer'].sum(skipna=False)
+        survey_score=survey_score.to_frame()
+        return survey_score
