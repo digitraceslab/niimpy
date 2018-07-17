@@ -93,7 +93,9 @@ class Data1(object):
         return user_stats
 
     def first(self, table, user, last=False):
-        """Return earliest data point"""
+        """Return earliest data point.
+
+        Return None if there is no data."""
         df = pd.read_sql("""SELECT {select_user} {max_or_min}(time) AS time
                               FROM "{table}"
                               WHERE 1 {where_user}
@@ -102,11 +104,15 @@ class Data1(object):
                                    max_or_min="max" if last else "min",
                                    **self._sql(user=user, limit=None)),
                         self.conn, params={'user':user, })
+        if df.empty:
+            return None
         if 'time' in df:
             df['datetime'] = pd.to_datetime(df['time'], unit='s')
         return df
     def last(self, table, user):
-        """Return the latest data point with in atable"""
+        """Return the latest timestamp.
+
+        See the "first" for more information."""
         return self.first(table, user, last=True)
 
 
@@ -165,7 +171,7 @@ class Data1(object):
                                    limit=self._sql_limit(limit)),
                         self.conn, params={'user':user})
         if 'time' in df:
-            df['datetime'] = pd.to_datetime(df['time'],unit='s')
+            df['datetime'] = pd.to_datetime(df['time'], unit='s')
         return df
 
     def get_survey_score(self, table, user, survey, limit=None):
