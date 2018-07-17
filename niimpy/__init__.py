@@ -25,6 +25,8 @@ class ALL:
 
 class Data1(object):
     def __init__(self, db):
+        if not os.path.exists(db):
+            raise FileNotFoundError("Database does not exist: {}".format(db))
         self.conn = sqlite3.connect(db)
         if os.path.exists(SQLITE3_EXTENSIONS_FILENAME):
             self.conn.enable_load_extension(True)
