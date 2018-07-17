@@ -32,10 +32,9 @@ class Data1(object):
             self.conn.enable_load_extension(True)
             self.conn.load_extension(SQLITE3_EXTENSIONS_FILENAME)
         else:
-            #print("SQLite3 extension module not available, some functions will not work.  Request that this be improved.",
-            #      file=sys.stderr)
-            #print("==>", SQLITE3_EXTENSIONS_FILENAME, file=sys.stderr)
-            pass
+            print("SQLite3 extension module not available, some functions will not work.", file=sys.stderr)
+            print("Future niimpy versions will improve this.", file=sys.stderr)
+            print("({0})".format(SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
 
 
     def tables(self):
