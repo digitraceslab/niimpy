@@ -39,7 +39,7 @@ class Data1(object):
 
 
     def tables(self):
-        return {x[0] for x in self.conn.execute('SELECT name FROM sqlite_master WHERE type="table"')}
+        return {x[0] for x in self.conn.execute('SELECT name FROM sqlite_master WHERE type="table"') if x[0]!='errors'}
 
     @staticmethod
     def _sql_where_user(user):
@@ -92,6 +92,24 @@ class Data1(object):
                 if user is None: continue
                 user_stats[table_][user] = count
         return user_stats
+
+    def first(self, table, user, last=False):
+        """Return earliest data point"""
+        df = pd.read_sql("""SELECT {select_user} {max_or_min}(time) AS time
+                              FROM "{table}"
+                              WHERE 1 {where_user}
+                              GROUP BY user
+                        """.format(table=table,
+                                   max_or_min="max" if last else "min",
+                                   **self._sql(user=user, limit=None)),
+                        self.conn, params={'user':user, })
+        if 'time' in df:
+            df['datetime'] = pd.to_datetime(df['time'], unit='s')
+        return df
+    def last(self, table, user):
+        """Return the latest data point with in atable"""
+        return self.first(table, user, last=True)
+
 
 
     def quality(self, table, user, limit=None):
