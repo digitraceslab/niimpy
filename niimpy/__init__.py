@@ -42,13 +42,22 @@ class Data1(object):
         return {x[0] for x in self.conn.execute('SELECT name FROM sqlite_master WHERE type="table"')}
 
     @staticmethod
-    def _user_selector(user):
+    def _sql_where_user(user):
         """SQL WHERE user={user} line, if needed."""
         if user is ALL:
             return ""
         elif user:
             return "AND user=:user"
-        raise ValueError("Specify user or user='all' for all of them")
+        raise ValueError("Specify user or user=niimpy.ALL for all users")
+
+    @staticmethod
+    def _sql_select_user(user):
+        """SQL SELECT 'user, ' line, if needed."""
+        if user is ALL:
+            return "user, "
+        elif user:
+            return ""
+        raise ValueError("Specify user or user=niimpy.ALL for all users")
 
     @staticmethod
     def _sql_limit(limit):
@@ -56,6 +65,13 @@ class Data1(object):
         if limit is None: return ""
         assert isinstance(limit, int)
         return 'LIMIT %s'%limit
+
+    @classmethod
+    def _sql(cls, user, limit):
+        return dict(select_user=cls._sql_select_user(user),
+                    where_user=cls._sql_where_user(user),
+                    limit=cls._sql_limit(limit),
+                   )
 
 
     def users(self, table=None):
@@ -81,7 +97,7 @@ class Data1(object):
     def quality(self, table, user, limit=None):
         n_intervals = 5
         interval_width = 60/n_intervals
-        df = pd.read_sql("""SELECT day, hour, interval,
+        df = pd.read_sql("""SELECT {select_user} day, hour, interval,
                                 count(*) as quality, sum(bin_count) as count, group_concat(interval) AS withdata
                               FROM (
                               SELECT
@@ -90,11 +106,12 @@ class Data1(object):
                                 CAST(strftime('%M', time, 'unixepoch', 'localtime')/:interval_width AS INTEGER) AS interval,
                                 count(*) as bin_count
                                FROM "{table}"
-                               WHERE 1 {user_selector}
+                               WHERE 1 {where_user}
                                GROUP BY day, hour, interval)
                              GROUP BY day, hour
                              {limit}
-                        """.format(table=table, user_selector=self._user_selector(user), limit=self._sql_limit(limit)),
+                        """.format(table=table,
+                                   **self._sql(user=user, limit=limit)),
                         self.conn, params={'user':user, 'interval_width':interval_width})
         return df
 
@@ -106,15 +123,16 @@ class Data1(object):
         column_selector = ',\n'+column_selector
 
         df = pd.read_sql("""SELECT
+                                {select_user}
                                 strftime('%Y-%m-%d', time, 'unixepoch', 'localtime') AS day,
                                 CAST(strftime('%H', time, 'unixepoch', 'localtime') AS INTEGER) AS hour,
                                 count(*) as count {column_selector}
                             FROM "{table}"
-                               WHERE 1 {user_selector}
+                               WHERE 1 {where_user}
                             GROUP BY day, hour
                             {limit}
                          """.format(table=table, column_selector=column_selector,
-                                    user_selector=self._user_selector(user), limit=self._sql_limit(limit)),
+                                   **self._sql(user=user, limit=limit)),
                          self.conn, params={'user':user})
         return df
 
@@ -123,9 +141,11 @@ class Data1(object):
         df = pd.read_sql("""SELECT
                                 *
                             FROM "{table}"
-                               WHERE 1 {user_selector}
+                               WHERE 1 {where_user}
                             {limit}
-                        """.format(table=table, user_selector=self._user_selector(user), limit=self._sql_limit(limit)),
+                        """.format(table=table,
+                                   select_user=self._sql_select_user(user),  where_user=self._sql_where_user(user),
+                                   limit=self._sql_limit(limit)),
                         self.conn, params={'user':user})
         if 'time' in df:
             df['datetime'] = pd.to_datetime(df['time'],unit='s')
