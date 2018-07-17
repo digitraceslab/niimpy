@@ -9,7 +9,7 @@ import pandas as pd
 
 # https://sqlite.org/contrib/download/extension-functions.c?get=25
 #SQLITE3_EXTENSIONS_FILENAME = '/m/cs/scratch/networks-nima/darst/sqlite-extension-functions.so'
-SQLITE3_EXTENSIONS_FILENAME = os.path.join(__file__, 'sqlite-extension-functions.so')
+SQLITE3_EXTENSIONS_FILENAME = os.path.join(os.path.dirname(__file__), 'sqlite-extension-functions.so')
 
 class ALL:
     """Sentinel value for all users"""
