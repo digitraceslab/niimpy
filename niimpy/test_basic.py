@@ -2,7 +2,7 @@ import datetime
 
 import niimpy
 
-DATA = 'Sample.sqlite3'
+DATA = 'sampledata-singleuser.sqlite3'
 
 def test_connect():
     data = niimpy.open(DATA)
