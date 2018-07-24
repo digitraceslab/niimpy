@@ -25,6 +25,10 @@ class ALL:
 #    selectors.append('{0} < time'.format(x))
 #    return ' AND time<'
 
+def open(db):
+    """Open a database and return a Data1 object"""
+    return Data1(db)
+
 class Data1(object):
     def __init__(self, db):
         if not os.path.exists(db):
