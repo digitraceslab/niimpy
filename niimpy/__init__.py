@@ -126,16 +126,17 @@ class Data1(object):
                 user_stats[table_][user] = count
         return user_stats
 
-    def first(self, table, user, last=False):
+    def first(self, table, user, aggregate="min"):
         """Return earliest data point.
 
         Return None if there is no data."""
-        df = pd.read_sql("""SELECT {select_user} {max_or_min}(time) AS time
+        df = pd.read_sql("""SELECT {select_user} {aggregate}(time) AS {result_column_name}
                               FROM "{table}"
                               WHERE 1 {where_user}
                               {group_by_user}
                         """.format(table=table,
-                                   max_or_min="max" if last else "min",
+                                   aggregate=aggregate,
+                                   result_column_name='time' if aggregate!='count' else 'count',
                                    **self._sql(user=user, limit=None)),
                         self.conn, params={'user':user, })
         if df.empty:
@@ -147,7 +148,12 @@ class Data1(object):
         """Return the latest timestamp.
 
         See the "first" for more information."""
-        return self.first(table, user, last=True)
+        return self.first(table, user, aggregate="max")
+    def count(self, table, user):
+        """Return the number of rows
+
+        See the "first" for more information."""
+        return self.first(table, user, aggregate="count")
 
 
 
