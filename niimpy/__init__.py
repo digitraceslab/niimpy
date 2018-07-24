@@ -43,6 +43,27 @@ class Data1(object):
             print("({0})".format(SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
         self._singleuser = self._is_single_user()
 
+    def _is_single_user(self):
+        """Detect if this is a single-user database
+
+        Currently this is run at the start and set per-database, not per-table.
+        """
+        tables = self.tables()
+        for table in tables:
+            if table == 'errors': continue
+            has_user_column = self.conn.execute("SELECT name FROM pragma_table_info(\"AwareScreen\") WHERE name='user'").fetchall()
+            if not has_user_column:
+                self._singleuser = True
+                print("Detected single-user database", file=sys.stderr)
+                return True
+        return False
+
+    def execute(self, *args, **kwargs):
+        """Execute rauw SQL code.
+
+        Execute raw SQL.  Smply proxy all arguments to self.conn.execute()"""
+        return self.conn.execute(*args, **kwargs)
+
     def tables(self):
         return {x[0] for x in self.conn.execute('SELECT name FROM sqlite_master WHERE type="table"') if x[0]!='errors'}
 
@@ -107,21 +128,6 @@ class Data1(object):
                     order=self._sql_order_by(order),
                     group_by_user=self._sql_group_by_user(),
                    )
-
-    def _is_single_user(self):
-        """Detect if this is a single-user database
-
-        Currently this is run at the start and set per-database, not per-table.
-        """
-        tables = self.tables()
-        for table in tables:
-            if table == 'errors': continue
-            has_user_column = self.conn.execute("SELECT name FROM pragma_table_info(\"AwareScreen\") WHERE name='user'").fetchall()
-            if not has_user_column:
-                self._singleuser = True
-                print("Detected single-user database", file=sys.stderr)
-                return True
-        return False
 
 
 
