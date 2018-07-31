@@ -218,11 +218,12 @@ class Data1(object):
         return df
 
 
-    def hourly(self, table, user, columns='hr', limit=None, start=None, end=None):
+    def hourly(self, table, user, columns=[], limit=None, offset=None, start=None, end=None):
         if isinstance(columns, str):
             columns = [columns]
         column_selector = ",\n".join("    avg({0}) AS {0}_mean, stdev({0}) AS {0}_std, count({0}) AS {0}_count".format(c) for c in columns)
-        column_selector = ',\n'+column_selector
+        if column_selector:
+            column_selector = ',\n'+column_selector
 
         df = pd.read_sql("""SELECT
                                 {select_user}
