@@ -41,15 +41,34 @@ def test_start_end():
 
 def test_quality():
     data = niimpy.open(DATA)
-    data.hourly('AwareScreen', columns="screen_status", user=niimpy.ALL)
+    data.quality('AwareScreen', user=niimpy.ALL)
+    data.quality('AwareScreen', user=niimpy.ALL, limit=100)
+    data.quality('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
+    data.quality('AwareScreen', user=niimpy.ALL, offset=10)
+    data.quality('AwareScreen', user=niimpy.ALL, start='2018-07-12')
+    data.quality('AwareScreen', user=niimpy.ALL, end='2018-07-12')
 
 def test_hourly():
     data = niimpy.open(DATA)
+    data.hourly('AwareScreen', user=niimpy.ALL)
+
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status")
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status", limit=100)
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status", limit=100, offset=10)
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status", offset=10)
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status", start='2018-07-12')
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status", end='2018-07-12')
+    data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status")
     data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status")
 
 def test_raw():
     data = niimpy.open(DATA)
     data.raw('AwareScreen', user=niimpy.ALL)
+    data.raw('AwareScreen', user=niimpy.ALL, limit=100)
+    data.raw('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
+    data.raw('AwareScreen', user=niimpy.ALL, offset=10)
+    data.raw('AwareScreen', user=niimpy.ALL, start='2018-07-12')
+    data.raw('AwareScreen', user=niimpy.ALL, end='2018-07-12')
 
 # Sample db doesn't have this data yet.
 #def test_get_survey_score():

@@ -125,7 +125,7 @@ class Data1(object):
                     where_user=self._sql_where_user(user),
                     where_daterange=self._sql_where_daterange(start, end),
                     limit=self._sql_limit(limit, offset=None),
-                    order=self._sql_order_by(order),
+                    order_by=self._sql_order_by(order),
                     group_by_user=self._sql_group_by_user(),
                    )
 
@@ -161,18 +161,21 @@ class Data1(object):
                 user_stats[table_][user] = count
         return user_stats
 
-    def first(self, table, user, start=None, end=None, _aggregate="min"):
+    def first(self, table, user, start=None, end=None, offset=None, _aggregate="min"):
         """Return earliest data point.
 
         Return None if there is no data."""
         df = pd.read_sql("""SELECT {select_user} {aggregate}(time) AS {result_column_name}
-                              FROM "{table}"
-                              WHERE 1 {where_user} {where_daterange}
+                              FROM (
+                                  SELECT * FROM "{table}"
+                                  WHERE 1 {where_user} {where_daterange}
+                                  {order_by} {limit}
+                              )
                               {group_by_user}
                         """.format(table=table,
                                    aggregate=_aggregate,
                                    result_column_name='time' if _aggregate!='count' else 'count',
-                                   **self._sql(user=user, limit=None, start=start, end=end)),
+                                   **self._sql(user=user, limit=None, offset=offset, start=start, end=end)),
                         self.conn, params={'user':user, })
         if df.empty:
             return None
@@ -192,24 +195,25 @@ class Data1(object):
 
 
 
-    def quality(self, table, user, limit=None, start=None, end=None):
+    def quality(self, table, user, limit=None, offset=None, start=None, end=None):
         n_intervals = 5
         interval_width = 60/n_intervals
         df = pd.read_sql("""SELECT {select_user} day, hour, interval,
                                 count(*) as quality, sum(bin_count) as count, group_concat(interval) AS withdata
-                              FROM (
-                              SELECT
-                                strftime('%Y-%m-%d', time, 'unixepoch', 'localtime') AS day,
-                                CAST(strftime('%H', time, 'unixepoch', 'localtime') AS INTEGER) AS hour,
-                                CAST(strftime('%M', time, 'unixepoch', 'localtime')/:interval_width AS INTEGER) AS interval,
-                                count(*) as bin_count
-                               FROM "{table}"
-                               WHERE 1 {where_user} {where_daterange}
-                               GROUP BY day, hour, interval)
-                             GROUP BY day, hour
-                             {limit}
+                            FROM (
+                                SELECT
+                                  strftime('%Y-%m-%d', time, 'unixepoch', 'localtime') AS day,
+                                  CAST(strftime('%H', time, 'unixepoch', 'localtime') AS INTEGER) AS hour,
+                                  CAST(strftime('%M', time, 'unixepoch', 'localtime')/:interval_width AS INTEGER) AS interval,
+                                  count(*) as bin_count
+                                 FROM "{table}"
+                                 WHERE 1 {where_user} {where_daterange}
+                                 GROUP BY day, hour, interval
+                                 {limit}
+                                )
+                            GROUP BY day, hour
                         """.format(table=table,
-                                   **self._sql(user=user, limit=limit, start=start, end=end)),
+                                   **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                         self.conn, params={'user':user, 'interval_width':interval_width})
         return df
 
@@ -225,12 +229,14 @@ class Data1(object):
                                 strftime('%Y-%m-%d', time, 'unixepoch', 'localtime') AS day,
                                 CAST(strftime('%H', time, 'unixepoch', 'localtime') AS INTEGER) AS hour,
                                 count(*) as count {column_selector}
-                            FROM "{table}"
-                               WHERE 1 {where_user} {where_daterange}
+                            FROM (
+                                SELECT * FROM "{table}" {order_by} {limit}
+                                )
+                            WHERE 1 {where_user} {where_daterange}
                             GROUP BY day, hour
                             {limit}
                          """.format(table=table, column_selector=column_selector,
-                                   **self._sql(user=user, limit=limit, start=start, end=end)),
+                                   **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                          self.conn, params={'user':user})
         return df
 
@@ -239,10 +245,11 @@ class Data1(object):
         df = pd.read_sql("""SELECT
                                 *
                             FROM "{table}"
-                               WHERE 1 {where_user} {where_daterange}
+                            WHERE 1 {where_user} {where_daterange}
+                            {order_by}
                             {limit}
                         """.format(table=table,
-                                   **self._sql(user=user, limit=limit, start=start, end=end)
+                                   **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)
                                    #select_user=self._sql_select_user(user),  where_user=self._sql_where_user(user),
                                    #limit=self._sql_limit(limit)
                                    ),
