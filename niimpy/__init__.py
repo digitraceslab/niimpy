@@ -81,7 +81,7 @@ class Data1(object):
         """SQL WHERE start <= time AND time < end."""
         where = ""
         def to_timestamp(x):
-            if isinstance(x, int): return x
+            if isinstance(x, (int, float)): return x
             if isinstance(x, str): return dateutil.parser.parse(x).timestamp()
             if isinstance(x, datetime.datetime): return x.timestamp()
             raise ValueError("Unknown timestamp format: {}".format(x))
