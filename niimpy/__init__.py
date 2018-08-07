@@ -215,6 +215,8 @@ class Data1(object):
                         """.format(table=table,
                                    **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                         self.conn, params={'user':user, 'interval_width':interval_width})
+        df.index = df[['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
+        df.index.name = None
         return df
 
 
@@ -241,6 +243,8 @@ class Data1(object):
                          """.format(table=table, column_selector=column_selector,
                                    **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                          self.conn, params={'user':user})
+        df.index = df[['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
+        df.index.name = None
         return df
 
 
@@ -258,7 +262,9 @@ class Data1(object):
                                    ),
                         self.conn, params={'user':user})
         if 'time' in df:
-            df['datetime'] = pd.to_datetime(df['time'], unit='s')
+            df.index = pd.to_datetime(df['time'], unit='s')
+            df.index.name = None
+            df['datetime'] = df.index
         return df
 
     def get_survey_score(self, table, user, survey, limit=None, start=None, end=None):
