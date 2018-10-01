@@ -145,20 +145,20 @@ class Data1(object):
     def user_table_counts(self):
         """More detailed user stats"""
         if self._singleuser:
-            print(self.tables())
+            #print(self.tables())
             user_stats = pd.DataFrame(index=sorted(self.tables()), columns=("count",))
-            print(user_stats)
+            #print(user_stats)
             cur = self.conn.cursor()
             for table_ in self.tables():
                 for count, in cur.execute('SELECT count(*) FROM "{table}"'.format(table=table_, **self._sql(user=ALL))):
                     user_stats['count'][table_] = count
             return user_stats
-        user_stats = pd.DataFrame(index=sorted(self.users()), columns=sorted(self.tables()))
+        user_stats = pd.DataFrame(index=sorted(self.tables()), columns=sorted(self.users()))
         cur = self.conn.cursor()
         for table_ in self.tables():
             for user, count in cur.execute('SELECT {select_user} count(*) FROM "{table}" GROUP BY user'.format(table=table_, **self._sql(user=ALL))):
                 if user is None: continue
-                user_stats[table_][user] = count
+                user_stats[user][table_] = count
         return user_stats
 
     def first(self, table, user, start=None, end=None, offset=None, _aggregate="min"):
