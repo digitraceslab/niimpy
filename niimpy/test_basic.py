@@ -1,4 +1,5 @@
 import datetime
+import pandas as pd
 
 import niimpy
 
@@ -74,3 +75,17 @@ def test_raw():
 #def test_get_survey_score():
 #    data = niimpy.open(DATA)
 
+
+def test_filled_bins():
+    data = niimpy.open(DATA)
+    timestamps = data.raw("AwareScreen", None).index
+    gb2 = niimpy.util.interval_group(timestamps)
+    gb2.loc['2018-07-09 21:00:00']['filled_bins'] == 1
+    gb2.loc['2018-07-10 09:00:00']['filled_bins'] == 4
+
+def test_filled_bins_ints():
+    timestamps = pd.Series([1, 10, 50, 600, 900, 3600, 3601, 4201])
+    gb2 = niimpy.util.interval_group(timestamps)
+    print(gb2)
+    assert gb2.loc['1970-01-01 00:00:00']['filled_bins'] == 2
+    assert gb2.loc['1970-01-01 01:00:00']['filled_bins'] == 1
