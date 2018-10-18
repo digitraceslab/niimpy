@@ -201,8 +201,8 @@ class Data1(object):
 
 
 
-    def occurrence(self, table, user, limit=None, offset=None, start=None, end=None):
-        n_intervals = 5
+    def occurrence(self, table, user, bin_width=720, limit=None, offset=None, start=None, end=None):
+        n_intervals = 3600 / bin_width
         interval_width = 60/n_intervals
         df = pd.read_sql("""SELECT {select_user} day, hour,
                                 count(*) as occurrence, sum(bin_count) as count, group_concat(interval) AS withdata

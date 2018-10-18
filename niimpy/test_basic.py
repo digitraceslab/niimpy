@@ -40,14 +40,15 @@ def test_start_end():
     assert data.count('AwareScreen', user=niimpy.ALL, start=datetime.datetime(2018,7,11), end=datetime.datetime(2018,7,12))['count'][0] == 163
     assert data.count('AwareScreen', user=niimpy.ALL, start=1531256400, end=1531342800)['count'][0] == 163
 
-def test_quality():
+def test_occurrence_db():
     data = niimpy.open(DATA)
-    data.quality('AwareScreen', user=niimpy.ALL)
-    data.quality('AwareScreen', user=niimpy.ALL, limit=100)
-    data.quality('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
-    data.quality('AwareScreen', user=niimpy.ALL, offset=10)
-    data.quality('AwareScreen', user=niimpy.ALL, start='2018-07-12')
-    data.quality('AwareScreen', user=niimpy.ALL, end='2018-07-12')
+    data.occurrence('AwareScreen', user=niimpy.ALL)
+    data.occurrence('AwareScreen', user=niimpy.ALL, limit=100)
+    data.occurrence('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
+    data.occurrence('AwareScreen', user=niimpy.ALL, offset=10)
+    data.occurrence('AwareScreen', user=niimpy.ALL, start='2018-07-12')
+    data.occurrence('AwareScreen', user=niimpy.ALL, end='2018-07-12')
+    data.occurrence('AwareScreen', user=niimpy.ALL, bin_width=720)
 
 def test_hourly():
     data = niimpy.open(DATA)
@@ -79,13 +80,18 @@ def test_raw():
 def test_filled_bins():
     data = niimpy.open(DATA)
     timestamps = data.raw("AwareScreen", None).index
-    gb2 = niimpy.util.interval_group(timestamps)
-    gb2.loc['2018-07-09 21:00:00']['filled_bins'] == 1
-    gb2.loc['2018-07-10 09:00:00']['filled_bins'] == 4
+    gb2 = niimpy.util.occurrence(timestamps)
+    gb2.loc['2018-07-09 21:00:00']['occurrence'] == 1
+    gb2.loc['2018-07-10 09:00:00']['occurrence'] == 4
+
+    gb2 = niimpy.util.occurrence(timestamps, bin_width=720)
+    gb2.loc['2018-07-09 21:00:00']['occurrence'] == 1
+    gb2.loc['2018-07-10 09:00:00']['occurrence'] == 4
 
 def test_filled_bins_ints():
     timestamps = pd.Series([1, 10, 50, 600, 900, 3600, 3601, 4201])
-    gb2 = niimpy.util.interval_group(timestamps)
+    timestamps = pd.to_datetime(timestamps, unit='s')
+    gb2 = niimpy.util.occurrence(timestamps)
     print(gb2)
-    assert gb2.loc['1970-01-01 00:00:00']['filled_bins'] == 2
-    assert gb2.loc['1970-01-01 01:00:00']['filled_bins'] == 1
+    assert gb2.loc['1970-01-01 00:00:00']['occurrence'] == 2
+    assert gb2.loc['1970-01-01 01:00:00']['occurrence'] == 1
