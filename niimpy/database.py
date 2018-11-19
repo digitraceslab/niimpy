@@ -15,6 +15,8 @@ import sys
 import dateutil.parser
 import pandas as pd
 
+from . import util
+
 # https://sqlite.org/contrib/download/extension-functions.c?get=25
 #SQLITE3_EXTENSIONS_FILENAME = '/m/cs/scratch/networks-nima/darst/sqlite-extension-functions.so'
 SQLITE3_EXTENSIONS_FILENAME = os.path.join(os.path.dirname(__file__), 'sqlite-extension-functions.so')
@@ -186,7 +188,7 @@ class Data1(object):
         if df.empty:
             return None
         if 'time' in df:
-            df['datetime'] = pd.to_datetime(df['time'], unit='s')
+            df['datetime'] = util.to_datetime(df['time'])
         return df
     def last(self, *args, **kwargs):
         """Return the latest timestamp.
@@ -221,8 +223,7 @@ class Data1(object):
                         """.format(table=table,
                                    **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                         self.conn, params={'user':user, 'interval_width':interval_width})
-        df.index = df[['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
-        df.index.name = None
+        util.df_normalize(df, old_tz=util.SYSTEM_TZ)
         return df
 
 
@@ -249,10 +250,27 @@ class Data1(object):
                          """.format(table=table, column_selector=column_selector,
                                    **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                          self.conn, params={'user':user})
-        df.index = df[['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
-        df.index.name = None
+        util.df_normalize(df, old_tz=util.SYSTEM_TZ)
         return df
 
+
+    def timestamps(self, table, user, limit=None, offset=None, start=None, end=None):
+        df = pd.read_sql("""SELECT
+                                {select_user} time
+                            FROM "{table}"
+                            WHERE 1 {where_user} {where_daterange}
+                            {order_by}
+                            {limit}
+                        """.format(table=table,
+                                   **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)
+                                   ),
+                        self.conn, params={'user':user})
+        if 'user' not in df:
+            # Single user data:
+            return util.to_datetime(df['time'])
+        else:
+            util.df_normalize(df)
+            return df
 
     def raw(self, table, user, limit=None, offset=None, start=None, end=None):
         df = pd.read_sql("""SELECT
@@ -268,9 +286,7 @@ class Data1(object):
                                    ),
                         self.conn, params={'user':user})
         if 'time' in df:
-            df.index = pd.to_datetime(df['time'], unit='s')
-            df.index.name = None
-            df['datetime'] = df.index
+            util.df_normalize(df)
         return df
 
     def get_survey_score(self, table, user, survey, limit=None, start=None, end=None):

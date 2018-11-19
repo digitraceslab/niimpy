@@ -42,13 +42,27 @@ def test_start_end():
 
 def test_occurrence_db():
     data = niimpy.open(DATA)
-    data.occurrence('AwareScreen', user=niimpy.ALL)
+    occs = data.occurrence('AwareScreen', user=niimpy.ALL)
     data.occurrence('AwareScreen', user=niimpy.ALL, limit=100)
     data.occurrence('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
     data.occurrence('AwareScreen', user=niimpy.ALL, offset=10)
     data.occurrence('AwareScreen', user=niimpy.ALL, start='2018-07-12')
     data.occurrence('AwareScreen', user=niimpy.ALL, end='2018-07-12')
     data.occurrence('AwareScreen', user=niimpy.ALL, bin_width=720)
+
+    assert occs['occurrence']['2018-07-10 00:00:00'] == 1
+    assert occs['occurrence']['2018-07-10 12:00:00'] == 4
+    assert occs['hour']['2018-07-10 12:00:00'] == 12
+    assert occs['day']['2018-07-10 12:00:00'] == '2018-07-10'
+
+def test_util_occurrence():
+    data = niimpy.open(DATA)
+    timestamps = data.timestamps('AwareScreen', niimpy.ALL)
+    occs = niimpy.util.occurrence(timestamps)
+    assert occs['occurrence']['2018-07-10 00:00:00'] == 1
+    assert occs['occurrence']['2018-07-10 12:00:00'] == 4
+    assert occs['hour']['2018-07-10 12:00:00'] == 12
+    assert occs['day']['2018-07-10 12:00:00'] == '2018-07-10'
 
 def test_hourly():
     data = niimpy.open(DATA)
@@ -72,6 +86,7 @@ def test_raw():
     data.raw('AwareScreen', user=niimpy.ALL, start='2018-07-12')
     data.raw('AwareScreen', user=niimpy.ALL, end='2018-07-12')
 
+
 # Sample db doesn't have this data yet.
 #def test_get_survey_score():
 #    data = niimpy.open(DATA)
@@ -81,12 +96,12 @@ def test_filled_bins():
     data = niimpy.open(DATA)
     timestamps = data.raw("AwareScreen", None).index
     gb2 = niimpy.util.occurrence(timestamps)
-    gb2.loc['2018-07-09 21:00:00']['occurrence'] == 1
-    gb2.loc['2018-07-10 09:00:00']['occurrence'] == 4
+    gb2.loc['2018-07-10 00:00:00']['occurrence'] == 1
+    gb2.loc['2018-07-10 12:00:00']['occurrence'] == 4
 
     gb2 = niimpy.util.occurrence(timestamps, bin_width=720)
-    gb2.loc['2018-07-09 21:00:00']['occurrence'] == 1
-    gb2.loc['2018-07-10 09:00:00']['occurrence'] == 4
+    gb2.loc['2018-07-10 00:00:00']['occurrence'] == 1
+    gb2.loc['2018-07-10 12:00:00']['occurrence'] == 4
 
 def test_filled_bins_ints():
     timestamps = pd.Series([1, 10, 50, 600, 900, 3600, 3601, 4201])
@@ -95,3 +110,34 @@ def test_filled_bins_ints():
     print(gb2)
     assert gb2.loc['1970-01-01 00:00:00']['occurrence'] == 2
     assert gb2.loc['1970-01-01 01:00:00']['occurrence'] == 1
+
+
+def test_to_datetime():
+    with niimpy.util.tmp_timezone('Europe/Helsinki'):
+        # pd.Series as input
+        x = niimpy.util.to_datetime(pd.Series([0, 1]))
+        # This should be localtime in Europe/Helsinki
+        assert x[0].hour == 2
+
+        # raw unixtime list as input
+        x = niimpy.util.to_datetime([0, 1])
+        assert x[0].hour == 2
+
+    with niimpy.util.tmp_timezone('Europe/Berlin'):
+        x = niimpy.util.to_datetime(pd.Series([0, 1]))
+        # This should be localtime in Europe/Helsinki
+        assert x[0].hour == 1
+
+
+def test_df_normalize():
+    df = pd.DataFrame({'time': [0, 3600, 7200], 'x': [2, 3, 5]})
+    niimpy.util.df_normalize(df)
+    assert df['x']['1970-01-01 03:00:00'] == 3
+    assert df['datetime'][1].hour == 3
+
+    df = pd.DataFrame({'day': (['2018-01-01']*3), 'hour':[2, 3, 4], 'x': [2, 3, 5]})
+    print(df)
+    niimpy.util.df_normalize(df)
+    print(df)
+    assert df['x']['2018-01-01 03:00:00'] == 3
+    assert df.index[1].hour == 3
