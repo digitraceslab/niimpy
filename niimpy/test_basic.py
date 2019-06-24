@@ -1,9 +1,14 @@
 import datetime
+import os
 import pandas as pd
+import time
 
 import niimpy
 
 DATA = 'sampledata-singleuser.sqlite3'
+
+os.environ['TZ'] = 'Europe/Helsinki'
+time.tzset()
 
 def test_connect():
     data = niimpy.open(DATA)
