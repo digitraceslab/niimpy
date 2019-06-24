@@ -26,6 +26,7 @@ def test_firstlast():
     print(data.first('AwareScreen', user=niimpy.ALL))
     print(data.first('AwareScreen', user=niimpy.ALL))
     print(data.count('AwareScreen', user=niimpy.ALL))
+    print(data.exists('AwareScreen', user=niimpy.ALL))
 
 def test_start_end():
     data = niimpy.open(DATA)

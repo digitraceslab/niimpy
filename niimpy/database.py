@@ -169,7 +169,7 @@ class Data1(object):
                 user_stats[user][table_] = count
         return user_stats
 
-    def first(self, table, user, start=None, end=None, offset=None, _aggregate="min"):
+    def first(self, table, user, start=None, end=None, offset=None, _aggregate="min", _limit=None):
         """Return earliest data point.
 
         Return None if there is no data."""
@@ -183,7 +183,7 @@ class Data1(object):
                         """.format(table=table,
                                    aggregate=_aggregate,
                                    result_column_name='time' if _aggregate!='count' else 'count',
-                                   **self._sql(user=user, limit=None, offset=offset, start=start, end=end)),
+                                   **self._sql(user=user, limit=_limit, offset=offset, start=start, end=end)),
                         self.conn, params={'user':user, })
         if df.empty:
             return None
@@ -200,7 +200,14 @@ class Data1(object):
 
         See the "first" for more information."""
         return self.first(*args, _aggregate="count", **kwargs)
+    def exists(self, *args, **kwargs):
+        """Returns True if any data exists
 
+        Follows the same syntax as .first(), .last(), and .count(), but
+        the limit argument is not used.
+        """
+        kwargs.pop('limit', None)
+        return self.count(*args, _limit=1, **kwargs) >= 1
 
 
     def occurrence(self, table, user, bin_width=720, limit=None, offset=None, start=None, end=None):
