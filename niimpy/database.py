@@ -59,11 +59,18 @@ class Data1(object):
         tables = self.tables()
         for table in tables:
             if table == 'errors': continue
-            has_user_column = self.conn.execute("SELECT name FROM pragma_table_info(\"AwareScreen\") WHERE name='user'").fetchall()
-            if not has_user_column:
-                self._singleuser = True
-                print("Detected single-user database", file=sys.stderr)
-                return True
+            # Using pragma_table_info would be better, but this
+            # requires about sqlite 3.16 or above, which is a bit much
+            # (requires ubuntu 18.04 or anaconda).
+            try:
+                self.conn.execute("SELECT user FROM \"%s\" LIMIT 1"%table).fetchall()
+            except sqlite3.OperationalError as e:
+                if 'no such column' in e.args[0]:
+                    self._singleuser = True
+                    print("Detected single-user database", file=sys.stderr)
+                    return True
+                else:
+                    raise
         return False
 
     def execute(self, *args, **kwargs):
