@@ -49,6 +49,6 @@ def phq9_raw(db, user=ALL):
 
 
 def phq9_scores(db, user=ALL):
-    raw = phq9_raw(db)
+    raw = phq9_raw(db, user=user)
     scores = survey.sum_survey_scores(raw, "PHQ9")
     return scores
