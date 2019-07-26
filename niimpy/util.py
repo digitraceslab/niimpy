@@ -73,6 +73,8 @@ def occurrence(series, bin_width=720, grouping_width=3600):
 
     TODO: use the grouping_width option.
     """
+    if grouping_width != 3600:
+        raise ValueError("Changing grouping_width is not currently supported.")
     if grouping_width % bin_width != 0:
         raise ValueError("grouping_width must be a multiple of bin_width")
 
