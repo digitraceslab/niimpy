@@ -51,7 +51,7 @@ def install_extensions():
     if hashlib.sha256(open(SQLITE3_EXTENSIONS_BASENAME, 'rb').read()).hexdigest() != expected_digest:
         print("sqlite-extension-functions.c has wrong sha256 hash", file=sys.stderr)
     os.system('cd %s; gcc -lm -shared -fPIC sqlite-extension-functions.c -o sqlite-extension-functions.so'%
-              os.path.basename(os.path.dirname(__file__)))
+              os.path.dirname(__file__))
     print("Sqlite extension successfully compiled.")
 
 #TODO: reanme to data.py
