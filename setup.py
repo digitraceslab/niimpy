@@ -8,5 +8,5 @@ setup(name='Niimpy',
       author='Richard Darst',
       author_email='rkd@zgib.net',
       url='https://github.com/CxAalto/niimpy',
-      py_modules=['niimpy'],
+      packages=['niimpy'],
   )
