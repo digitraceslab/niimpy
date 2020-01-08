@@ -5,7 +5,7 @@ import time
 
 import niimpy
 
-DATA = 'sampledata-singleuser.sqlite3'
+DATA = niimpy.sampledata.DATA
 
 os.environ['TZ'] = 'Europe/Helsinki'
 time.tzset()

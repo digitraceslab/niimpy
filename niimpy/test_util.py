@@ -2,7 +2,8 @@ import os
 import pytest
 
 import niimpy
-from .test_basic import DATA
+
+DATA = niimpy.sampledata.DATA
 
 def test_install_extensions(capsys):
     """Test the compiling of the extensions"""
