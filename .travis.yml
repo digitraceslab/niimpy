@@ -4,6 +4,7 @@ python:
 #  - "2.7"  # sqlite3.enable_load_extension not available
   - "3.5"
   - "3.7"
+  - "3.8"
 matrix:
   fast_finish: true
 
