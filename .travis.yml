@@ -9,7 +9,11 @@ matrix:
 
 install:
   - pip install -r requirements.txt
-  - ( cd niimpy ; curl https://sqlite.org/contrib/download/extension-functions.c?get=25 > sqlite-extension-functions.c ; gcc -lm -shared -fPIC sqlite-extension-functions.c -o sqlite-extension-functions.so )
+  - python3 -c 'import niimpy ; niimpy.util.install_extensions()'
+
+# old way of installing extensions:
+#  - ( cd niimpy ; curl https://sqlite.org/contrib/download/extension-functions.c?get=25 > sqlite-extension-functions.c ; gcc -lm -shared -fPIC sqlite-extension-functions.c -o sqlite-extension-functions.so )
+
 
 script:
   - pytest

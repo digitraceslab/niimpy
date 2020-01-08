@@ -1,7 +1,10 @@
 import contextlib
 from dateutil.tz import tzlocal
 import numpy as np
+import os
 import pandas as pd
+import sys
+
 
 #SYSTEM_TZ = tzlocal()  # the operating system timezone - for sqlite output compat
 SYSTEM_TZ = 'Europe/Helsinki'
@@ -31,6 +34,25 @@ def tmp_timezone(new_tz):
     TZ = new_tz
     yield
     TZ = old_tz
+
+SQLITE3_EXTENSIONS_BASENAME = os.path.join(os.path.dirname(__file__), 'sqlite-extension-functions.c')
+SQLITE3_EXTENSIONS_FILENAME = os.path.join(os.path.dirname(__file__), 'sqlite-extension-functions.so')
+
+def install_extensions():
+    """Automatically install sqlite extension functions.
+
+    Only works on Linux for now, improvements welcome."""
+    import hashlib
+    if not os.path.exists(SQLITE3_EXTENSIONS_BASENAME):
+        import urllib.request
+        extension_url = 'https://sqlite.org/contrib/download/extension-functions.c?get=25'
+        urllib.request.urlretrieve(extension_url, SQLITE3_EXTENSIONS_BASENAME)
+    expected_digest = '991b40fe8b2799edc215f7260b890f14a833512c9d9896aa080891330ffe4052'
+    if hashlib.sha256(open(SQLITE3_EXTENSIONS_BASENAME, 'rb').read()).hexdigest() != expected_digest:
+        print("sqlite-extension-functions.c has wrong sha256 hash", file=sys.stderr)
+    os.system('cd %s; gcc -lm -shared -fPIC sqlite-extension-functions.c -o sqlite-extension-functions.so'%
+              os.path.basename(os.path.dirname(__file__)))
+    print("Sqlite extension successfully compiled.")
 
 #TODO: reanme to data.py
 

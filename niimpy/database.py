@@ -17,10 +17,6 @@ import pandas as pd
 
 from . import util
 
-# https://sqlite.org/contrib/download/extension-functions.c?get=25
-#SQLITE3_EXTENSIONS_FILENAME = '/m/cs/scratch/networks-nima/darst/sqlite-extension-functions.so'
-SQLITE3_EXTENSIONS_FILENAME = os.path.join(os.path.dirname(__file__), 'sqlite-extension-functions.so')
-
 class ALL:
     """Sentinel value for all users"""
     pass
@@ -42,13 +38,13 @@ class Data1(object):
         if not os.path.exists(db):
             raise FileNotFoundError("Database does not exist: {}".format(db))
         self.conn = sqlite3.connect(db)
-        if os.path.exists(SQLITE3_EXTENSIONS_FILENAME):
+        if os.path.exists(util.SQLITE3_EXTENSIONS_FILENAME):
             self.conn.enable_load_extension(True)
-            self.conn.load_extension(SQLITE3_EXTENSIONS_FILENAME)
+            self.conn.load_extension(util.SQLITE3_EXTENSIONS_FILENAME)
         else:
             print("SQLite3 extension module not available, some functions will not work.", file=sys.stderr)
             print("Future niimpy versions will improve this.", file=sys.stderr)
-            print("({0})".format(SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
+            print("({0})".format(util.SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
         self._singleuser = self._is_single_user()
 
     def _is_single_user(self):

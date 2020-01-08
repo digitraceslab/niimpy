@@ -25,6 +25,18 @@ best way to describe it is to look at the big picture:
 - ... but *you* need to do the real analysis work.  If you make good,
   generalizable functions, they can be added to `niimpy`.
 
+## Installation
+
+- This is a normal Python package to install.
+
+- After installing, compile the sqlite extensions by using `python3 -c
+  'import niimpy ; niimpy.util.install_extensions()'`.  This will
+  download and compile a C extension for sqlite, which is needed for
+  just some of niimpy (so installing is optional).  Installation is
+  one `.c` and `.so` file in the installed niimpy directory.  TODO:
+  make this work on Windows.  It may work on mac if you have a compile
+  (`gcc`) installed.
+
 ## Basic usage
 
 First, you need to download the data.  (Note: in normal use, this is
