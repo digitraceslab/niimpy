@@ -67,7 +67,7 @@ the core analysis with your own code.
 
 ## Documentation
 
-For now, see the included [Introduction.ipynb] and [Reference.ipynb]
+For now, see the included [docs/Introduction.ipynb] and [docs/Manual.ipynb]
 notebooks.
 
 To learn about what converters exist and what they mean, see the
