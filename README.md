@@ -27,7 +27,14 @@ best way to describe it is to look at the big picture:
 
 ## Installation
 
-- This is a normal Python package to install.
+- Only supports Python 3 (tested on 3.5 and above)
+
+- This is a normal Python package to install.  It is not currently in
+  PyPI, so can be installed manually
+
+  ```
+  pip install https://github.com/CxAalto/niimpy/archive/master.zip
+  ```
 
 - After installing, compile the sqlite extensions by using `python3 -c
   'import niimpy ; niimpy.util.install_extensions()'`.  This will
@@ -36,6 +43,10 @@ best way to describe it is to look at the big picture:
   one `.c` and `.so` file in the installed niimpy directory.  TODO:
   make this work on Windows.  It may work on mac if you have a compile
   (`gcc`) installed.
+
+  ```
+  python3 -c import niimpy ; niimpy.util.install_extensions()
+  ```
 
 ## Basic usage
 
