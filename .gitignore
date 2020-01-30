@@ -3,3 +3,4 @@ niimpy/sqlite-extension-functions.*
 /tmp/
 .cache
 /build
+/docs/_build
