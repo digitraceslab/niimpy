@@ -3,6 +3,8 @@ import os
 import pandas as pd
 import time
 
+import pytest
+
 import niimpy
 
 DATA = niimpy.sampledata.DATA
@@ -25,6 +27,25 @@ def test_tables():
 def test_user_table_counts():
     data = niimpy.open(DATA)
     print(data.user_table_counts())
+
+def test_username_validatation_singleuser():
+    data = niimpy.open(niimpy.sampledata.DATA)
+    with pytest.raises(ValueError):
+        data.validate_username('some_name')
+    # Should return the proper value
+    assert data.validate_username(niimpy.ALL)  == niimpy.ALL
+    assert data.validate_username(None) == niimpy.ALL
+
+def test_username_validatation_multiuser():
+    data = niimpy.open(niimpy.sampledata.MULTIUSER)
+    with pytest.raises(ValueError):   # None not allowed for multiuser
+        data.validate_username(None)
+    with pytest.raises(ValueError):   # Not a string
+        data.validate_username(5)
+    assert data.validate_username('jd9INuQ5BBlW') == 'jd9INuQ5BBlW'
+    # Username not in the DB, this does not raise an error currently:
+    assert data.validate_username('abcdefg') == 'abcdefg'
+    assert data.validate_username(niimpy.ALL) == niimpy.ALL
 
 def test_firstlast():
     data = niimpy.open(DATA)
