@@ -33,7 +33,7 @@ def test_sum_survey_scores():
 
 def test_sum_survey_scores_indexonly():
     df = df1.copy()
-    del df.index.name
+    df.index.name = None
     print(df)
 
     results = niimpy.survey.sum_survey_scores(df, 'S1')
