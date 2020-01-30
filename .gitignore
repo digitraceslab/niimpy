@@ -1,3 +1,5 @@
 .ipynb_checkpoints/
 niimpy/sqlite-extension-functions.*
 /tmp/
+.cache
+/build
