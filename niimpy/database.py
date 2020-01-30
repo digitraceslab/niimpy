@@ -153,6 +153,26 @@ class Data1(object):
             users |= {x[0] for x in self.conn.execute('SELECT DISTINCT user FROM "%s"'%table_)}
         return users
 
+    def validate_username(self, user):
+        """Validate a username, for single/multiuser database and so on.
+
+        This function considers if the database is single or multi-user,
+        and ensures a valid username or ALL.
+
+        It returns a valid username, so can be used as a wrapper, to handle
+        future special cases, e.g.
+           user = db.validate_username(user)
+        """
+        if self._singleuser:
+            if user not in (ALL, None):
+                raise ValueError("This is a single-user database and a user was given.")
+            if user is None:
+                user = ALL
+        else: # multiuser
+            if user is not ALL  and  not isinstance(user, str):
+                raise ValueError("This is a multi-user database, a user must be given as a string (or niimpy.ALL).")
+        return user
+
     def user_table_counts(self):
         """More detailed user stats"""
         if self._singleuser:
