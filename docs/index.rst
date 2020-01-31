@@ -10,7 +10,10 @@ Welcome to Niimpy's documentation!
    :maxdepth: 2
    :caption: Contents:
 
+   Introduction
+   Manual
 
+   api/modules
 
 Indices and tables
 ==================

@@ -1,6 +1,10 @@
 # Minimal makefile for Sphinx documentation
 #
 
+# To regenerate the apidoc:
+#   rm api/niimpy.*
+#   sphinx-apidoc -e -o api/ ../niimpy/
+
 # You can set these variables from the command line.
 SPHINXOPTS    =
 SPHINXBUILD   = python3 -m sphinx
