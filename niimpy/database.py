@@ -160,7 +160,8 @@ class Data1(object):
         and ensures a valid username or ALL.
 
         It returns a valid username, so can be used as a wrapper, to handle
-        future special cases, e.g.
+        future special cases, e.g.::
+
            user = db.validate_username(user)
         """
         if self._singleuser:

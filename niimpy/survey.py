@@ -3,7 +3,7 @@
 import pandas as pd
 
 def sum_survey_scores(df, survey_prefix, answer_column='answer', id_column='id'):
-    """Sum all columns (like PHQ9_) to get a survey score.
+    """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
     Input dataframe: has a DateTime index, an answer_column with numeric
     scores, and an id_column with question IDs like "PHQ9_1", "PHQ9_2",

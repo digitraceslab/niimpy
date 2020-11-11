@@ -1,4 +1,6 @@
 sphinx
 sphinx_rtd_theme
-nbsphinx
+myst-nb
+..
 -r ../requirements.txt
+-r ../requirements-dev.txt

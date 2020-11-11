@@ -20,10 +20,10 @@ def set_tz(tz):
 def tmp_timezone(new_tz):
     """Temporarily override the global timezone for a black.
 
-    This is used as a context manager:
+    This is used as a context manager::
 
-    with tmp_timezone('Europe/Berlin'):
-    ....
+      with tmp_timezone('Europe/Berlin'):
+          ....
 
     Note: this overrides the global timezone.  In the future, there will
     be a way to handle timezones as non-global variables, which should

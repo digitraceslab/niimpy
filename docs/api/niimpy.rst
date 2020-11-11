@@ -8,7 +8,6 @@ Submodules
 
    niimpy.aalto
    niimpy.database
-   niimpy.flycheck_survey
    niimpy.sampledata
    niimpy.survey
    niimpy.test_basic
