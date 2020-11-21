@@ -8,6 +8,8 @@
 from __future__ import print_function, division
 
 import datetime
+from math import sqrt
+from numbers import Number
 import os
 import sqlite3
 import sys
@@ -33,6 +35,38 @@ def open(db):
     """Open a database and return a Data1 object"""
     return Data1(db)
 
+
+# Online variance calculation
+# https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+class sqlite3_stdev:
+    """Sqlite sample standard deviation function in pure Python.
+
+    Edge cases:
+
+    - Empty list = nan (different than C function, which is zero)
+    - Ignores nan input values (does not count them).  (different than
+      numpy: returns nan)
+    - ignores non-numeric types (no conversion)
+    """
+    def __init__(self):
+        self.N = 0
+        self.mean = 0
+        self.M2 = 0
+    def step(self, value):
+        if not isinstance(value, Number):
+           return
+        self.N += 1
+        delta = value - self.mean
+        self.mean += delta / self.N
+        delta2 = value - self.mean
+        self.M2 += delta * delta2
+    def finalize(self):
+        if self.N == 0:
+            return float('nan')
+        return sqrt(self.M2 / self.N)
+
+
+
 class Data1(object):
     def __init__(self, db):
         if not os.path.exists(db):
@@ -42,6 +76,7 @@ class Data1(object):
             self.conn.enable_load_extension(True)
             self.conn.load_extension(util.SQLITE3_EXTENSIONS_FILENAME)
         else:
+            self.conn.create_aggregate("stdev", 1, sqlite3_stdev)
             print("SQLite3 extension module not available, some functions will not work.", file=sys.stderr)
             print("Future niimpy versions will improve this.", file=sys.stderr)
             print("({0})".format(util.SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
