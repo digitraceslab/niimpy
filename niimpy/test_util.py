@@ -5,6 +5,7 @@ import niimpy
 
 DATA = niimpy.sampledata.DATA
 
+@pytest.mark.skip(reason="ignoring extensions for now")
 def test_install_extensions(capsys):
     """Test the compiling of the extensions"""
     niimpy.util.install_extensions()
@@ -19,6 +20,7 @@ def test_install_extensions(capsys):
 
 
 #@pytest.mark.skip(reason="Don't excessively download, they may not like that")
+@pytest.mark.skip(reason="ignoring extensions for now")
 def test_install_extensions_notpresent(capsys):
     """Test the compiling of the extensions"""
     niimpy.util.uninstall_extensions()
