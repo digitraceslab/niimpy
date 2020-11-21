@@ -77,9 +77,9 @@ class Data1(object):
             self.conn.load_extension(util.SQLITE3_EXTENSIONS_FILENAME)
         else:
             self.conn.create_aggregate("stdev", 1, sqlite3_stdev)
-            print("SQLite3 extension module not available, some functions will not work.", file=sys.stderr)
-            print("Future niimpy versions will improve this.", file=sys.stderr)
-            print("({0})".format(util.SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
+            #print("SQLite3 extension module not available, some functions will not work.", file=sys.stderr)
+            #print("Future niimpy versions will improve this.", file=sys.stderr)
+            #print("({0})".format(util.SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
         self._singleuser = self._is_single_user()
 
     def _is_single_user(self):
