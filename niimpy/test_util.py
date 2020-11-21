@@ -15,20 +15,17 @@ def test_install_extensions(capsys):
     outputs = capsys.readouterr()
     assert 'not available' not in outputs.err
     assert 'not available' not in outputs.out
+    niimpy.util.uninstall_extensions()
 
 
 #@pytest.mark.skip(reason="Don't excessively download, they may not like that")
 def test_install_extensions_notpresent(capsys):
     """Test the compiling of the extensions"""
-    def unlink_if_exists(x):
-        if os.path.exists(x):
-            os.unlink(x)
-    unlink_if_exists(niimpy.util.SQLITE3_EXTENSIONS_FILENAME)
-    unlink_if_exists(niimpy.util.SQLITE3_EXTENSIONS_FILENAME)
+    niimpy.util.uninstall_extensions()
     # Test that it's really not there
     niimpy.open(DATA)
     outputs = capsys.readouterr()
-    assert 'not available' in outputs.err
+    assert 'not available' in outputs.err, "Extensions did not uninstall"
 
 
     niimpy.util.install_extensions()
@@ -36,4 +33,4 @@ def test_install_extensions_notpresent(capsys):
     outputs = capsys.readouterr()
     assert not outputs.err
     assert 'not available' not in outputs.err, "We have the warning when trying to install extensions"
-
+    niimpy.util.uninstall_extensions()

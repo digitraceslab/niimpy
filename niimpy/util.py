@@ -54,6 +54,14 @@ def install_extensions():
               os.path.dirname(__file__))
     print("Sqlite extension successfully compiled.")
 
+def uninstall_extensions():
+    """Uninstall any installed extensions"""
+    def unlink_if_exists(x):
+        if os.path.exists(x):
+            os.unlink(x)
+    unlink_if_exists(SQLITE3_EXTENSIONS_FILENAME)
+
+
 #TODO: reanme to data.py
 
 def df_normalize(df, old_tz=None):
