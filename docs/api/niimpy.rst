@@ -9,6 +9,7 @@ Submodules
    niimpy.aalto
    niimpy.database
    niimpy.sampledata
+   niimpy.preprocess
    niimpy.survey
    niimpy.test_basic
    niimpy.test_survey
