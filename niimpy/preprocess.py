@@ -117,7 +117,7 @@ def ambient_noise(database,subject,begin=None,end=None):
     NOTE: This function aggregates data by day. 
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -185,7 +185,7 @@ def shutdown_info(database,subject,begin=None,end=None):
     info data
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -227,7 +227,7 @@ def screen_off(database,subject,begin=None,end=None):
     info data
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -306,7 +306,7 @@ def get_seconds(time_delta):
     NOTE: This is a helper function 
     
     Parameters:
-    --------
+    -----------
     time_delta: Timedelta
     
     """
@@ -320,7 +320,7 @@ def app_duration(database,subject,begin=None,end=None,app_list_path=None):
     used in a day (in seconds). 
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -450,7 +450,7 @@ def call_info(database,subject,begin=None,end=None):
     frequent)
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -539,7 +539,7 @@ def sms_info(database,subject,begin=None,end=None):
     (most frequent with whom the subject exchanges texts)
         
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -618,7 +618,7 @@ def sms_duration(database,subject,begin,end):
     NOTE: The foundation of this function is still weak and needs discussion
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -735,7 +735,7 @@ def communication_info(database,subject,begin=None,end=None):
     the day. 
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -828,7 +828,7 @@ def occurrence_call_sms(database,subject,begin=None,end=None):
     hour. Then, the sum of these occurences yield the number per day. 
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -896,7 +896,7 @@ def occurrence_call_sms_apps(database,subject,begin=None,end=None,app_list_path=
     number per day. 
     
     Parameters:
-    --------
+    -----------
     database: Niimpy database
     user: string
     begin: datetime, optional

@@ -1,3 +1,5 @@
 python-dateutil
 numpy
 pandas
+matplotlib
+seaborn
