@@ -1,4 +1,4 @@
-.
+-e .
 myst-nb
 pytest
 sphinx
