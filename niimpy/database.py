@@ -1,4 +1,8 @@
+"""Read data from sqlite3 databases
 
+
+
+"""
 #
 # Conventions:
 #  time     column is unixtime
@@ -69,6 +73,11 @@ class sqlite3_stdev:
 
 class Data1(object):
     def __init__(self, db):
+        """Open the database.
+
+        Don't do anything yet, but stores the open connection object on
+        self.conn for future functions to use.
+        """
         if not os.path.exists(db):
             raise FileNotFoundError("Database does not exist: {}".format(db))
         self.conn = sqlite3.connect(db)
@@ -85,7 +94,10 @@ class Data1(object):
     def _is_single_user(self):
         """Detect if this is a single-user database
 
-        Currently this is run at the start and set per-database, not per-table.
+        Currently this is run at the start and set per-database, not
+        per-table.  A single-user database is missing a 'user' column
+        and thus requires a little bit of special-casing.  Not much, but
+        some.
         """
         tables = self.tables()
         for table in tables:
@@ -107,14 +119,23 @@ class Data1(object):
     def execute(self, *args, **kwargs):
         """Execute rauw SQL code.
 
-        Execute raw SQL.  Smply proxy all arguments to self.conn.execute()"""
+        Execute raw SQL.  Smply proxy all arguments to
+        self.conn.execute().  This is simply a convenience shortcut.
+        """
         return self.conn.execute(*args, **kwargs)
 
     def tables(self):
+        """List all tables that are inside of this database.
+
+        Returns a set."""
         return {x[0] for x in self.conn.execute('SELECT name FROM sqlite_master WHERE type="table"') if x[0]!='errors'}
 
     def _sql_where_user(self, user):
-        """SQL WHERE user={user} line, if needed."""
+        """Query generation convenience.
+
+        Generates a SQL "WHERE user={user}" line, if needed for this
+        database and query.
+        """
         if self._singleuser:
             return ""
         if user is ALL:
@@ -124,7 +145,11 @@ class Data1(object):
         raise ValueError("Specify user or user=niimpy.ALL for all users")
 
     def _sql_where_daterange(self, start, end):
-        """SQL WHERE start <= time AND time < end."""
+        """Query generation convenience.
+
+        Generates a SQL "WHERE start <= time AND time < end" line if
+        needed for this query.
+        """
         where = ""
         def to_timestamp(x):
             if isinstance(x, (int, float)): return x
@@ -138,7 +163,11 @@ class Data1(object):
         return where
 
     def _sql_select_user(self, user):
-        """SQL SELECT 'user, ' line, if needed."""
+        """Query generation convenience.
+
+        Generates a SQL "SELECT 'user, '" line, if needed.  This is
+        needed to support both single-user and multi-user databases.
+        """
         if self._singleuser:
             return ""
         if user is ALL:
@@ -148,7 +177,9 @@ class Data1(object):
         raise ValueError("Specify user or user=niimpy.ALL for all users")
 
     def _sql_limit(self, limit, offset=None):
-        """SQL LIMIT line, if needed."""
+        """Query generation convenience.
+
+        Generates a SQL "LIMIT ... OFFSET" line, if needed."""
         if offset is not None:
             if limit is None:  return "LIMIT -1 OFFSET %s"%(int(offset), )
             else:  return "LIMIT %s OFFSET %s"%(int(limit), int(offset))
@@ -156,17 +187,29 @@ class Data1(object):
         return 'LIMIT %s'%int(limit)
 
     def _sql_order_by(self, order=False):
+        """Query generation convenience.
+
+        Generates a SQL ORDER BY time line if needed."""
         if not order: return ""
         return "ORDER BY time"
 
 
     def _sql_group_by_user(self):
-        """SQL LIMIT line, if needed."""
+        """Query generation convenience.
+
+        Generates a SQL "GROUP BY user" line, if needed for this query."""
         if self._singleuser:
             return ""
         return "GROUP BY user"
 
     def _sql(self, user, limit=None, offset=None, order=False, start=None, end=None):
+        """Generate string substitutions for SQL queries.
+
+        This looks at the various function parameters and will return a
+        dict of substitutions for the query.  This makes the same query
+        work for both single- and multi-user databases, and avoid
+        reproducing logic where not needed.
+        """
         return dict(select_user=self._sql_select_user(user),
                     where_user=self._sql_where_user(user),
                     where_daterange=self._sql_where_daterange(start, end),
@@ -178,7 +221,7 @@ class Data1(object):
 
 
     def users(self, table=None):
-        """Set of all users in all tables"""
+        """Return set of all users in all tables"""
         if self._singleuser:
             return None
         if table is not None:  tables = [table]
@@ -210,7 +253,11 @@ class Data1(object):
         return user
 
     def user_table_counts(self):
-        """More detailed user stats"""
+        """Return table of number of data points per user, per table.
+
+        Return a dataframe of row=table, column=user, value=number of
+        counts of that user in that table.
+        """
         if self._singleuser:
             #print(self.tables())
             user_stats = pd.DataFrame(index=sorted(self.tables()), columns=("count",))
