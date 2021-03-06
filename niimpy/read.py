@@ -3,6 +3,7 @@
 """
 
 from . import database
+import pandas as pd
 
 def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, start=None, end=None):
     """Read DataFrame from sqlite3 database
@@ -39,3 +40,16 @@ def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, sta
     db = database.Data1(filename)
     return db.raw(table, user, limit=limit, offset=offset, start=start, end=end)
 
+def read_csv(filename):
+    """Read DataFrame from csv file
+
+        This will read data from a csv file.
+    
+        Parameters
+        ----------
+
+        filename : str
+            filename of csv file  
+    """   
+    return pd.read_csv(filename)
+     
