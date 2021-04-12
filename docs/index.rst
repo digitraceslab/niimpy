@@ -12,6 +12,8 @@ Welcome to Niimpy's documentation!
 
    Introduction
    Manual
+   schema
+   architecture
 
    api/modules
 
