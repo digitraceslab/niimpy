@@ -45,6 +45,8 @@ Typical input arguments include the DataFrame, and output is the
 DataFrame slightly adjusted, without affecting sensor-specific
 columns.
 
+These are mostly in ``niimpy.preprocessing``.
+
 Layer: basic analysis
 ---------------------
 
@@ -56,3 +58,5 @@ Layer: analysis
 
 These functions understand the sensor values and perform analysis
 based on them.
+
+These are often in modules specific to the type of analysis.

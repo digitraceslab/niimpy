@@ -28,11 +28,13 @@ readers for sqlite3 and csv.  Standards may be produced later.
 
 
 
-Standard columns
-----------------
+Standard columns in DataFrames
+------------------------------
 
 By having standard columns, we can create portable functions that
 easily operate on diverse data types.
+
+* The **DataFrame index** should be a ``pandas.DatetimeIndex``.
 
 * ``user``: opaque identifier for the user.  Often a string or
   integer.
@@ -42,9 +44,17 @@ easily operate on diverse data types.
   each would have a separate ``device`` identifier.
 
 * ``time``: timestamp of the observation, in unixtime (seconds
-  since 00:00 on 1970-01-01).  Unixtime is a globally unique measure
+  since 00:00 on 1970-01-01), stored as an integer.  Unixtime is a
+  globally unique measure
   of an instance of time on Earth, and to get localtime it is combined
   with a timezone.
+
+  In on-disk formats, ``time`` is considered the master timestamp,
+  many other time-based properties are computed from it (though you
+  could produce your own DataFrames other ways).  In some of the
+  standard formats (CSV/sqlite3), when a file is read, this integer
+  column is automatically converted to the ``datetime` column below
+  and the DataFrame index.
 
 * ``datetime``: a ``DateTime``-compatible object, such as in pandas a
   numpy.datetime64 object, used only in in-memory representations (not
@@ -54,7 +64,8 @@ easily operate on diverse data types.
 
   It is the responsibility of each loader (or preprocessor) to add
   this column to the in-memory representation by converting the
-  ``time`` column to this format.
+  ``time`` column to this format.  This happens automatically with
+  readers included in ``niimpy``.
 
 * ``timezone``: Timezone in some format.  Not yet used, to be
   decided.
@@ -80,6 +91,16 @@ These are not part of the primary schema, but are standard in Niimpy.
 
 * ``day``: e.g. ``2021-04-09`` (str)
 * ``hour``: hour of day, e.g. ``15`` (int)
+
+
+
+Standard columns in on-disk formats
+-----------------------------------
+
+For the most part, this maps directly to the columns you see above.
+An on-disk format should have a ``time`` column (unixtime, integer)
+plus whatever else is needed for that particular sensor, based on the
+above.
 
 
 
