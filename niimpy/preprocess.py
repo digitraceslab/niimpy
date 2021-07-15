@@ -15,6 +15,31 @@ import datetime
 import pytz
 import niimpy.aalto
 
+
+def date_range(df, begin, end):
+    """Extract out a certain date range from a DataFrame.
+
+    Extract out a certain data range from a dataframe.  The index must be the
+    dates, and the index must be sorted.
+    """
+
+    if(begin!=None):
+        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
+    else:
+        begin = df.index[0]
+    if(end!= None):
+        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
+    else:
+        end = df.index[-1]
+
+    df_new = df.loc[begin:end]
+    return df_new
+
+
+# Above this point is function that should *stay* in preprocess.py
+# Below this is functions that may or may not be moved.
+
+
 def get_subjects(database):
     """ Returns a list of the subjects in the database
         Parameters
@@ -55,7 +80,7 @@ def get_phq9(database,subject):
     return phq9
 
 #surveys
-def daily_affect_variability(database,subject):
+def daily_affect_variability(questions, subject=None):
     """ Returns two DataFrames corresponding to the daily affect variability and 
     mean daily affect, both measures defined in the OLO paper available in 
     10.1371/journal.pone.0110907. In brief, the mean daily affect computes the 
@@ -64,21 +89,26 @@ def daily_affect_variability(database,subject):
     the standard deviation of each of the 7 questions. 
     
     NOTE: This function aggregates data by day. 
-    
+
     Parameters:
     --------
-    database: Niimpy database
-    user: string
-    
+    questions: DataFrame with subject data (or database for backwards compatibility)
+    subject: string, optional (backwards compatibility only, in the future do filtering before).
+
     Returns:
     --------
     DLA_mean: mean of the daily affect 
     DLA_std: standard deviation of the daily affect
     """
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(subject, str),"user not given in string format"
 
-    questions = database.raw(table='AwareHyksConverter', user=subject)
+    # Backwards compatibilty if a database was passed
+    if isinstance(questions, niimpy.database.Data1):
+        questions = questions.raw(table='AwareHyksConverter', user=subject)
+    # Maintain backwards compatibility in the case subject was passed and
+    # questions was *not* a dataframe.
+    elif isinstance(subject, string):
+        questions = questions[questions['user'] == subject]
+
     questions=questions[(questions['id']=='olo_1_1') | (questions['id']=='olo_1_2') | (questions['id']=='olo_1_3') | (questions['id']=='olo_1_4') | (questions['id']=='olo_1_5') | (questions['id']=='olo_1_6') | (questions['id']=='olo_1_7') | (questions['id']=='olo_1_8')]
     questions['answer']=pd.to_numeric(questions['answer'])
     questions = questions.drop(['device', 'time', 'user'], axis=1)
@@ -105,7 +135,7 @@ def daily_affect_variability(database,subject):
     return DLA_std, DLA_mean
 
 #Ambient Noise
-def ambient_noise(database,subject,begin=None,end=None):
+def ambient_noise(noise, subject, begin=None, end=None):
     """ Returns a Dataframe with 5 possible computations regarding the noise
     ambient plug-in: average decibels, average frequency, number of times when 
     there was noise in the day, number of times when there was a loud noise in 
@@ -118,8 +148,8 @@ def ambient_noise(database,subject,begin=None,end=None):
     
     Parameters:
     -----------
-    database: Niimpy database
-    user: string
+    noise: DataFrame with subject data (or database for backwards compatibility)
+    subject: string, optional (backwards compatibility only, in the future do filtering before).
     begin: datetime, optional
     end: datetime, optional
 
@@ -127,28 +157,27 @@ def ambient_noise(database,subject,begin=None,end=None):
     Returns:
     --------
     avg_noise: Dataframe
-    
+
     """
-    
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(subject, str),"user not given in string format"
-    
-    noise = database.raw(table='AwareAmbientNoise', user=subject)
-    
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
-    else:
-        begin = noise.iloc[0]['datetime']
-    if(end!= None):
-        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"  
-    else:
-        end = noise.iloc[len(noise)-1]['datetime']
-    
-    noise = noise.drop(['device','user','time','double_silence_threshold','double_rms','blob_raw'],axis=1)
+
+    # Backwards compatibilty if a database was passed
+    if isinstance(noise, niimpy.database.Data1):
+        noise = noise.raw(table='AwareAmbientNoise', user=subject)
+    # Maintain backwards compatibility in the case subject was passed and
+    # questions was *not* a dataframe.
+    elif isinstance(subject, string):
+        noise = noise[noise['user'] == subject]
+
+    # Shrink the dataframe down to only what we need
+    noise = noise[['double_frequency', 'is_silent', 'double_decibels', 'datetime']]
+
+    # Extract the data range (In the future should be done before this function
+    # is called.)
+    if begin is not None or end is not None:
+        noise = date_range(noise, begin, end)
+
     noise['is_silent']=pd.to_numeric(noise['is_silent'])
-    
-    noise = noise.loc[begin:end]
-    
+
     loud = noise[noise.double_decibels>70] #check if environment was noisy
     speech = noise[noise['double_frequency'].between(65, 255)]
     speech = speech[speech.is_silent==0] #check if there was a conversation
