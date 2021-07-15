@@ -67,7 +67,9 @@ def uninstall_extensions():
 def df_normalize(df, old_tz=None):
     """Normalize a df (from sql) before presenting it to the user.
 
-    Modifies the data frame inplace."""
+    This sets the dataframe index to the time values, and converts times
+    to pandas.TimeStamp:s.  Modifies the data frame inplace.
+    """
     if 'time' in df:
         df.index = to_datetime(df['time'])
         df.index.name = None
