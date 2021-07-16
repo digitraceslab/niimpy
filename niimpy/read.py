@@ -3,6 +3,7 @@
 """
 
 from . import database
+from . import util
 import pandas as pd
 
 def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, start=None, end=None):
@@ -44,12 +45,16 @@ def read_csv(filename):
     """Read DataFrame from csv file
 
         This will read data from a csv file.
-    
+
         Parameters
         ----------
 
         filename : str
-            filename of csv file  
-    """   
-    return pd.read_csv(filename)
-     
+            filename of csv file
+    """
+    df = pd.read_csv(filename)
+
+    # df_normalize converts sets the index to time values and does other time
+    # conversions.  Inplace.
+    util.df_normalize(df)
+    return df
