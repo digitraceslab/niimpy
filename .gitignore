@@ -4,3 +4,4 @@ niimpy/sqlite-extension-functions.*
 .cache
 /build
 /docs/_build
+MANIFEST
