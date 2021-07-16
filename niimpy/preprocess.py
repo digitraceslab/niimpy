@@ -1110,7 +1110,7 @@ def occurrence_call_sms_social(database,subject,begin=None,end=None,app_list_pat
 def location_data(database,subject,begin=None,end=None):
     """ Reads the readily, preprocessed location data from the right database. 
     The data already contains the aggregation of the GPS data (more info here:
-    https://github.com/CxAalto/koota-server/blob/master/kdata/converter.py). 
+    https://github.com/digitraceslab/koota-server/blob/master/kdata/converter.py).
         
     Parameters:
     --------
