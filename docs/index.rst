@@ -16,16 +16,16 @@ provides many high-level functions for various types of data.
 
    introduction
    file-formats
+   pandas-background
    basic-transformations
    preprocessing
    summary-statistics
-   Manual
 
 .. toctree::
    :maxdepth: 1
    :caption: Data stream analysis
 
-   data-streams
+   survey
 
 
 
