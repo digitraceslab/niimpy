@@ -1,6 +1,7 @@
 -e .
 myst-nb
+nbdime
 pytest
-sphinx
 sphinx_rtd_theme
+sphinx
 -r requirements.txt
