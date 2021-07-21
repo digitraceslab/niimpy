@@ -53,7 +53,7 @@ easily operate on diverse data types.
   many other time-based properties are computed from it (though you
   could produce your own DataFrames other ways).  In some of the
   standard formats (CSV/sqlite3), when a file is read, this integer
-  column is automatically converted to the ``datetime` column below
+  column is automatically converted to the ``datetime`` column below
   and the DataFrame index.
 
 * ``datetime``: a ``DateTime``-compatible object, such as in pandas a
