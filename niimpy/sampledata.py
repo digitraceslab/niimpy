@@ -17,3 +17,6 @@ MULTIUSER_AWARESCREEN_CSV = os.path.join(_dirname, 'multiuser_AwareScreen.csv')
 
 # A simple single-user csv dataset
 DATA2_CSV = os.path.join(_dirname, 'AwareBattery.csv')
+
+# A syntethic survey PHQ9 dataset
+SURVEY_PHQ9 = os.path.join(_dirname, 'survey_phq9.csv')
