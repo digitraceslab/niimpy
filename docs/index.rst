@@ -15,7 +15,7 @@ provides many high-level functions for various types of data.
    :caption: Basics
 
    introduction
-   file-formats
+   input-formats
    pandas-background
    basic-transformations
    preprocessing
