@@ -20,9 +20,11 @@ jobs:
       - name: install deps
         run: |
           pip install -r requirements.txt -r requirements-dev.txt
-      - name: setup extension
-        run: |
-          python -c 'import niimpy ; niimpy.util.install_extensions()'
+      # sqlite3 extension is no urgently needed anymore; no longer required
+      # by default
+      #- name: setup extension
+      #  run: |
+      #    python -c 'import niimpy ; niimpy.util.install_extensions()'
       - name: pytest
         run: |
           pytest
