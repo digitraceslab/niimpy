@@ -14,6 +14,7 @@ from . import sampledata
                           'DATA2_CSV',
                           'MULTIUSER_AWAREBATTERY_CSV',
                           'MULTIUSER_AWARESCREEN_CSV',
+                          'SURVEY_PHQ9',
                           ])
 def test_sampledata_csv(datafile):
     """Test existence of reading of CSV sampledata"""
