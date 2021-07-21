@@ -74,6 +74,32 @@ To learn about what converters exist and what they mean, see the
 [Koota wiki](https://github.com/digitraceslab/koota-server/wiki), in
 particular the data sources section.
 
+## Development
+
+This is a pretty typical Python project with code and documentation as
+you might expect.
+
+`requirements-dev.txt` contains some basic dev requirements, which
+includes a editable dev install of niimpy itself (`pip install -e`).
+
+Run tests with:
+```
+pytest .
+```
+
+Documentation is built with Sphinx:
+```
+cd docs
+make html
+# output in _build/html/
+```
+
+Enable nbdime Jupyter notebook diff and merge via git with:
+```
+nbdime config-git --enable
+```
+
+
 ## See also
 
 * To learn about pandas, see its documentation.  It is *not* the most

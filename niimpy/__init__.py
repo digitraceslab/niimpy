@@ -1,4 +1,4 @@
-__version__ = 'dev'
+from ._version import __version__
 
 from .database import open, Data1, ALL
 from . import util
