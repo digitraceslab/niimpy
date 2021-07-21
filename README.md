@@ -3,7 +3,7 @@
 `niimpy` is a Python package for managing individual-level data.  The
 best way to describe it is to look at the big picture:
 
-- [koota-server](https://github.com/CxAalto/koota-server) is a
+- [koota-server](https://github.com/digitraceslab/koota-server) is a
   platform for collecting data from different sources, managing it for
   users and studies, and downloading it.  Before downloading, it can
   be converted into tabular format.
@@ -33,20 +33,9 @@ best way to describe it is to look at the big picture:
   PyPI, so can be installed manually
 
   ```
-  pip install https://github.com/CxAalto/niimpy/archive/master.zip
+  pip install https://github.com/digitraceslab/niimpy/archive/master.zip
   ```
 
-- After installing, compile the sqlite extensions by using `python3 -c
-  'import niimpy ; niimpy.util.install_extensions()'`.  This will
-  download and compile a C extension for sqlite, which is needed for
-  just some of niimpy (so installing is optional).  Installation is
-  one `.c` and `.so` file in the installed niimpy directory.  TODO:
-  make this work on Windows.  It may work on mac if you have a compile
-  (`gcc`) installed.
-
-  ```
-  python3 -c import niimpy ; niimpy.util.install_extensions()
-  ```
 
 ## Basic usage
 
@@ -82,7 +71,7 @@ For now, see the included [docs/Introduction.ipynb] and [docs/Manual.ipynb]
 notebooks.
 
 To learn about what converters exist and what they mean, see the
-[Koota wiki](https://github.com/CxAalto/koota-server/wiki), in
+[Koota wiki](https://github.com/digitraceslab/koota-server/wiki), in
 particular the data sources section.
 
 ## Development
