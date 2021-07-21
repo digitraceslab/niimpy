@@ -110,7 +110,7 @@ class Data1(object):
             except sqlite3.OperationalError as e:
                 if 'no such column' in e.args[0]:
                     self._singleuser = True
-                    print("Detected single-user database", file=sys.stderr)
+                    #print("Detected single-user database", file=sys.stderr)
                     return True
                 else:
                     raise
