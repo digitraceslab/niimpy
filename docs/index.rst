@@ -17,6 +17,8 @@ provides many high-level functions for various types of data.
    introduction
    file-formats
    basic-transformations
+   preprocessing
+   summary-statistics
    Manual
 
 .. toctree::
