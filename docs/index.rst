@@ -3,19 +3,45 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to Niimpy's documentation!
-==================================
+Niimpy: behavioral data analysis
+================================
+
+Niimpy is a Python package for analyzing behavioral data.  It uses
+pandas to read data from disk, perform basic manipulations, and
+provides many high-level functions for various types of data.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Introduction
 
-   Introduction
+   introduction
+   file-formats
+   basic-transformations
    Manual
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Data stream analysis
+
+   data-streams
+
+
+
+.. toctree::
+   :maxdepth: 2
+   :caption: Reference
+
    schema
    architecture
+   database
 
    api/modules
+
+.. toctree::
+   :caption: Development
+
+   adding-features
+
 
 Indices and tables
 ==================
