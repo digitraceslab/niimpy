@@ -9,6 +9,6 @@ setup(name='Niimpy',
       author_email='rkd@zgib.net',
       url='https://github.com/CxAalto/niimpy',
       packages=['niimpy'],
-      package_data={'niimpy': ['sampledata/*.sqlite3']},
+      package_data={'niimpy': ['sampledata/*.sqlite3', 'sampledata/*.csv']},
       include_package_data=True,
   )
