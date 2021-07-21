@@ -52,18 +52,24 @@ def read_sqlite_tables(filename):
 
 
 
-def read_csv(filename):
+def read_csv(filename, read_csv_options={}):
     """Read DataFrame from csv file
 
-        This will read data from a csv file.
+    This will read data from a csv file and then process the result with
+    `niimpy.util.df_normalize`.
 
-        Parameters
-        ----------
 
-        filename : str
-            filename of csv file
+    Parameters
+    ----------
+
+    filename : str
+        filename of csv file
+
+    read_csv_options: dict
+        Dictionary of options to pandas.read_csv, if this is necessary for custom
+        csv files.
     """
-    df = pd.read_csv(filename)
+    df = pd.read_csv(filename, **read_csv_options)
 
     # df_normalize converts sets the index to time values and does other time
     # conversions.  Inplace.
