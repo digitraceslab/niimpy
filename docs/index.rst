@@ -12,7 +12,7 @@ provides many high-level functions for various types of data.
 
 .. toctree::
    :maxdepth: 2
-   :caption: Introduction
+   :caption: Basics
 
    introduction
    file-formats
