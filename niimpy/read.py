@@ -41,6 +41,17 @@ def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, sta
     db = database.Data1(filename)
     return db.raw(table, user, limit=limit, offset=offset, start=start, end=end)
 
+def read_sqlite_tables(filename):
+    """Return names of all tables in this database
+
+    Return a set of all tables contained in this database.  This may be
+    useful when you need to see what data is available within a database.
+    """
+    db = database.Data1(filename)
+    return db.tables()
+
+
+
 def read_csv(filename):
     """Read DataFrame from csv file
 
