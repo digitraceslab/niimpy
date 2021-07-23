@@ -1166,7 +1166,7 @@ def location_data(database,subject,begin=None,end=None):
     return location
 
 #Screen
-def screen_duration(database,subject,begin=None,end=None):
+def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     """ Returns two DataFrames contanining the duration and number of events for
     the screen transitions (ON to OFF, OFF to ON, OFF to IN USE, IRRELEVANT
     transitions). E.g. duration (in seconds) of the phone being ON during a day,
@@ -1186,30 +1186,25 @@ def screen_duration(database,subject,begin=None,end=None):
     count: Dataframe
 
     """
-
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(subject, str),"usr not given in string format"
-
-    screen = database.raw(table='AwareScreen', user=subject)
-
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
-    else:
-        begin = screen.iloc[0]['datetime']
-    if(end!= None):
-        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
-    else:
-        end = screen.iloc[len(screen)-1]['datetime']
+    screen  = niimpy.read._read_sqlite_auto(screen, table='AwareScreen', user=subject)
+    screen  = niimpy.filter_dataframe(screen, begin=begin, end=end)
 
     screen=screen.drop_duplicates(subset=['datetime'],keep='first')
-    screen = screen.drop(['device','user','time'],axis=1)
+    #screen = screen.drop(['device','user','time'],axis=1)
+    screen = screen[['screen_status', 'datetime']]
+
     screen=screen.loc[begin:end]
     screen['screen_status']=pd.to_numeric(screen['screen_status'])
 
+    # If battery is None, then we must have been passed a database, so
+    # use that in the calling of 'shutdown'.
+    if battery is None and isinstance(screen, niimpy.database.Data1):
+        battery = screen
     #Include the missing points that are due to shutting down the phone
-    shutdown = shutdown_info(database,subject,begin,end)
+    shutdown = shutdown_info(battery,subject,begin,end)
     shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
     shutdown['screen_status']=0
+
     screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
     screen['screen_status'] = screen.fillna(0)['screen_status_x'] + screen.fillna(0)['screen_status_y']
     screen = screen.drop(['screen_status_x','screen_status_y'],axis=1)
