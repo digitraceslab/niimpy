@@ -226,22 +226,10 @@ def shutdown_info(database,subject,begin=None,end=None):
     shutdown: Dataframe
 
     """
+    bat = niimpy.read._read_sqlite_auto(database, table='AwareBattery', user=subject)
+    bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
 
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(subject, str),"user not given in string format"
-
-    bat=database.raw(table='AwareBattery', user=subject)
-
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
-    else:
-        begin = bat.iloc[0]['datetime']
-    if(end!= None):
-        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
-    else:
-        end = bat.iloc[len(bat)-1]['datetime']
-
-    bat = bat.drop(columns=['device','user','time','battery_health','battery_adaptor','battery_level'])
+    bat = bat[['battery_status', 'datetime']]
     bat=bat.loc[begin:end]
     bat['battery_status']=pd.to_numeric(bat['battery_status'])
     shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
