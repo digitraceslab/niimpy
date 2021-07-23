@@ -15,6 +15,9 @@ def sum_survey_scores(df, survey_prefix, answer_column='answer', id_column='id')
 
     survey: The servey prefix in the 'id' column, e.g. 'PHQ9'.  An '_' is appended.
     """
+    # TODO: drop duplicate options
+    # TODO: support caterogization ('categories' option which gets
+    #       added to dataframe and grouped by)
     if survey_prefix is not None:
         answers = df[df[id_column].str.startswith(survey_prefix+'_')]
     else:
