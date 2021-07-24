@@ -1290,7 +1290,10 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     screen = screen[~((screen.group==1) & (screen.duration>thr))]
 
     #Finally organize everything
-    duration=pd.pivot_table(screen,values='duration',index='datetime', columns='group', aggfunc=np.sum)
+    # Somehow aggfunc=np.sum fails and makes an empty DataFrame.  But
+    # passing it through a lambda indirection does work.  This is
+    # needed in pandas>=1.30.
+    duration=screen.pivot_table(values='duration',index='datetime', columns='group', aggfunc=lambda x: np.sum(x))
     #duration['total']=duration.sum(axis=1)
     #mean_hours=duration['total'].mean()
     #print('mean hours in record per day: ' + str(mean_hours))
