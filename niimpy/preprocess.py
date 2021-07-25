@@ -22,7 +22,9 @@ def date_range(df, begin, end):
     Extract out a certain data range from a dataframe.  The index must be the
     dates, and the index must be sorted.
     """
-
+    # TODO: is this needed?  Do normal pandas operation, timestamp
+    # checking is not really needed (and limits the formats that can
+    # be used, pandas can take more than pd.Timestamp)
     if(begin!=None):
         assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
     else:
@@ -47,6 +49,7 @@ def get_subjects(database):
         database: database
 
     """
+    # TODO: deprecate, user should do ['user'].unique() on dataframe themselves
     assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
 
     questions = database.raw(table='AwareHyksConverter', user=niimpy.ALL)
@@ -66,6 +69,7 @@ def get_phq9(database,subject):
     phq9: Dataframe with the phq9 score
 
     """
+    # TODO: Most of this logic can be moved to sum_survey_cores
     assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
     assert isinstance(subject, str),"user not given in string format"
 
@@ -100,7 +104,7 @@ def daily_affect_variability(questions, subject=None):
     DLA_mean: mean of the daily affect
     DLA_std: standard deviation of the daily affect
     """
-
+    # TODO: The daily summary (mean/std) seems useful, can we generalize?
     # Backwards compatibilty if a database was passed
     if isinstance(questions, niimpy.database.Data1):
         questions = questions.raw(table='AwareHyksConverter', user=subject)
@@ -159,7 +163,8 @@ def ambient_noise(noise, subject, begin=None, end=None):
     avg_noise: Dataframe
 
     """
-
+    # TODO: move to niimpy.noise
+    # TODO: add arguments for frequency/decibels/silence columns
     # Backwards compatibilty if a database was passed
     if isinstance(noise, niimpy.database.Data1):
         noise = noise.raw(table='AwareAmbientNoise', user=subject)
@@ -228,6 +233,7 @@ def shutdown_info(database,subject,begin=None,end=None):
     """
     bat = niimpy.read._read_sqlite_auto(database, table='AwareBattery', user=subject)
     bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
+    # TODO: move to niimpy.battery
 
     bat = bat[['battery_status', 'datetime']]
     bat=bat.loc[begin:end]
@@ -256,6 +262,8 @@ def screen_off(database,subject,begin=None,end=None):
     screen: Dataframe
 
     """
+    # TODO: niimpy.screen
+    # TODO: take a new argument of 'shutdown events'
 
     assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
     assert isinstance(subject, str),"user not given in string format"
