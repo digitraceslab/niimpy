@@ -231,7 +231,7 @@ def shutdown_info(database,subject,begin=None,end=None):
     shutdown: Dataframe
 
     """
-    bat = niimpy.read._read_sqlite_auto(database, table='AwareBattery', user=subject)
+    bat = niimpy.read._get_dataframe(database, table='AwareBattery', user=subject)
     bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
     # TODO: move to niimpy.battery
 
@@ -1194,7 +1194,7 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     count: Dataframe
 
     """
-    screen  = niimpy.read._read_sqlite_auto(screen, table='AwareScreen', user=subject)
+    screen  = niimpy.read._get_dataframe(screen, table='AwareScreen', user=subject)
     screen  = niimpy.filter_dataframe(screen, begin=begin, end=end)
 
     screen=screen.drop_duplicates(subset=['datetime'],keep='first')

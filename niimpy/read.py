@@ -50,25 +50,32 @@ def read_sqlite_tables(filename):
     db = database.Data1(filename)
     return db.tables()
 
-def _read_sqlite_auto(df_or_database, table, user=None):
+def _get_dataframe(df_or_database, table, user=None):
     """Read from database or directly use DataFrame
 
     Functions used to accept a database only, now the standard is
     dataframe.  This provides some backwards compatability between the
     old and new systems: DataFrames are used as-is, but if a database is
     given, it extracts the right information out of the table (and does
-    what the database used to do to filter by user).
+    what the database used to do to filter by user).  This function
+    could also be used to transparently accept other types of data
+    inputs.
+
+    If input is:
+
+    - DataFrame: pass unchanged, but filter 'user' column
+    - Database: extract the given table/user using .raw() and return
 
     A typical usage is::
 
         def function(df):
             # 'df' could be a DataFrame or database
-            df = _read_sqlite_auto(df, 'TableName')
+            df = _get_dataframe(df, 'TableName')
             # 'df' is now always a DataFrame
 
     Returns
     -------
-    df : DataFrame
+    df : DataFrame (same one if possible)
 
     """
     if isinstance(df_or_database, database.Data1):
