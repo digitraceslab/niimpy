@@ -1216,9 +1216,7 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
     screen['screen_status'] = screen.fillna(0)['screen_status_x'] + screen.fillna(0)['screen_status_y']
     screen = screen.drop(['screen_status_x','screen_status_y'],axis=1)
-    dates=screen.datetime_x.combine_first(screen.datetime_y)
-    screen['datetime']=dates
-    screen = screen.drop(['datetime_x','datetime_y'],axis=1)
+    screen['datetime']=screen.index
 
     #Detect missing data points
     screen['missing']=0
