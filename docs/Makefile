@@ -22,3 +22,9 @@ help:
 # "make mode" option.  $(O) is meant as a shortcut for $(SPHINXOPTS).
 %: Makefile
 	@$(SPHINXBUILD) -M $@ "$(SOURCEDIR)" "$(BUILDDIR)" $(SPHINXOPTS) $(O)
+
+# Regenerate apidocs, needs to be re-run when new modules are made (or
+# run as part of doc build process)
+apidoc:
+	rm api/niimpy.*
+	sphinx-apidoc --force -e -H "niimpy API docs" -o api/ ../niimpy/ '../niimpy/test_*'

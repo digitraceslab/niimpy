@@ -5,21 +5,23 @@ Submodules
 ----------
 
 .. toctree::
+   :maxdepth: 4
 
    niimpy.aalto
    niimpy.database
-   niimpy.sampledata
+   niimpy.filter
    niimpy.preprocess
+   niimpy.read
+   niimpy.sampledata
+   niimpy.subject_selection
    niimpy.survey
-   niimpy.test_basic
-   niimpy.test_survey
-   niimpy.test_util
    niimpy.util
+   niimpy.viz
 
 Module contents
 ---------------
 
 .. automodule:: niimpy
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

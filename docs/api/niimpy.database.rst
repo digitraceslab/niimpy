@@ -1,7 +1,7 @@
-niimpy\.database module
-=======================
+niimpy.database module
+======================
 
 .. automodule:: niimpy.database
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:
