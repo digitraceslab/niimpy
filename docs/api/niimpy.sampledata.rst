@@ -1,7 +1,7 @@
-niimpy\.sampledata module
-=========================
+niimpy.sampledata module
+========================
 
 .. automodule:: niimpy.sampledata
-    :members:
-    :undoc-members:
-    :show-inheritance:
+   :members:
+   :undoc-members:
+   :show-inheritance:

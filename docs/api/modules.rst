@@ -1,5 +1,5 @@
-niimpy module index
-===================
+niimpy API docs
+===============
 
 .. toctree::
    :maxdepth: 4

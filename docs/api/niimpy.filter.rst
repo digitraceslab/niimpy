@@ -1,7 +1,7 @@
-niimpy.survey module
+niimpy.filter module
 ====================
 
-.. automodule:: niimpy.survey
+.. automodule:: niimpy.filter
    :members:
    :undoc-members:
    :show-inheritance:

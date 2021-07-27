@@ -1,7 +1,7 @@
-niimpy.util module
+niimpy.read module
 ==================
 
-.. automodule:: niimpy.util
+.. automodule:: niimpy.read
    :members:
    :undoc-members:
    :show-inheritance:

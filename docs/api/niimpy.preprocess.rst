@@ -1,8 +1,7 @@
-niimpy\.preprocess module
-=========================
+niimpy.preprocess module
+========================
 
 .. automodule:: niimpy.preprocess
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
+   :members:
+   :undoc-members:
+   :show-inheritance:
