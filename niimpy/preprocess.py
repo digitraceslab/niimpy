@@ -1260,12 +1260,12 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     screen=screen.rename(columns={'missing':'group'})
     screen['next']=screen['screen_status'].shift(-1)
     screen['next']=screen['screen_status'].astype(int).astype(str)+screen['screen_status'].shift(-1).fillna(0).astype(int).astype(str)
-    screen.group[(screen.next=='01') | (screen.next=='02')]=1
-    screen.group[(screen.next=='03') | (screen.next=='13') | (screen.next=='23')]=2
-    screen.group[(screen.next=='12') | (screen.next=='21') | (screen.next=='31') | (screen.next=='32')]=3
+    screen.loc[(screen.next=='01') | (screen.next=='02'), 'group']=1
+    screen.loc[(screen.next=='03') | (screen.next=='13') | (screen.next=='23'), 'group']=2
+    screen.loc[(screen.next=='12') | (screen.next=='21') | (screen.next=='31') | (screen.next=='32'), 'group']=3
     del screen['next']
     screen['group'] = screen['group'].shift(1)
-    screen.loc[:1,'group']=0
+    screen.loc[screen.index[:1],'group']=0
     del screen['screen_status']
 
     '''
