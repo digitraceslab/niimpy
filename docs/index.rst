@@ -45,6 +45,14 @@ provides many high-level functions for various types of data.
    adding-features
 
 
+.. toctree::
+   :caption: Data documentation
+   :maxdepth: 1
+
+   data-sources
+   aware
+
+
 Indices and tables
 ==================
 
