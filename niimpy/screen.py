@@ -115,7 +115,8 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     # Drop duplicates based on index
     screen = screen.groupby(screen.index).first()
     #screen = screen.drop(['device','user','time'],axis=1)
-    screen = screen[['screen_status', 'datetime']]
+    screen = screen[['screen_status']]
+    screen['datetime'] = screen.index
 
     screen=screen.loc[begin:end]
     screen['screen_status']=pd.to_numeric(screen['screen_status'])
@@ -128,6 +129,7 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     shutdown = preprocess.shutdown_info(battery,subject,begin,end)
     shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
     shutdown['screen_status']=0
+    shutdown['datetime'] = shutdown.index
 
     screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
     screen['screen_status'] = screen.fillna(0)['screen_status_x'] + screen.fillna(0)['screen_status_y']
