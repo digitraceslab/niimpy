@@ -83,6 +83,7 @@ def screen_off(screen,subject=None,begin=None,end=None,battery=None):
     #Select only those OFF events
     screen = screen[screen.screen_status == 0]
     del screen['missing']
+    del screen['datetime']
     return screen
 
 
@@ -225,4 +226,7 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     duration = duration.apply(preprocess.get_seconds,axis=1)
     count=pd.pivot_table(screen,values='duration',index='datetime', columns='group', aggfunc='count')
     count.columns = count.columns.map({0.0: 'off_count', 1.0: 'on_count', 2.0: 'use_count', 3.0: 'irrelevant_count', 4.0: 'total_count'})
+    # reset index names
+    duration.index.name = None
+    count.index.name = None
     return duration, count
