@@ -107,7 +107,8 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     screen  = niimpy.read._get_dataframe(screen, table='AwareScreen', user=subject)
     screen  = niimpy.filter_dataframe(screen, begin=begin, end=end)
 
-    screen=screen.drop_duplicates(subset=['datetime'],keep='first')
+    # Drop duplicates based on index
+    screen = screen.groupby(screen.index).first()
     #screen = screen.drop(['device','user','time'],axis=1)
     screen = screen[['screen_status', 'datetime']]
 
