@@ -238,7 +238,10 @@ def shutdown_info(database,subject,begin=None,end=None):
     bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
     # TODO: move to niimpy.battery
 
-    bat = bat[['battery_status', 'datetime']]
+    if 'datetime' in bat.columns:
+        bat = bat[['battery_status', 'datetime']]
+    else:
+        bat = bat[['battery_status']]
     bat=bat.loc[begin:end]
     bat['battery_status']=pd.to_numeric(bat['battery_status'])
     shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
