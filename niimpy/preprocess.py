@@ -47,6 +47,7 @@ def date_range(df, begin, end):
 
 def get_subjects(database):
     """ Returns a list of the subjects in the database
+
         Parameters
         ----------
         database: database
@@ -62,13 +63,13 @@ def get_subjects(database):
 def get_phq9(database,subject):
     """ Returns the phq9 scores from the databases per subject
 
-        Parameters
-        ----------
-        database: database
-        user: string
+    Parameters
+    ----------
+    database: database
+    user: string
 
-    Returns:
-    --------
+    Returns
+    -------
     phq9: Dataframe with the phq9 score
 
     """
@@ -97,13 +98,13 @@ def daily_affect_variability(questions, subject=None):
 
     NOTE: This function aggregates data by day.
 
-    Parameters:
-    --------
+    Parameters
+    ----------
     questions: DataFrame with subject data (or database for backwards compatibility)
     subject: string, optional (backwards compatibility only, in the future do filtering before).
 
-    Returns:
-    --------
+    Returns
+    -------
     DLA_mean: mean of the daily affect
     DLA_std: standard deviation of the daily affect
     """
@@ -153,16 +154,16 @@ def ambient_noise(noise, subject, begin=None, end=None):
 
     NOTE: This function aggregates data by day.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     noise: DataFrame with subject data (or database for backwards compatibility)
     subject: string, optional (backwards compatibility only, in the future do filtering before).
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     avg_noise: Dataframe
 
     """
@@ -221,16 +222,16 @@ def shutdown_info(database,subject,begin=None,end=None):
     NOTE: This is a helper function created originally to preprocess the application
     info data
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     shutdown: Dataframe
 
     """
@@ -254,8 +255,8 @@ def get_seconds(time_delta):
 
     NOTE: This is a helper function
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     time_delta: Timedelta
 
     """
@@ -268,8 +269,8 @@ def app_duration(database,subject,begin=None,end=None,app_list_path=None):
     WhatsApp, Telegram, Messenger, sms, etc. and for how long these apps were
     used in a day (in seconds).
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -277,8 +278,8 @@ def app_duration(database,subject,begin=None,end=None,app_list_path=None):
     app_list_path: path to the csv file where the apps are classified into groups
 
 
-    Returns:
-    --------
+    Returns
+    -------
     duration: Dataframe
     count: Dataframe
 
@@ -398,16 +399,16 @@ def call_info(database,subject,begin=None,end=None):
     and how long (in seconds) the person has spoken to the top 5 contacts (most
     frequent)
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     duration: Dataframe
 
     """
@@ -487,16 +488,16 @@ def sms_info(database,subject,begin=None,end=None):
     incoming/outgoing sms and how many of those correspond to the top 5 contacts
     (most frequent with whom the subject exchanges texts)
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     sms_stats: Dataframe
 
     """
@@ -566,16 +567,16 @@ def sms_duration(database,subject,begin,end):
 
     NOTE: The foundation of this function is still weak and needs discussion
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     reading: Dataframe
     writing: Dataframe
 
@@ -683,16 +684,16 @@ def communication_info(database,subject,begin=None,end=None):
     provides the duration (in seconds) that a person spent communicating during
     the day.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     call_summary: Dataframe
 
     """
@@ -776,16 +777,16 @@ def occurrence_call_sms(database,subject,begin=None,end=None):
     an event at 11:05 and another one at 11:45, 2 occurences happened in one
     hour. Then, the sum of these occurences yield the number per day.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     event: Dataframe
 
     """
@@ -844,8 +845,8 @@ def occurrence_call_sms_apps(database,subject,begin=None,end=None,app_list_path=
     occurences happened in one hour. Then, the sum of these occurences yield the
     number per day.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -854,8 +855,8 @@ def occurrence_call_sms_apps(database,subject,begin=None,end=None,app_list_path=
     comm_app_list_path:path to the file where the communication apps are listed
 
 
-    Returns:
-    --------
+    Returns
+    -------
     event: Dataframe
 
     """
@@ -953,8 +954,8 @@ def occurrence_call_sms_social(database,subject,begin=None,end=None,app_list_pat
     2 occurences happened in one hour. Then, the sum of these occurences yield
     the number per day.
 
-    Parameters:
-    --------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
@@ -963,8 +964,8 @@ def occurrence_call_sms_social(database,subject,begin=None,end=None,app_list_pat
     comm_app_list_path:path to the file where the communication apps are listed
 
 
-    Returns:
-    --------
+    Returns
+    -------
     event: Dataframe
 
     """
@@ -1061,18 +1062,17 @@ def location_data(database,subject,begin=None,end=None):
     The data already contains the aggregation of the GPS data (more info here:
     https://github.com/digitraceslab/koota-server/blob/master/kdata/converter.py).
 
-    Parameters:
-    --------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     location: Dataframe
-
     """
 
     assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
@@ -1101,8 +1101,9 @@ def location_data(database,subject,begin=None,end=None):
 
 def get_battery_data(database, user, start = None, end = None):
     """ Returns a DataFrame with battery data for a user.
-    Parameters:
-    --------
+
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     start: datetime, optional
@@ -1137,15 +1138,15 @@ def get_battery_data(database, user, start = None, end = None):
 
 def battery_occurrences(battery_data, user=None, start=None, end=None, battery_status = False, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the amount of battery data points found between a given interval and steps.
-        The default interval is 6 hours.
-        Parameters
-        ----------
-        battery_data: Dataframe
-    user: string, optional
-        start: datetime, optional
-        end: datetime, optional
-    battery_status: boolean, optional
+    The default interval is 6 hours.
 
+    Parameters
+    ----------
+    battery_data: Dataframe
+    user: string, optional
+    start: datetime, optional
+    end: datetime, optional
+    battery_status: boolean, optional
     """
 
     assert isinstance(battery_data, pd.core.frame.DataFrame), "data is not a pandas DataFrame"
@@ -1236,15 +1237,15 @@ def battery_charge_discharge(data):
 
 def find_real_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the gaps found both in the battery data and the other data.
-        The default interval is 6 hours.
-        Parameters
-        ----------
-        battery_data: Dataframe
-        other_data: Dataframe
-                    The data you want to compare with
-        start: datetime, optional
-        end: datetime, optional
+    The default interval is 6 hours.
 
+    Parameters
+    ----------
+    battery_data: Dataframe
+    other_data: Dataframe
+                The data you want to compare with
+    start: datetime, optional
+    end: datetime, optional
     """
     assert isinstance(battery_data, pd.core.frame.DataFrame), "battery_data is not a pandas DataFrame"
     assert isinstance(other_data, pd.core.frame.DataFrame), "other_data is not a pandas DataFrame"
@@ -1271,14 +1272,15 @@ def find_real_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=
 
 def find_non_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the gaps found only in the other data.
-        The default interval is 6 hours.
-        Parameters
-        ----------
-        battery_data: Dataframe
-        other_data: Dataframe
-                    The data you want to compare with
-        start: datetime, optional
-        end: datetime, optional
+    The default interval is 6 hours.
+
+    Parameters
+    ----------
+    battery_data: Dataframe
+    other_data: Dataframe
+                The data you want to compare with
+    start: datetime, optional
+    end: datetime, optional
 
     """
     assert isinstance(battery_data, pd.core.frame.DataFrame), "battery_data is not a pandas DataFrame"
@@ -1305,15 +1307,15 @@ def find_non_battery_gaps(battery_data,other_data,start=None, end=None, days= 0,
 
 def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the gaps found only in the battery data.
-        The default interval is 6 hours.
-        Parameters
-        ----------
-        battery_data: Dataframe
-        other_data: Dataframe
-                    The data you want to compare with
-        start: datetime, optional
-        end: datetime, optional
+    The default interval is 6 hours.
 
+    Parameters
+    ----------
+    battery_data: Dataframe
+    other_data: Dataframe
+                The data you want to compare with
+    start: datetime, optional
+    end: datetime, optional
     """
     assert isinstance(battery_data, pd.core.frame.DataFrame), "battery_data is not a pandas DataFrame"
     assert isinstance(other_data, pd.core.frame.DataFrame), "other_data is not a pandas DataFrame"
@@ -1340,9 +1342,10 @@ def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hou
 def missing_data_format(question,keep_values=False):
     """ Returns a series of timestamps in the right format to allow missing data visualization
     .
-        Parameters
-        ----------
-        question: Dataframe
+
+    Parameters
+    ----------
+    question: Dataframe
 
     """
     question['date'] = question.index
@@ -1361,16 +1364,16 @@ def screen_missing_data(database,subject,begin=None,end=None):
     screen_status(t) == screen_status(t+1), we declared we have at least one
     missing point.
 
-    Parameters:
-    --------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     count: Dataframe
 
     """
@@ -1434,16 +1437,16 @@ def missing_noise(database,subject,begin=None,end=None):
 
     NOTE: This function aggregates data by day.
 
-    Parameters:
-    --------
+    Parameters
+    ----------
     database: Niimpy database
     user: string
     begin: datetime, optional
     end: datetime, optional
 
 
-    Returns:
-    --------
+    Returns
+    -------
     avg_noise: Dataframe
 
     """
