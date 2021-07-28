@@ -115,3 +115,33 @@ def read_csv(filename, read_csv_options={}):
     # conversions.  Inplace.
     util.df_normalize(df)
     return df
+
+def read_csv_string(string):
+    """Parse a string containing CSV and return dataframe
+
+    This should not be used for serious reading of CSV from disk, but
+    can be useful for tests and examples.  Various CSV reading options
+    are turned on in order to be better for examples:
+
+    - Allow comments in the CSV file
+
+    - Remove the `datetime` column (redundant with `index` but some
+      older functions break without it, so default readers need to leave
+      it).
+
+    Parameters
+    ----------
+    string : string containing CSV file
+
+
+    Returns
+    -------
+    df: pandas.DataFrame
+    """
+    import io
+    df = read_csv(io.StringIO(string), read_csv_options={
+        'comment': '#',
+        })
+    if 'datetime' in df.columns:
+        del df['datetime']
+    return df
