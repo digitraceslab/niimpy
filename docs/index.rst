@@ -21,12 +21,13 @@ provides many high-level functions for various types of data.
    preprocessing
    summary-statistics
 
+
 .. toctree::
    :maxdepth: 1
    :caption: Data stream analysis
 
    survey
-
+   screen
 
 
 .. toctree::
@@ -38,6 +39,7 @@ provides many high-level functions for various types of data.
    database
 
    api/modules
+
 
 .. toctree::
    :caption: Development

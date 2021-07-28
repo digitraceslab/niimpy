@@ -13,6 +13,7 @@ Submodules
    niimpy.preprocess
    niimpy.read
    niimpy.sampledata
+   niimpy.screen
    niimpy.subject_selection
    niimpy.survey
    niimpy.util
