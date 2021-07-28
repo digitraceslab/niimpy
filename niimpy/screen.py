@@ -6,7 +6,9 @@ from . import read
 from . import preprocess
 
 def screen_off(screen,subject=None,begin=None,end=None,battery=None):
-    """ Returns a DataFrame with the timestamps of when the screen has changed
+    """Return times of only screen offs.
+
+    Returns a DataFrame with the timestamps of when the screen has changed
     to "OFF" status.
 
 
@@ -85,21 +87,24 @@ def screen_off(screen,subject=None,begin=None,end=None,battery=None):
 
 
 def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
-    """ Returns two DataFrames contanining the duration and number of events for
+    """Screen on/off time and count daily aggregate.
+
+    Returns two DataFrames contanining the duration and number of events for
     the screen transitions (ON to OFF, OFF to ON, OFF to IN USE, IRRELEVANT
     transitions). E.g. duration (in seconds) of the phone being ON during a day,
     or number of times the screen was on during the day.
 
-    Parameters:
-    --------
-    database: Niimpy database
+    Parameters
+    ----------
+    database: Niimpy dataframe or database
     user: string
     begin: datetime, optional
     end: datetime, optional
+    battery: Niimpy dataframe or database of battery data
 
 
-    Returns:
-    --------
+    Returns
+    -------
     duration: Dataframe
     count: Dataframe
 
