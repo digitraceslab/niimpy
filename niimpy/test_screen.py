@@ -8,7 +8,6 @@ import niimpy
 from niimpy.util import TZ
 
 
-
 def test_screen_duration():
     screen  = niimpy.read_csv(niimpy.sampledata.TEST_SCREEN_1)
     battery = niimpy.read_csv(niimpy.sampledata.TEST_BATTERY_1)
