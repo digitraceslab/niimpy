@@ -241,52 +241,49 @@ def shutdown_info(database,subject,begin=None,end=None):
     shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
     return shutdown
 
-def screen_off(database,subject,begin=None,end=None):
+def screen_off(screen,subject=None,begin=None,end=None,battery=None):
     """ Returns a DataFrame with the timestamps of when the screen has changed
     to "OFF" status.
 
 
     NOTE: This is a helper function created originally to preprocess the application
-    info data
+    info data.  It differs from raw screen data in that it also considers
+    battery data to find possible missing 'screen off' events caused by running
+    out of battery.
 
-    Parameters:
-    -----------
-    database: Niimpy database
+    Parameters
+    ----------
+    screen: dataframe of screen data
     user: string
     begin: datetime, optional
     end: datetime, optional
+    battery: dataframe of battery data
 
-
-    Returns:
-    --------
+    Returns
+    -------
     screen: Dataframe
+
+            DataFrame with DatetimeIndex and `screen_status` column.
+            All values are zero and all row indexes are the times of screen off.
+
 
     """
     # TODO: niimpy.screen
     # TODO: take a new argument of 'shutdown events'
+    screen  = niimpy.read._get_dataframe(screen, table='AwareScreen', user=subject)
+    screen  = niimpy.filter_dataframe(screen, begin=begin, end=end)
 
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(subject, str),"user not given in string format"
-
-    screen = database.raw(table='AwareScreen', user=subject)
-
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
-    else:
-        begin = screen.iloc[0]['datetime']
-    if(end!= None):
-        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
-    else:
-        end = screen.iloc[len(screen)-1]['datetime']
-
-
-    screen=screen.drop_duplicates(subset=['datetime'],keep='first')
-    screen = screen.drop(columns=['device','user','time'])
+    screen=screen.groupby(screen.index).first()
+    screen = screen[['screen_status']]
     screen=screen.loc[begin:end]
     screen['screen_status']=pd.to_numeric(screen['screen_status'])
 
     #Include the missing points that are due to shutting down the phone
-    shutdown = shutdown_info(database,subject,begin,end)
+    # If battery is None, then we must have been passed a database, so
+    # use that in the calling of 'shutdown'.
+    if battery is None and isinstance(screen, niimpy.database.Data1):
+        battery = screen
+    shutdown = shutdown_info(battery,subject,begin,end)
     shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
     shutdown['screen_status']=0
 
@@ -294,9 +291,7 @@ def screen_off(database,subject,begin=None,end=None):
         screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
         screen['screen_status'] = screen.fillna(0)['screen_status_x'] + screen.fillna(0)['screen_status_y']
         screen = screen.drop(['screen_status_x','screen_status_y'], axis=1)
-        dates=screen.datetime_x.combine_first(screen.datetime_y)
-        screen['datetime']=dates
-        screen = screen.drop(['datetime_x','datetime_y'], axis=1)
+        screen['datetime']=screen.index
 
     #Detect missing data points
     screen['missing']=0
