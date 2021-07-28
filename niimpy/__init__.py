@@ -7,3 +7,6 @@ from .read import read_sqlite, read_sqlite_tables
 from .read import read_csv
 from . import sampledata
 from . import util
+
+# Analysis functions
+from .screen import screen_off, screen_duration
