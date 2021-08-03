@@ -20,6 +20,7 @@ provides many high-level functions for various types of data.
    basic-transformations
    preprocessing
    summary-statistics
+   see-also
 
 
 .. toctree::
