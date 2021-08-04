@@ -6,7 +6,44 @@ from . import database
 from . import util
 import pandas as pd
 
-def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, start=None, end=None):
+def _read_preprocess(df, add_group=None):
+    """Standard preprocessing arguments when reading.
+
+    This is a preprocessing filter which handles some standard arguments
+    when reading files.  This should be considered a private, unstable
+    function.
+
+
+    Parameters
+    ----------
+
+    df: pandas.DataFrame
+
+        Input data frame
+
+    add_group: string, optional
+
+        If given, add a new 'group' column with all values set to this
+        given identifier.
+
+
+    Returns
+    -------
+
+    df: dataframe
+
+        Resulting dataframe (modified in-place if possible, but may also
+        be a copy)
+
+    """
+    if add_group is not None:
+        df['group'] = add_group
+        #df['group'] = df['group'].astype('category')
+        #pd.Categorical(add_group)
+    return df
+
+
+def read_sqlite(filename, table, add_group=None, user=database.ALL, limit=None, offset=None, start=None, end=None):
     """Read DataFrame from sqlite3 database
 
     This will read data from a sqlite3 file, taking sensor data in a
@@ -20,6 +57,9 @@ def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, sta
 
     table : str
         table name of data within the database
+
+    add_group : object
+        If given, add a 'group' column with all values set to this.
 
     user : str or database.ALL, optional
         If given, return only data matching this user (based an column 'user')
@@ -39,7 +79,10 @@ def read_sqlite(filename, table, user=database.ALL, limit=None, offset=None, sta
         Same meaning as 'start', but for end time
     """
     db = database.Data1(filename)
-    return db.raw(table, user, limit=limit, offset=offset, start=start, end=end)
+    df = db.raw(table, user, limit=limit, offset=offset, start=start, end=end)
+    df = _read_preprocess(df, add_group=add_group)
+    return df
+
 
 def read_sqlite_tables(filename):
     """Return names of all tables in this database
@@ -92,7 +135,7 @@ def _get_dataframe(df_or_database, table, user=None):
 
 
 
-def read_csv(filename, read_csv_options={}):
+def read_csv(filename, read_csv_options={}, add_group=None):
     """Read DataFrame from csv file
 
     This will read data from a csv file and then process the result with
@@ -108,12 +151,17 @@ def read_csv(filename, read_csv_options={}):
     read_csv_options: dict
         Dictionary of options to pandas.read_csv, if this is necessary for custom
         csv files.
+
+    add_group : object
+        If given, add a 'group' column with all values set to this.
+
     """
     df = pd.read_csv(filename, **read_csv_options)
 
     # df_normalize converts sets the index to time values and does other time
     # conversions.  Inplace.
     util.df_normalize(df)
+    df = _read_preprocess(df, add_group=add_group)
     return df
 
 def read_csv_string(string):
