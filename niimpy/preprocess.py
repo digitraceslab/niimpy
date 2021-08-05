@@ -1099,21 +1099,23 @@ def location_data(database,subject,begin=None,end=None):
 
 #Screen
 
-def get_battery_data(database, user, start = None, end = None):
+def get_battery_data(battery, user=None, start = None, end = None):
     """ Returns a DataFrame with battery data for a user.
-
     Parameters
     ----------
-    database: Niimpy database
-    user: string
+    battery: DataFrame with battery data
+    user: string, optional
     start: datetime, optional
     end: datetime, optional
     """
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(user, str),"user not given in string format"
-
-    battery_data = database.raw(table='AwareBattery',user=user)
-
+    assert isinstance(battery, pd.core.frame.DataFrame), "data is not a pandas DataFrame"
+    
+    if(user!= None):
+        assert isinstance(user, str),"user not given in string format"
+        battery_data = battery[(battery['user']==user)]
+    else:
+        battery_data = battery
+        
     if(start!=None):
         start = pd.to_datetime(start)
     else:
