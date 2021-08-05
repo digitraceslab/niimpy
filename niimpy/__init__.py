@@ -10,3 +10,8 @@ from . import util
 
 # Analysis functions
 from .screen import screen_off, screen_duration
+from .battery import (get_battery_data, battery_occurrences,
+                      battery_gaps, battery_charge_discharge,
+                      find_real_gaps, find_non_battery_gaps,
+                      find_battery_gaps)
+
