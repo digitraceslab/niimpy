@@ -84,7 +84,7 @@ def _get_dataframe(df_or_database, table, user=None):
         df = df_or_database
         # Maintain backwards compatibility in the case subject was passed and
         # questions was *not* a dataframe.
-        if isinstance(user, str):
+        if user is not None and user is not database.ALL:
             df = df[df['user'] == user]
     return df
 
