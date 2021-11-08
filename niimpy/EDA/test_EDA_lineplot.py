@@ -1,10 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-# -*- coding: utf-8 -*-
 """
 Created on Tue Nov  2 13:57:00 2021
 
@@ -13,9 +6,7 @@ Created on Tue Nov  2 13:57:00 2021
 
 
 import pytest
-import numpy as np
-import pandas as pd
-import setup_dataframe
+from setup_dataframe import create_dataframe
 import EDA_lineplot
 
 class TestEDAlineplot(object):
@@ -40,7 +31,7 @@ class TestEDAlineplot(object):
     
         """
          
-        df = setup_dataframe.create_dataframe()
+        df = create_dataframe()
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
@@ -245,7 +236,7 @@ class TestEDAlineplot(object):
 
             """
             
-            df = setup_dataframe.create_dataframe()
+            df = create_dataframe()
 
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
@@ -261,7 +252,7 @@ class TestEDAlineplot(object):
                 EDA_lineplot.plot_averages_(df,
                                             columns = int(1),
                                             by = 'weekday')
-            expected_error_msg = "column is not a string""
+            expected_error_msg = "column is not a string"
             # Check if the raised ValueError contains the correct message
             assert exc_info.match(expected_error_msg)
             
@@ -270,7 +261,7 @@ class TestEDAlineplot(object):
                 EDA_lineplot.plot_averages_(df,
                                             columns = 'col_1',
                                             by = int(1))
-            expected_error_msg = "by is not a string"."
+            expected_error_msg = "by is not a string"
             # Check if the raised ValueError contains the correct message
             assert exc_info.match(expected_error_msg)
 
@@ -286,19 +277,8 @@ class TestEDAlineplot(object):
             None.
 
             """
-            
-            assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-            assert isinstance(users, (str,list)), "users is not a string or a list"
-            assert isinstance(columns, str) or (isinstance(columns, list)), "column is not a string or a list"
-            assert isinstance(title, str), "title is not a string"
-            assert isinstance(xlabel, str), "xlabel is not a string"
-            assert isinstance(ylabel ,str), "ylabel is not a string"
-            assert isinstance(resample, (str,bool)), "resample is not a string or a boolean"
-            assert isinstance(interpolate, bool), "interpolate is not a boolean"
-            assert isinstance(window_len, int), "window is not an int"
-            assert isinstance(reset_index, bool), "reset_index is not boolean"
-            
-            df = setup_dataframe.create_dataframe()
+                        
+            df = create_dataframe()
 
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:

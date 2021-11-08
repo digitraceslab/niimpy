@@ -73,7 +73,7 @@ def timeplot(df, users, columns, title, xlabel, ylabel, resample=False,
                          ylabel,
                          resample,
                          interpolate,
-                         window_len,
+                         window,
                          reset_index)
 
 

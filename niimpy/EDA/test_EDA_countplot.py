@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from niimpy import setup_dataframe
-from niimpy import EDA_countplot
+from setup_dataframe import create_dataframe
+import EDA_countplot
 
 
 class TestEDAcountplot(object):
@@ -24,7 +24,7 @@ class TestEDAcountplot(object):
         None.
     
         """
-        df = setup_dataframe.create_dataframe()
+        df = create_dataframe()
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
@@ -133,7 +133,7 @@ class TestEDAcountplot(object):
         None.
     
         """
-        df = setup_dataframe.create_dataframe()
+        df = create_dataframe()
         n_events = df[['group', 'user']].groupby(['user', 'group']).size()
         n_events = n_events.to_frame()
         n_events.columns = ['values']
@@ -231,7 +231,7 @@ class TestEDAcountplot(object):
         None.
     
         """
-        df = setup_dataframe.create_dataframe()
+        df = create_dataframe()
         n_events = df[['user']].groupby(['user']).size()
         n_events = n_events.to_frame()
         n_events.columns = ['values']
