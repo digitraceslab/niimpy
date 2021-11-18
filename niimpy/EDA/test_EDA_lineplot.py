@@ -299,9 +299,9 @@ class TestEDAlineplot(object):
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df,
                                               columns=['Col_1'],
-                                              users=['user_1'],
+                                              users=1,
                                               title='title',
                                               xlabel='xlabel',
                                               ylabel='ylabel',
@@ -316,8 +316,8 @@ class TestEDAlineplot(object):
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
-                                              columns=['Col_1'],
+                EDA_lineplot.plot_timeseries_(df,
+                                              columns=1,
                                               users=['user_1'],
                                               title='title',
                                               xlabel='xlabel',
@@ -333,10 +333,10 @@ class TestEDAlineplot(object):
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
-                                              title='title',
+                                              title=1,
                                               xlabel='xlabel',
                                               ylabel='ylabel',
                                               resample=False,
@@ -350,11 +350,11 @@ class TestEDAlineplot(object):
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
                                               title='title',
-                                              xlabel='xlabel',
+                                              xlabel=1,
                                               ylabel='ylabel',
                                               resample=False,
                                               interpolate=False,
@@ -367,12 +367,12 @@ class TestEDAlineplot(object):
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
                                               title='title',
                                               xlabel='xlabel',
-                                              ylabel='ylabel',
+                                              ylabel=1,
                                               resample=False,
                                               interpolate=False,
                                               window_len=3,
@@ -384,41 +384,41 @@ class TestEDAlineplot(object):
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
                                               title='title',
                                               xlabel='xlabel',
                                               ylabel='ylabel',
-                                              resample=False,
+                                              resample=1,
                                               interpolate=False,
                                               window_len=3,
                                               reset_index=False)
 
-            expected_error_msg = "df is not a pandas dataframe."
+            expected_error_msg = "resample is not a string or a boolean"
             # Check if the raised ValueError contains the correct message
             assert exc_info.match(expected_error_msg)
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
                                               title='title',
                                               xlabel='xlabel',
                                               ylabel='ylabel',
                                               resample=False,
-                                              interpolate=False,
+                                              interpolate=1,
                                               window_len=3,
                                               reset_index=False)
 
-            expected_error_msg = "df is not a pandas dataframe."
+            expected_error_msg = "interpolate is not a boolean"
             # Check if the raised ValueError contains the correct message
             assert exc_info.match(expected_error_msg)
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
                                               title='title',
@@ -426,16 +426,16 @@ class TestEDAlineplot(object):
                                               ylabel='ylabel',
                                               resample=False,
                                               interpolate=False,
-                                              window_len=3,
+                                              window_len='3',
                                               reset_index=False)
 
-            expected_error_msg = "df is not a pandas dataframe."
+            expected_error_msg = "window is not an int"
             # Check if the raised ValueError contains the correct message
             assert exc_info.match(expected_error_msg)
             
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
-                EDA_lineplot.plot_timeseries_(df.to_numpy(), 
+                EDA_lineplot.plot_timeseries_(df, 
                                               columns=['Col_1'],
                                               users=['user_1'],
                                               title='title',
@@ -444,9 +444,9 @@ class TestEDAlineplot(object):
                                               resample=False,
                                               interpolate=False,
                                               window_len=3,
-                                              reset_index=False)
+                                              reset_index=1)
 
-            expected_error_msg = "df is not a pandas dataframe."
+            expected_error_msg = "reset_index is not boolean"
             # Check if the raised ValueError contains the correct message
             assert exc_info.match(expected_error_msg)
 
