@@ -1,6 +1,6 @@
 import pytest
-import setup_dataframe
-import EDA_punchcard
+from niimpy.EDA import setup_dataframe
+from niimpy.EDA import EDA_punchcard
 
 
 class TestEDApunchcard(object):

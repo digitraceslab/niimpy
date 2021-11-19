@@ -7,8 +7,8 @@ Created on Wed Nov  3 11:15:00 2021
 
 
 import pytest
-import setup_dataframe
-import EDA_categorical
+from niimpy.EDA import setup_dataframe
+from niimpy.EDA import EDA_categorical
 
 class TestEDAcategorical(object):
     

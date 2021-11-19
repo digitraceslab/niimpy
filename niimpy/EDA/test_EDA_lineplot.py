@@ -6,8 +6,8 @@ Created on Tue Nov  2 13:57:00 2021
 
 
 import pytest
-from setup_dataframe import create_dataframe
-import EDA_lineplot
+from niimpy.EDA import setup_dataframe 
+from niimpy.EDA import EDA_lineplot
 
 class TestEDAlineplot(object):
     
@@ -31,7 +31,7 @@ class TestEDAlineplot(object):
     
         """
          
-        df = create_dataframe()
+        df = setup_dataframe.create_dataframe()
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:

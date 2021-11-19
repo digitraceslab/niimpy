@@ -2,8 +2,8 @@ import pytest
 import numpy as np
 import pandas as pd
 
-from setup_dataframe import create_dataframe
-import EDA_countplot
+from niimpy.EDA import setup_dataframe
+from niimpy.EDA import EDA_countplot
 
 
 class TestEDAcountplot(object):
@@ -24,7 +24,7 @@ class TestEDAcountplot(object):
         None.
     
         """
-        df = create_dataframe()
+        df = setup_dataframe.create_dataframe()
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
