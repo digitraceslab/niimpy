@@ -236,7 +236,7 @@ class TestEDAlineplot(object):
 
             """
             
-            df = create_dataframe()
+            df = setup_dataframe.create_dataframe()
 
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:
@@ -278,7 +278,7 @@ class TestEDAlineplot(object):
 
             """
                         
-            df = create_dataframe()
+            df = setup_dataframe.create_dataframe()
 
             # Store information about raised ValueError in exc_info
             with pytest.raises(AssertionError) as exc_info:

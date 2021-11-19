@@ -1,7 +1,4 @@
 import pytest
-import numpy as np
-import pandas as pd
-
 from niimpy.EDA import setup_dataframe
 from niimpy.EDA import EDA_countplot
 
@@ -133,7 +130,7 @@ class TestEDAcountplot(object):
         None.
     
         """
-        df = create_dataframe()
+        df = setup_dataframe.create_dataframe()
         n_events = df[['group', 'user']].groupby(['user', 'group']).size()
         n_events = n_events.to_frame()
         n_events.columns = ['values']
@@ -231,7 +228,7 @@ class TestEDAcountplot(object):
         None.
     
         """
-        df = create_dataframe()
+        df = setup_dataframe.create_dataframe()
         n_events = df[['user']].groupby(['user']).size()
         n_events = n_events.to_frame()
         n_events.columns = ['values']
