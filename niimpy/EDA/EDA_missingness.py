@@ -17,8 +17,8 @@ def bar(df):
     # Right y-axis: display number of instances
     
     fig = px.bar(missing_perc)
-    fig.update_layout(title='Data frequency', yaxis_title='', showlegend=False)
     
+    fig.update_layout(title='Data frequency', xaxis_title = '', yaxis_title = '', showlegend=False)
     fig.show()
         
     
