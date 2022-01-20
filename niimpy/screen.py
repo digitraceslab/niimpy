@@ -43,7 +43,7 @@ def screen_off(screen, subject=None, begin=None, end=None, battery=None):
     screen['screen_status']=pd.to_numeric(screen['screen_status'])
 
     #Include the missing points that are due to shutting down the phone
-    if battery:
+    if battery is not None:
         shutdown = preprocess.shutdown_info(battery,subject,begin,end)
         shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
         shutdown['screen_status']=0
@@ -119,16 +119,17 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     # use that in the calling of 'shutdown'.
     if battery is None and isinstance(screen, niimpy.database.Data1):
         battery = screen
-    #Include the missing points that are due to shutting down the phone
-    shutdown = preprocess.shutdown_info(battery,subject,begin,end)
-    shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
-    shutdown['screen_status']=0
-    shutdown['datetime'] = shutdown.index
+    if battery is not None:
+        #Include the missing points that are due to shutting down the phone
+        shutdown = preprocess.shutdown_info(battery,subject,begin,end)
+        shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
+        shutdown['screen_status']=0
+        shutdown['datetime'] = shutdown.index
 
-    screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
-    screen['screen_status'] = screen.fillna(0)['screen_status_x'] + screen.fillna(0)['screen_status_y']
-    screen = screen.drop(['screen_status_x','screen_status_y'],axis=1)
-    screen['datetime']=screen.index
+        screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
+        screen['screen_status'] = screen.fillna(0)['screen_status_x'] + screen.fillna(0)['screen_status_y']
+        screen = screen.drop(['screen_status_x','screen_status_y'],axis=1)
+        screen['datetime']=screen.index
 
     #Detect missing data points
     screen['missing']=0
