@@ -27,7 +27,7 @@ def test_screen_duration():
 
 @pytest.fixture
 def screen1():
-    return niimpy.read_csv(io.StringIO("""\
+    return niimpy.read_csv_string("""\
 time,screen_status
 0,1
 60,0
@@ -36,14 +36,14 @@ time,screen_status
 1700,1
 3600,1
 3601,2
-"""))
+""")
 
 @pytest.fixture
 def battery1():
-    return niimpy.read_csv(io.StringIO("""\
+    return niimpy.read_csv_string("""\
 time,battery_level,battery_status
 1800,,-1
-"""))
+""")
 
 def test_screen_off(screen1, battery1):
     off = niimpy.preprocess.screen_off(screen1, battery=battery1)
