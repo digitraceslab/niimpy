@@ -17,7 +17,7 @@ def filter_dataframe(df, user=None, begin=None, end=None, rename_columns={}):
 
     - select only certain user: `df['user'] == user`
     - select date range:  `df[begin:end]`
-    - column map: `df.rename(columns=rename_columns)`
+- column map: `df.rename(columns=rename_columns)`
 
     It returns a new dataframe (and does not modify the passed one in-place).
     """

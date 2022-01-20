@@ -6,6 +6,29 @@ import pandas as pd
 import sys
 
 
+def date_range(df, begin, end):
+    """Extract out a certain date range from a DataFrame.
+
+    Extract out a certain data range from a dataframe.  The index must be the
+    dates, and the index must be sorted.
+    """
+    # TODO: is this needed?  Do normal pandas operation, timestamp
+    # checking is not really needed (and limits the formats that can
+    # be used, pandas can take more than pd.Timestamp)
+    # Move this function to utils
+    # Deal with pandas timestamp compatibility 
+    if(begin!=None):
+        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
+    else:
+        begin = df.index[0]
+    if(end!= None):
+        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
+    else:
+        end = df.index[-1]
+
+    df_new = df.loc[begin:end]
+    return df_new
+
 #SYSTEM_TZ = tzlocal()  # the operating system timezone - for sqlite output compat
 SYSTEM_TZ = 'Europe/Helsinki'
 TZ = tzlocal()
@@ -91,8 +114,6 @@ def to_datetime(value):
         return times.dt.tz_convert(TZ)
     else:
         return times.tz_convert(TZ)
-
-
 
 def occurrence(series, bin_width=720, grouping_width=3600):
     """Number of 12-minute

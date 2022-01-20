@@ -4,6 +4,7 @@ import pandas as pd
 import niimpy
 from . import read
 from . import preprocess
+from .battery import shutdown_info
 
 def screen_off(screen, subject=None, begin=None, end=None, battery=None):
     """Return times of only screen offs.
@@ -44,7 +45,7 @@ def screen_off(screen, subject=None, begin=None, end=None, battery=None):
 
     #Include the missing points that are due to shutting down the phone
     if battery is not None:
-        shutdown = preprocess.shutdown_info(battery,subject,begin,end)
+        shutdown = shutdown_info(battery,subject,begin,end)
         shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
         shutdown['screen_status']=0
 
@@ -121,7 +122,7 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
         battery = screen
     if battery is not None:
         #Include the missing points that are due to shutting down the phone
-        shutdown = preprocess.shutdown_info(battery,subject,begin,end)
+        shutdown = shutdown_info(battery,subject,begin,end)
         shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
         shutdown['screen_status']=0
         shutdown['datetime'] = shutdown.index
