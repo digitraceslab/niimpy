@@ -238,3 +238,35 @@ def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hou
     gaps = pd.concat([battery[mask],other[mask]['occurrences']],axis=1, sort=False)
 
     return gaps
+
+def shutdown_info(database,subject,begin=None,end=None):
+    """ Returns a DataFrame with the timestamps of when the phone has shutdown.
+
+
+    NOTE: This is a helper function created originally to preprocess the application
+    info data
+
+    Parameters
+    ----------
+    database: Niimpy database
+    user: string
+    begin: datetime, optional
+    end: datetime, optional
+
+
+    Returns
+    -------
+    shutdown: Dataframe
+
+    """
+    bat = niimpy.read._get_dataframe(database, table='AwareBattery', user=subject)
+    bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
+
+    if 'datetime' in bat.columns:
+        bat = bat[['battery_status', 'datetime']]
+    else:
+        bat = bat[['battery_status']]
+    bat=bat.loc[begin:end]
+    bat['battery_status']=pd.to_numeric(bat['battery_status'])
+    shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
+    return shutdown
