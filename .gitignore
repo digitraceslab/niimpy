@@ -6,3 +6,4 @@ niimpy/sqlite-extension-functions.*
 /docs/_build
 MANIFEST
 *.egg-info
+__pycache__
