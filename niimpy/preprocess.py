@@ -215,7 +215,7 @@ def ambient_noise(noise, subject, begin=None, end=None):
     return avg_noise
 
 #Application
-def shutdown_info(database,subject,begin=None,end=None):
+def shutdown_info(battery, subject=None, begin=None, end=None):
     """ Returns a DataFrame with the timestamps of when the phone has shutdown.
 
 
@@ -235,8 +235,7 @@ def shutdown_info(database,subject,begin=None,end=None):
     shutdown: Dataframe
 
     """
-    bat = niimpy.read._get_dataframe(database, table='AwareBattery', user=subject)
-    bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
+    bat = niimpy.filter_dataframe(battery, begin=begin, end=end, user=subject)
     # TODO: move to niimpy.battery
 
     if 'datetime' in bat.columns:
