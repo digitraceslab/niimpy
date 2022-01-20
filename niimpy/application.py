@@ -1,4 +1,9 @@
+import numpy as np
+import pandas as pd
 
+import niimpy.database
+from . import battery
+from .preprocess import get_seconds
 
 #Application
 def app_duration(database,subject,begin=None,end=None,app_list_path=None):
@@ -56,7 +61,7 @@ def app_duration(database,subject,begin=None,end=None,app_list_path=None):
 
     # TODO: Split those missing data imputation methods to another function
     #Insert missing data due to phone being shut down
-    shutdown = shutdown_info(database,subject,begin,end)
+    shutdown = battery.shutdown_info(database,subject,begin,end)
     if not shutdown.empty:
         shutdown['group']=11
         shutdown['battery_status'] = 'off'
