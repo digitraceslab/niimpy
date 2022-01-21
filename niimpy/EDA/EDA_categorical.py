@@ -40,7 +40,7 @@ def categorize_answers(df, question, answer_column):
 
 def plot_categories(
     df, title=None, xlabel=None, ylabel=None, width=900, height=900
- ):
+):
     """ Create a barplot of categorical data
 
     Parameters
@@ -154,7 +154,7 @@ def question_by_group(df, question, answer_column, group):
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(question, str), "question is not a string."
-    assert isinstance(column, str), "column is not a string."
+    assert isinstance(answer_column, str), "column is not a string."
     assert isinstance(group, (type(None), str)), "group is not a boolean or string."
 
     df = df[df["question"] == question][[answer_column, 'group']].groupby('group')
@@ -208,7 +208,7 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
 
     fig.update_layout(title = title,
                       legend_title="Groups",
-                      barmode='group'
+                      barmode='group',
                       xaxis_title = xlabel,
                       yaxis_title = ylabel,
                       width = 900,
@@ -218,7 +218,7 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
 
 
 def questionnaire_grouped_summary(
-    df, question, column, title=None, xlabel=None, ylabel=None, group
+    df, question, column, group, title=None, xlabel=None, ylabel=None
 ):
     """ Create a barplot of categorical data
 
