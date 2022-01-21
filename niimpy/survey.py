@@ -3,7 +3,7 @@
 import pandas as pd
 
 # The below mapping works only with Corona dataset. Adjust them to your own need.
- PHQ2_MAP = {
+PHQ2_MAP = {
     'Little interest or pleasure in doing things.' : 'PHQ2_1',
     'Feeling down; depressed or hopeless.' : 'PHQ2_2',
 }
