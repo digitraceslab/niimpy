@@ -2,6 +2,104 @@
 
 import pandas as pd
 
+# The below mapping works only with Corona dataset. Adjust them to your own need.
+PHQ2_MAP = {
+    'Little interest or pleasure in doing things.' : 'PHQ2_1',
+    'Feeling down; depressed or hopeless.' : 'PHQ2_2',
+}
+
+PSQI_MAP = {
+    'Currently; is your sleep typically interrupted? (For example; for attending to a child or due to loud neighbours or medical reasons.)' : 'PSQI_1',
+    'During the past month; how often have you taken medicine (prescribed or “over the counter”) to help you sleep?' : 'PSQI_2',
+    'During the past month; how often have you had trouble staying awake while driving; eating meals; or engaging in social activity?' : 'PSQI_3',
+    'During the past month; how much of a problem has it been for you to keep up enthusiasm to get things done?' : 'PSQI_4',
+    'During the past month; how would you rate your sleep quality overall?' : 'PSQI_5',
+    'When have you usually gone to bed? (hh:mm)' : 'PSQI_6',
+    'What time have you usually gotten up in the morning? (hh:mm)' : 'PSQI_7',
+    'How long (in minutes) has it taken you to fall asleep each night?' : 'PSQI_8',
+    'How many hours of actual sleep did you get at night?' : 'PSQI_9',
+}
+
+PSS10_MAP = {
+    'In the last month; how often have you been upset because of something that happened unexpectedly?' : 'PSS10_1',
+    'In the last month; how often have you felt that you were unable to control the important things in your life?' : 'PSS10_2',
+    'In the last month; how often have you felt nervous and “stressed”?' : 'PSS10_3',
+    'In the last month; how often have you felt confident about your ability to handle your personal problems?' : 'PSS10_4',
+    'In the last month; how often have you felt that things were going your way?' : 'PSS10_5',
+    'In the last month; how often have you been able to control irritations in your life?' : 'PSS10_6',
+    'In the last month; how often have you felt that you were on top of things?' : 'PSS10_7',
+    'In the last month; how often have you been angered because of things that were outside of your control?' : 'PSS10_8',
+    'In the last month; how often have you felt difficulties were piling up so high that you could not overcome them?' : 'PSS10_9',
+}
+
+PANAS_MAP = {
+    'Upset': 'pre_upset',
+    'Hostile': 'pre_hostile',
+    'Alert': 'pre_alert',
+    'Ashamed': 'pre_ashamed',
+    'Inspired': 'pre_inspired',
+    'Nervous': 'pre_nervous',
+    'Determined': 'pre_determined',
+    'Attentive': 'pre_attentive',
+    'Afraid': 'pre_afraid',
+    'Active': 'pre_active',
+    
+    'Upset.1': 'during_upset',
+    'Hostile.1': 'during_hostile',
+    'Alert.1': 'during_alert',
+    'Ashamed.1': 'during_ashamed',
+    'Inspired.1': 'during_inspired',
+    'Nervous.1': 'during_nervous',
+    'Determined.1': 'during_determined',
+    'Attentive.1': 'during_attentive',
+    'Afraid.1': 'during_afraid',
+    'Active.1': 'during_active'
+}
+
+GAD2_MAP = {
+    'Feeling nervous; anxious or on edge.': 'GAD2_1',
+    'Not being able to stop or control worrying.': 'GAD2_2'
+}
+
+PSS_ANSWER_MAP = {
+    'never': 0,
+    'almost-never': 1,
+    'sometimes': 2,
+    'fairly-often': 3,
+    'very-often': 4
+}
+
+PHQ2_ANSWER_MAP = {
+    'not-at-all': 0,
+    'several-days': 1,
+    'more-than-half-the-days': 2,
+    'nearly-every-day': 3
+}
+
+def convert_to_numerical_answer(df, answer_col='raw_answer', prefix=['PSS', 'PHQ2', 'GAD2']):
+    '''
+    Convert text answers into numerical value (assuming a long dataframe).
+    '''
+    
+    res = []
+    #Iterate through rows with the prefix
+    for pr in prefix:
+
+        if pr == 'PSS':
+            temp = df[df['id'].str.startswith('PSS')].copy()
+            temp['answer'] = df[answer_col].replace(PSS_ANSWER_MAP)
+            res.append(temp[['user', 'question', 'id', answer_col, 'answer' ]])
+            del temp
+            
+        if pr == 'PHQ2' or pr == 'GAD2' :
+            temp = df[df['id'].str.startswith(pr)].copy()
+            temp['answer'] = temp[answer_col].replace(PHQ2_ANSWER_MAP)
+            res.append(temp[['user', 'question', 'id', answer_col, 'answer']])
+            del temp
+
+    res = pd.concat(res)
+    return res
+
 def get_phq9(database,subject):
     """ Returns the phq9 scores from the databases per subject
 
