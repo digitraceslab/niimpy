@@ -76,29 +76,63 @@ PHQ2_ANSWER_MAP = {
     'nearly-every-day': 3
 }
 
-def convert_to_numerical_answer(df, answer_col='raw_answer', prefix=['PSS', 'PHQ2', 'GAD2']):
-    '''
-    Convert text answers into numerical value (assuming a long dataframe).
-    '''
+ID_MAP_PREFIX = {'PSS' : PSS_ANSWER_MAP,
+                 'PHQ2' : PHQ2_ANSWER_MAP,
+                 'GAD2' : PHQ2_ANSWER_MAP}
+
+ID_MAP = {'PHQ2_1':'PSS10_MAP',
+          'PHQ2_2':'PSS10_MAP',
+          'PSQI_1':'PSS10_MAP',
+          'PSQI_2':'PSS10_MAP',
+          'PSQI_3':'PSS10_MAP',
+          'PSQI_4':'PSS10_MAP',
+          'PSQI_5':'PSS10_MAP',
+          'PSQI_6':'PSS10_MAP',
+          'PSQI_7':'PSS10_MAP',
+          'PSQI_8':'PSS10_MAP',
+          'PSQI_9':'PSS10_MAP'}
+
+def convert_to_numerical_answer(df, answer_col, encoded_column, question_id, id_map, use_prefix=False):
+    """Convert text answers into numerical value (assuming a long dataframe).
     
-    res = []
-    #Iterate through rows with the prefix
-    for pr in prefix:
-
-        if pr == 'PSS':
-            temp = df[df['id'].str.startswith('PSS')].copy()
-            temp['answer'] = df[answer_col].replace(PSS_ANSWER_MAP)
-            res.append(temp[['user', 'question', 'id', answer_col, 'answer' ]])
-            del temp
-            
-        if pr == 'PHQ2' or pr == 'GAD2' :
-            temp = df[df['id'].str.startswith(pr)].copy()
-            temp['answer'] = temp[answer_col].replace(PHQ2_ANSWER_MAP)
-            res.append(temp[['user', 'question', 'id', answer_col, 'answer']])
-            del temp
-
-    res = pd.concat(res)
-    return res
+    Parameters
+    ----------
+    df : pandas dataframe
+        Dataframe containing the questions
+        
+    answer_col : str
+        Name of the column containing the answers
+        
+    encoded_column : str
+        Name of the column for converted values
+        
+    question_id : str
+        Name of the column containing the question id.
+        
+    id_map : dictionary
+        Dictionary containing answer mappings (value) for each each question id (key).
+    
+    use_prefix : boolean
+        If True, use question id prefix map. The default is False.
+    
+    Returns
+    -------
+    result : pandas series
+        Series containing converted values
+    
+    """
+    result = df[answer_col]
+    
+    for key,value in id_map.items():
+        if use_prefix == True:
+            temp = df[df[question_id].str.startswith(key)][answer_col]
+        else:
+            temp = df[df[question_id] == key][answer_col]
+        temp = temp.replace(value)
+        result.loc[temp.index] = temp[:]
+        del temp
+        
+    return result
 
 def get_phq9(database,subject):
     """ Returns the phq9 scores from the databases per subject
