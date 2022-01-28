@@ -18,14 +18,14 @@ def categorize_answers(df, question, answer_column):
         Dataframe containing questionnaire data
 
     question : str
-        question id
+        dataframe column sontaining question id 
 
     answer_column : str
-        column containing the answer
+        dataframe column containing the answer
 
     Returns
     -------
-    fig: Pandas Dataframe
+    category_counts: Pandas Dataframe
         Dataframe containing the category counts of answers
         filtered by the question
     """
@@ -33,10 +33,9 @@ def categorize_answers(df, question, answer_column):
     assert isinstance(question, str), "question is not a string."
     assert isinstance(answer_column, str), "column is not a string."
 
-    df = df[(df["question"] == question)][answer_column]
+    df = df[(df["id"] == question)][answer_column]
     category_counts = df.astype("category").value_counts(sort=False)
     return category_counts
-
 
 def plot_categories(
     df, title=None, xlabel=None, ylabel=None, width=900, height=900
@@ -68,9 +67,10 @@ def plot_categories(
     fig: plotly Figure
         A barplot of the input data
     """
-    assert isinstance(title, str), "title is not a string."
-    assert isinstance(xlabel, str), "xlabel is not a string."
-    assert isinstance(ylabel, str), "ylabel is not a string."
+    assert isinstance(df, pd.Series), "df is not a pandas dataframe."
+    assert isinstance(title, (str,type(None))), 'title is not a string or None type.'
+    assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
+    assert isinstance(ylabel, (str,type(None))), "ylabel is not a string or None type."
     assert isinstance(width, int), "width is not an integer."
     assert isinstance(height, int), "height is not an integer."
 
@@ -79,12 +79,11 @@ def plot_categories(
                       xaxis_title = xlabel,
                       yaxis_title = ylabel,
                       width = width,
-                      height = height,)
+                      height = height)
     return fig
 
-
 def questionnaire_summary(
-    df, question, column, title=None, xlabel=None, ylabel=None, user=None
+    df, question, column, title=None, xlabel=None, ylabel=None, user=None, width=900, height=900 
 ):
     """Plot summary barplot for questionnaire data.
 
@@ -118,18 +117,24 @@ def questionnaire_summary(
         A barplot summary of the questionnaire
 
     """
-    assert isinstance(user, (type(None), str)), "user is not a boolean or string."
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(question, str), "question is not a string."
+    assert isinstance(column, str), "column is not a string."
+    assert isinstance(user, (str,type(None))), "user is not a boolean or string."
+    assert isinstance(title, (str, type(None))), "title is not a string or None type."
+    assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
+    assert isinstance(ylabel, (str,type(None))), "ylabel is not a string or None type."
+    assert isinstance(width, int), "width is not an integer."
+    assert isinstance(height, int), "height is not an integer."
 
-    # one subject
     if user is not None:
         df = df[df['user'] == user]
 
     df = categorize_answers(df, question, column)
-    fig = plot_categories(df, title, xlabel, ylabel)
+    fig = plot_categories(df, title, xlabel, ylabel,width,height)
     return fig
 
-
-def question_by_group(df, question, answer_column, group):
+def question_by_group(df, question, id_column = 'id', answer_column = 'answer', group='group'):
     """Plot summary barplot for questionnaire data.
 
     Parameters
@@ -154,12 +159,14 @@ def question_by_group(df, question, answer_column, group):
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(question, str), "question is not a string."
+    assert isinstance(id_column, str), "question is not a string."
     assert isinstance(answer_column, str), "column is not a string."
     assert isinstance(group, (type(None), str)), "group is not a boolean or string."
-
-    df = df[df["question"] == question][[answer_column, 'group']].groupby('group')
-    return df
-
+    
+    grouped = df[df[id_column] == question][[answer_column, group]].reset_index(drop=True)
+    grouped = grouped.groupby([group,answer_column]).agg({answer_column:'count'}).rename(columns={answer_column:'count'}).reset_index()
+    
+    return grouped
 
 def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900, height=900):
     """Plot summary barplot for questionnaire data.
@@ -189,36 +196,32 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
     fig: plotly Figure
         Figure containing barplots of the data in each group
     """
-    assert isinstance(title, str), "title is not a string."
-    assert isinstance(xlabel, str), "xlabel is not a string."
-    assert isinstance(ylabel, str), "ylabel is not a string."
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(title,(type(None), str)), "title is not a string or none type."
+    assert isinstance(xlabel,(type(None), str)), "xlabel is not a string or none type."
+    assert isinstance(ylabel,(type(None), str)), "ylabel is not a string or none type."
     assert isinstance(width, int), "width is not an integer."
     assert isinstance(height, int), "height is not an integer."
-
-    fig = go.Figure()
-
-    for group, answer in df:
-        fig.add_trace(
-            go.Bar(
-                name = group,
-                x = [0,1,2,3,4],
-                y = answer.value_counts()
-            )
-        )
-
-    fig.update_layout(title = title,
+    
+    fig = px.bar(df, 
+                 x="answer", 
+                 y="count",
+                 color='group', 
+                 barmode='group',)
+    
+    fig.update_layout(xaxis={'categoryorder':'category ascending'},
+                      title = title,
                       legend_title="Groups",
                       barmode='group',
                       xaxis_title = xlabel,
                       yaxis_title = ylabel,
-                      width = 900,
-                      height = 500,)
-
+                      width = width,
+                      height = height)
+    
     return fig
 
-
 def questionnaire_grouped_summary(
-    df, question, column, group, title=None, xlabel=None, ylabel=None
+    df, question, id_column ='id', answer_column = 'answer', group = 'group', title=None, xlabel=None, ylabel=None, width=900, height=900
 ):
     """ Create a barplot of categorical data
 
@@ -254,14 +257,24 @@ def questionnaire_grouped_summary(
     fig: plotly Figure
         A barplot of the input data
     """
-
-    df_filt = question_by_group(df, question, column, group)
-    fig = plot_grouped_categories(
-        df_filt,
-        title=None, xlabel=xlabel, ylabel=ylabel,
-        width=900, height=900
-    )
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(question, str), "question is not a string."
+    assert isinstance(id_column, str), "id column is not a string."
+    assert isinstance(answer_column, str), "column is not a string."
+    assert isinstance(group, str), "group is not a string."
+    assert isinstance(title, (str,type(None))), "title is not a string or None type."
+    assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
+    assert isinstance(ylabel, (str,type(None))), "ylabel is not a string or None type."
+    assert isinstance(width, int), "width is not an integer."
+    assert isinstance(height, int), "height is not an integer."
+    
+    df_filt = question_by_group(df, question, id_column, answer_column, group)
+    
+    fig = plot_grouped_categories(df_filt,
+                                  title=title, 
+                                  xlabel=xlabel, 
+                                  ylabel=ylabel,
+                                  width=width, 
+                                  height=height)
 
     return fig
-
-
