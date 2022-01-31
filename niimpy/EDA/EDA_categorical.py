@@ -165,10 +165,9 @@ def question_by_group(df, question, id_column = 'id', answer_column = 'answer', 
     
     grouped = df[df[id_column] == question][[answer_column, group]].reset_index(drop=True)
     grouped = grouped.groupby([group,answer_column]).agg({answer_column:'count'}).rename(columns={answer_column:'count'}).reset_index()
-    
     return grouped
 
-def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900, height=900):
+def plot_grouped_categories(df, group, title=None, xlabel=None, ylabel=None, width=900, height=900):
     """Plot summary barplot for questionnaire data.
 
     Parameters
@@ -176,6 +175,9 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
     df: Pandas DataFrameGroupBy
         A grouped dataframe containing categorical data
 
+    group: str
+        Column used to describe group 
+        
     title : str
         Plot title
 
@@ -206,7 +208,7 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
     fig = px.bar(df, 
                  x="answer", 
                  y="count",
-                 color='group', 
+                 color=group, 
                  barmode='group',)
     
     fig.update_layout(xaxis={'categoryorder':'category ascending'},
@@ -269,8 +271,9 @@ def questionnaire_grouped_summary(
     assert isinstance(height, int), "height is not an integer."
     
     df_filt = question_by_group(df, question, id_column, answer_column, group)
-    
+
     fig = plot_grouped_categories(df_filt,
+                                  group=group,
                                   title=title, 
                                   xlabel=xlabel, 
                                   ylabel=ylabel,

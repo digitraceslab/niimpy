@@ -144,11 +144,14 @@ def print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, 
             assert isinstance(group, str),"group is not given in string format"
             
             # Groupby, aggregate and extract statistic from answer column 
-            agg_df = df.groupby(group).agg({answer_col: ['mean', 'min', 'max','std']}).reset_index() 
+            agg_df = df.groupby(['user', group]) \
+                         .agg({'answer': sum}) \
+                         .groupby(group) \
+                         .agg({'answer': ['mean', 'min', 'max','std']})
             agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
-            agg_df = agg_df.rename(columns={'': group}) # reassign group column 
+            agg_df = agg_df.rename(columns={'': group}).reset_index() # reassign group column 
             lst = []
-            
+
             for index, row in agg_df.iterrows():
                 temp = {'min': row['min'], 'max': row['max'], 
                         'avg': row['mean'], 'std': row['std'],
@@ -156,8 +159,10 @@ def print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, 
                 lst.append(temp)
             d[prefix] = lst
         else:
-            d[prefix] = {'min': df[answer_col].min(), 'max': df[answer_col].max(), 
-                         'avg': df[answer_col].mean(), 'std': df[answer_col].std()}
+            
+            agg_df = df.groupby('user').agg({answer_col: sum})
+            d[prefix] = {'min': agg_df[answer_col].min(), 'max': agg_df[answer_col].max(), 
+                         'avg': agg_df[answer_col].mean(), 'std': agg_df[answer_col].std()}
         return d
     
     res = {}
