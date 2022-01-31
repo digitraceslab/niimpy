@@ -80,19 +80,7 @@ ID_MAP_PREFIX = {'PSS' : PSS_ANSWER_MAP,
                  'PHQ2' : PHQ2_ANSWER_MAP,
                  'GAD2' : PHQ2_ANSWER_MAP}
 
-ID_MAP = {'PHQ2_1':'PSS10_MAP',
-          'PHQ2_2':'PSS10_MAP',
-          'PSQI_1':'PSS10_MAP',
-          'PSQI_2':'PSS10_MAP',
-          'PSQI_3':'PSS10_MAP',
-          'PSQI_4':'PSS10_MAP',
-          'PSQI_5':'PSS10_MAP',
-          'PSQI_6':'PSS10_MAP',
-          'PSQI_7':'PSS10_MAP',
-          'PSQI_8':'PSS10_MAP',
-          'PSQI_9':'PSS10_MAP'}
-
-def convert_to_numerical_answer(df, answer_col, encoded_column, question_id, id_map, use_prefix=False):
+def convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
     
     Parameters
@@ -102,9 +90,6 @@ def convert_to_numerical_answer(df, answer_col, encoded_column, question_id, id_
         
     answer_col : str
         Name of the column containing the answers
-        
-    encoded_column : str
-        Name of the column for converted values
         
     question_id : str
         Name of the column containing the question id.
@@ -133,6 +118,76 @@ def convert_to_numerical_answer(df, answer_col, encoded_column, question_id, id_
         del temp
         
     return result
+
+def print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, group=None):
+    '''
+    Return survey statistic. The statistic includes min, max, average and s.d values.
+
+    :param df: 
+        DataFrame contains survey score.
+    :param question_id: string. 
+        Column contains question id.
+    :param answer: 
+        Column contains answer in numerical values.
+    :param prefix: list. 
+        List contains survey prefix. If None is given, search question_id for all possible categories.
+    
+    Return: dict
+        A dictionary contains summary of each questionaire category.
+        Example: {'PHQ9': {'min': 3, 'max': 8, 'avg': 4.5, 'std': 2}}
+    '''
+    
+    def calculate_statistic(df, prefix, answer_col, group=None):
+        
+        d = {}
+        if group:
+            assert isinstance(group, str),"group is not given in string format"
+            
+            # Groupby, aggregate and extract statistic from answer column 
+            agg_df = df.groupby(group).agg({answer_col: ['mean', 'min', 'max','std']}).reset_index() 
+            agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
+            agg_df = agg_df.rename(columns={'': group}) # reassign group column 
+            lst = []
+            
+            for index, row in agg_df.iterrows():
+                temp = {'min': row['min'], 'max': row['max'], 
+                        'avg': row['mean'], 'std': row['std'],
+                       'group': row[group]}
+                lst.append(temp)
+            d[prefix] = lst
+        else:
+            d[prefix] = {'min': df[answer_col].min(), 'max': df[answer_col].max(), 
+                         'avg': df[answer_col].mean(), 'std': df[answer_col].std()}
+        return d
+    
+    res = {}
+    
+    # Collect questions with the given prefix. Otherwise, collect all prefix, assuming that 
+    # the question id follows this format: {prefix}_id.
+    if prefix:
+        if isinstance(prefix, str):
+            
+            temp = df[df[question_id].str.startswith(prefix)]
+            return calculate_statistic(temp, prefix, answer_col, group)
+        elif isinstance(prefix, list):
+            
+            for pr in prefix:
+                temp = df[df[question_id].str.startswith(pr)]
+                d = calculate_statistic(temp, prefix, answer_col, group)
+                res.update(d)
+        else:
+            raise ValueError('prefix should be either list or string')
+
+    else:
+        
+        # Search for all possible prefix (extract everything before the '_' delimimeter)
+        # Then compute statistic as usual
+        prefix_lst = list(set(df[question_id].str.split('_').str[0]))
+        for pr in prefix_lst:
+            temp = df[df[question_id].str.startswith(pr)]
+            d = calculate_statistic(temp, pr, answer_col, group)
+            res.update(d)
+    return res
 
 def get_phq9(database,subject):
     """ Returns the phq9 scores from the databases per subject
