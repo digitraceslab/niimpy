@@ -5,10 +5,32 @@ Created on Thu Nov 18 14:49:22 2021
 @author: arsii
 """
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 
-
+def get_xticks_(df):
+    """ Helper function for plot_categories function.
+    Convert series index into xtick values and text.
+    
+    Parameters
+    ----------
+    df : Pandas series
+        Series containing the categorized counts
+        
+    Return
+    ------
+    vals : list of integers
+        xtick values/indices for plotting
+    
+    text : list of strings
+        xtick text for plotting
+    """
+    
+    vals = df.index.values
+    text = [str(i) for i in vals]
+    return vals,text
+    
 def categorize_answers(df, question, answer_column):
     """ Extract a question answered and count different answers.
 
@@ -67,19 +89,28 @@ def plot_categories(
     fig: plotly Figure
         A barplot of the input data
     """
-    assert isinstance(df, pd.Series), "df is not a pandas dataframe."
+    assert isinstance(df, pd.Series), "df is not a pandas series."
     assert isinstance(title, (str,type(None))), 'title is not a string or None type.'
     assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
     assert isinstance(ylabel, (str,type(None))), "ylabel is not a string or None type."
     assert isinstance(width, int), "width is not an integer."
     assert isinstance(height, int), "height is not an integer."
 
+    #xtick labels and values
+    vals, text = get_xticks_(df)
+    
     fig = px.bar(df)
+    
     fig.update_layout(title = title,
                       xaxis_title = xlabel,
                       yaxis_title = ylabel,
                       width = width,
-                      height = height)
+                      height = height,
+                      xaxis = dict(tickmode = 'array',
+                                   tickvals = vals,
+                                   ticktext = text)
+    )
+
     return fig
 
 def questionnaire_summary(
