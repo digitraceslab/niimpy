@@ -154,10 +154,8 @@ def print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, 
 
             for index, row in agg_df.iterrows():
                 temp = {'min': row['min'], 'max': row['max'], 
-                        'avg': row['mean'], 'std': row['std'],
-                       'group': row[group]}
-                lst.append(temp)
-            d[prefix] = lst
+                        'avg': row['mean'], 'std': row['std']}
+                d[(prefix,row[group])] = temp
         else:
             
             agg_df = df.groupby('user').agg({answer_col: sum})
