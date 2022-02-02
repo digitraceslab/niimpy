@@ -76,12 +76,30 @@ PHQ2_ANSWER_MAP = {
     'nearly-every-day': 3
 }
 
+# use this mapping for prefix option, so that multiple question id's can be processed
+# simultaneuously
 ID_MAP_PREFIX = {'PSS' : PSS_ANSWER_MAP,
                  'PHQ2' : PHQ2_ANSWER_MAP,
                  'GAD2' : PHQ2_ANSWER_MAP}
 
+# use this mapping if you want to explicitly specify the mapping for each question
+ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
+           'PSS10_2' : PSS_ANSWER_MAP,
+           'PSS10_3' : PSS_ANSWER_MAP,
+           'PSS10_4' : PSS_ANSWER_MAP,
+           'PSS10_5' : PSS_ANSWER_MAP,
+           'PSS10_6' : PSS_ANSWER_MAP,
+           'PSS10_7' : PSS_ANSWER_MAP,
+           'PSS10_8' : PSS_ANSWER_MAP,
+           'PSS10_9' : PSS_ANSWER_MAP}
+                                 
 def convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
+    Use answer mapping dictionariess provided by the uses to convert the answers.
+    Can convert multiple questions having same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
+    at same time if prefix mapping is provided. Function returns original values for the 
+    answers that have not been specified for conversion.
+    
     
     Parameters
     ----------
@@ -95,24 +113,38 @@ def convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=
         Name of the column containing the question id.
         
     id_map : dictionary
-        Dictionary containing answer mappings (value) for each each question id (key).
-    
+        Dictionary containing answer mappings (value) for each each question_id (key),
+        or a dictionary containing a map for each question id prefix if use_prefix 
+        option is used.
+           
     use_prefix : boolean
-        If True, use question id prefix map. The default is False.
+        If False, uses given map (id_map) to convert questions. The default is False.  
+        If True, use question id prefix map, so that multiple question_id's having 
+        the same prefix may be converted on the same time. 
     
     Returns
     -------
     result : pandas series
-        Series containing converted values
+        Series containing converted values and original values for aswers hat are not 
+        supposed to be converted.
     
     """
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(answer_col, str), "answer_col is not a string."
+    assert isinstance(question_id, str), "question_id is not a string."
+    assert isinstance(id_map, dict), "id_map is not a dictionary."
+    assert isinstance(use_prefix, bool), "use_prefix is not a bool."
+    
+    # copy original answers
     result = df[answer_col]
     
     for key,value in id_map.items():
         if use_prefix == True:
             temp = df[df[question_id].str.startswith(key)][answer_col]
+        
         else:
             temp = df[df[question_id] == key][answer_col]
+        
         temp = temp.replace(value)
         result.loc[temp.index] = temp[:]
         del temp
