@@ -26,6 +26,7 @@ def get_xticks_(df):
     text : list of strings
         xtick text for plotting
     """
+    assert isinstance(df, pd.Series), "df is not a pandas series."
     
     vals = df.index.values
     text = [str(i) for i in vals]
