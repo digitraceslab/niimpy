@@ -32,7 +32,7 @@ jobs:
           force_orphan: true
       - name: Run tests and collect coverage
         run: |
-          coverage run niimpy/*/test_*.py
+          coverage run -m pytest
           coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
