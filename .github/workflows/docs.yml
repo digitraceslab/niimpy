@@ -32,7 +32,7 @@ jobs:
           force_orphan: true
       - name: Run tests and collect coverage
         run: |
-          coverage run tests.py
+          coverage run niimpy/EDA/test_EDA_countplot.py
           coverage xml
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
