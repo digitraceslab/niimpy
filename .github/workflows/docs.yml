@@ -30,9 +30,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: docs/_build/dirhtml/
           force_orphan: true
-      - name: Run tests and collect coverage
-        run: |
-          coverage run -m pytest
-          coverage xml
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
