@@ -4,7 +4,8 @@ import pandas as pd
 import niimpy
 from . import preprocess
 
-def get_battery_data(battery, user=None, start = None, end = None):
+def get_battery_data(battery, batterylevel_column='battery_level',
+                     user=None, start=None, end=None):
     """ Returns a DataFrame with battery data for a user.
     Parameters
     ----------
@@ -13,37 +14,17 @@ def get_battery_data(battery, user=None, start = None, end = None):
     start: datetime, optional
     end: datetime, optional
     """
-    assert isinstance(battery, pd.core.frame.DataFrame), "data is not a pandas DataFrame"
-    
-    if(user!= None):
-        assert isinstance(user, str),"user not given in string format"
-        battery_data = battery[(battery['user']==user)]
-    else:
-        battery_data = battery
-        
-    if(start!=None):
-        start = pd.to_datetime(start)
-    else:
-        start = battery_data.iloc[0]['datetime']
-    if(end!= None):
-        end = pd.to_datetime(end)
-    else:
-        end = battery_data.iloc[len(battery_data)-1]['datetime']
+    battery = niimpy.filter_dataframe(battery, begin=start, end=end, user=user)
+    battery[batterylevel_column] = pd.to_numeric(battery[batterylevel_column])
 
-    battery_data = battery_data[(battery_data['datetime']>=start) & (battery_data['datetime']<=end)]
-
-    battery_data['battery_level'] = pd.to_numeric(battery_data['battery_level'])
-
-    #df['column'].fillna(pd.Timedelta(seconds=0))
-    #df.dropna()
-
-    battery_data = battery_data.drop_duplicates(subset=['datetime','user','device'],keep='last')
-    battery_data = battery_data.drop(['user','device','time','datetime'],axis=1)
-
-    return battery_data
+    battery = battery.drop_duplicates(subset=['datetime','user','device'],keep='last')
+    battery = battery.drop(['user','device','time','datetime'],axis=1)
+    return battery
 
 
-def battery_occurrences(battery_data, user=None, start=None, end=None, battery_status = False, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
+def battery_occurrences(battery_data, battery_status=False,
+                        days=0, hours=6, minutes=0, seconds=0, milli=0, micro=0, nano=0,
+                        user=None, start=None, end=None):
     """ Returns a dataframe showing the amount of battery data points found between a given interval and steps.
     The default interval is 6 hours.
     Parameters
@@ -238,3 +219,35 @@ def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hou
     gaps = pd.concat([battery[mask],other[mask]['occurrences']],axis=1, sort=False)
 
     return gaps
+
+def shutdown_info(database,subject,begin=None,end=None):
+    """ Returns a DataFrame with the timestamps of when the phone has shutdown.
+
+
+    NOTE: This is a helper function created originally to preprocess the application
+    info data
+
+    Parameters
+    ----------
+    database: Niimpy database
+    user: string
+    begin: datetime, optional
+    end: datetime, optional
+
+
+    Returns
+    -------
+    shutdown: Dataframe
+
+    """
+    bat = niimpy.read._get_dataframe(database, table='AwareBattery', user=subject)
+    bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
+
+    if 'datetime' in bat.columns:
+        bat = bat[['battery_status', 'datetime']]
+    else:
+        bat = bat[['battery_status']]
+    bat=bat.loc[begin:end]
+    bat['battery_status']=pd.to_numeric(bat['battery_status'])
+    shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
+    return shutdown
