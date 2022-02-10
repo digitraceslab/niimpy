@@ -8,7 +8,7 @@ Created on Mon Nov  8 14:42:18 2021
 import pandas as pd
 import plotly.express as px
 
-def get_counts(df,aggregation):
+def get_counts_(df,aggregation):
     """Calculate datapoint counts by group or by user
     
     Parameters
@@ -39,7 +39,7 @@ def get_counts(df,aggregation):
     
     return n_events
 
-def calculate_bins(df,binning,to_string=True):
+def calculate_bins_(df,binning,to_string=True):
     """Calculate time index based bins for each observation in the dataframe.
     
     Parameters
@@ -112,9 +112,8 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
     #TODO! check if this is necessary!
     #df[y] = df[y].astype(np.float64)
     
-    if binning not False:
-        df['bin'] = calculate_bins(df,binning,to_string=True)
-        
+    if binning is not False:
+        df['bin'] = calculate_bins_(df,binning,to_string=True)
         fig = px.box(df,
                      x = "bin", 
                      y = y,
@@ -220,9 +219,15 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
     # Plot counts
     if plot_type == 'count':
         if aggregation == 'group':
+            
+            '''
             n_events = df[['group', 'user']].groupby(['user', 'group']).size().to_frame()
             n_events.columns = ['values']
             n_events = n_events.reset_index()
+            '''
+            
+            n_events = get_counts_(df,aggregation)
+                                  
             EDA_boxplot_(n_events,
                          fig_title,
                          points,
@@ -233,9 +238,15 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
                          )
         
         elif aggregation == 'user':
+            
+            '''
             n_events = df[['user']].groupby(['user']).size().to_frame()
             n_events.columns = ['values']
             n_events = n_events.reset_index()
+            '''
+            
+            n_events = get_counts_(df,aggregation)
+            
             EDA_barplot_(n_events, 
                         fig_title, 
                         xlabel="User",
