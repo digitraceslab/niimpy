@@ -1,8 +1,49 @@
-
 import pandas as pd
 import numpy as np
 
 from geopy.distance import geodesic
+
+
+def filter_location(location,
+                    remove_disabled=True,
+                    remove_zeros=True,
+                    remove_network=True):
+    """Remove low-quality or weird location samples
+
+    Parameters
+    ----------
+
+    location : pd.DataFrame
+        DataFrame of locations
+
+    remove_disabled : bool
+        Remove locations whose `label` is disabled
+
+    remove_zerso : bool
+        Remove locations which their latitude and longitueds are close to 0
+
+    remove_network : bool
+        Keep only locations whose `provider` is `gps`
+
+    Returns
+    -------
+    location : pd.DataFrame
+    """
+
+    if remove_disabled:
+        assert 'label' in location
+        location = location[location['label'] != 'disabled']
+
+    if remove_zeros:
+        index = (location["double_latitude"] ** 2 +
+                 location["double_longitude"] ** 2) > 0.001
+        location = location[index]
+
+    if remove_network:
+        assert 'provider' in location
+        location = location[location['provider'] == 'gps']
+
+    return location
 
 
 def bin_location(location,
@@ -114,8 +155,16 @@ def extract_distance_features(location, column_prefix=None):
         })
         return row
 
-    features = location.groupby('user').apply(compute_distance_features)
+    location = location.sort_index()
+
+    features = pd.DataFrame(index=location.user.unique())
+    grouped = location.groupby('user')
+    var = grouped.var()
+
+    features = grouped.apply(compute_distance_features)
     features = features.reset_index(level=[1], drop=True)
+    features['variance'] = var['double_latitude'] + var['double_longitude']
+    features['log_variance'] = np.log(features['variance'])
 
     if column_prefix:
         new_columns = [
