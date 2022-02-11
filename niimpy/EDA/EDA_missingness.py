@@ -1,32 +1,46 @@
+'''
+This module is rewritten based on the missingno package.
+The original files can be found here: https://github.com/ResidentMario/missingno
+'''
+
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
 
-def bar(df):
+def bar(df, title='Data frequency', xaxis_title = '', yaxis_title = ''):
     ''' Display bar chart visualization of the nullity of the given DataFrame.
     
     :param df: DataFrame to plot
+    
+    Return:
+        fig: Plotly figure.
     '''
     
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     
-    # Count nullity in all columns
-    nullity_counts = len(df) - df.isnull().sum()
-    missing_perc = (nullity_counts / len(df))
+    def _missing_percentage(df):
         
+        # Return each column missing percentage
+        # Count nullity in all columns
+        nullity_counts = len(df) - df.isnull().sum()
+        missing_perc = (nullity_counts / len(df))
+        return missing_perc
+    
     # Right y-axis: display number of instances
     
-    fig = px.bar(missing_perc)
+    fig = px.bar(_missing_percentage(df))
     
-    fig.update_layout(title='Data frequency', xaxis_title = '', yaxis_title = '', showlegend=False)
-    fig.show()
+    fig.update_layout(title=title, xaxis_title=xaxis_title, yaxis_title=yaxis_title, showlegend=False)
+    return fig
         
     
-def matrix(df):
-    ''' Display matrix visualization of the nullity of data.
+def matrix(df, height=500, title='Data frequency'):
+    ''' Retu matrix visualization of the nullity of data.
     For now, this function assumes that the data frame is datetime indexed.
     
     :param df: DataFrame to plot
+    
+    :return: Plotly figure
     '''
 
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
@@ -38,6 +52,26 @@ def matrix(df):
     fig = px.imshow(bool_mask, color_continuous_scale='gray')
         
     # Update layout
-    fig.update_layout(title="Data frequency.", coloraxis_showscale=False, height = 500)
+    fig.update_layout(title=title, coloraxis_showscale=False, height=height)
 
-    fig.show()
+    return fig
+
+def heatmap(df):
+    ''' Return 'plotly' heatmap visualization of the nullity correlation of the Dataframe.
+    
+    :param df: DataFrame to plot
+    
+    :return: Plotly figure
+    '''
+    
+    # Remove completely filled or completely empty variables.
+    df = df.iloc[:, [i for i, n in enumerate(np.var(df.isnull(), axis='rows')) if n > 0]]
+
+    # Create and mask the correlation matrix. Construct the base heatmap.
+    corr_mat = df.isnull().corr()
+    mask = np.zeros_like(corr_mat)
+    mask[np.triu_indices_from(mask)] = True
+    
+    fig = px.imshow(mask, text_auto=True)
+    
+    return fig
