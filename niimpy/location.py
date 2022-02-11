@@ -134,24 +134,31 @@ def extract_distance_features(location, column_prefix=None):
     """
     def compute_distance_features(df):
         """Compute features for a single user"""
-        total_dist = 0
-        speeds = []
-        for i in range(df.shape[0] - 2):
-            loc1 = df.iloc[i][['double_latitude', 'double_longitude']]
-            loc2 = df.iloc[i + 1][['double_latitude', 'double_longitude']]
-            dist = geodesic(loc1, loc2).meters
-            total_dist += dist
+        df = df.sort_index()  # sort based on time
 
-            time_delta = (df.index[i + 1] - df.index[i]).seconds
-            if time_delta > 0:
-                speeds.append(dist / time_delta)
-        speed_average = np.mean(speeds)
-        speed_variance = np.var(speeds)
+        dists = np.zeros(df.shape[0])
+        time_deltas = np.zeros(df.shape[0])
+
+        for i in range(1, df.shape[0]):
+            loc1 = df.iloc[i - 1][['double_latitude', 'double_longitude']]
+            loc2 = df.iloc[i][['double_latitude', 'double_longitude']]
+
+            time_deltas[i] = (df.index[i] - df.index[i - 1]).total_seconds()
+            dists[i] = geodesic(loc1, loc2).meters
+
+        speeds = dists / time_deltas
+        speed_average = np.nanmean(speeds)
+        speed_variance = np.nanvar(speeds)
+        speed_max = np.nanmax(speeds)
+
+        total_dist = sum(dists)
+
         row = pd.DataFrame({
             'dist_total': [total_dist],
             'n_bins': [df.shape[0]],
             'speed_average': [speed_average],
-            'speed_variance': [speed_variance]
+            'speed_variance': [speed_variance],
+            'speed_max': [speed_max]
         })
         return row
 
