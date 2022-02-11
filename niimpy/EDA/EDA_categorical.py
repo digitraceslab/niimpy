@@ -5,10 +5,32 @@ Created on Thu Nov 18 14:49:22 2021
 @author: arsii
 """
 import pandas as pd
+import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 
-
+def get_xticks_(df):
+    """ Helper function for plot_categories function.
+    Convert series index into xtick values and text.
+    
+    Parameters
+    ----------
+    df : Pandas series
+        Series containing the categorized counts
+        
+    Return
+    ------
+    vals : list of integers
+        xtick values/indices for plotting
+    
+    text : list of strings
+        xtick text for plotting
+    """
+    
+    vals = df.index.values
+    text = [str(i) for i in vals]
+    return vals,text
+    
 def categorize_answers(df, question, answer_column):
     """ Extract a question answered and count different answers.
 
@@ -67,19 +89,28 @@ def plot_categories(
     fig: plotly Figure
         A barplot of the input data
     """
-    assert isinstance(df, pd.Series), "df is not a pandas dataframe."
+    assert isinstance(df, pd.Series), "df is not a pandas series."
     assert isinstance(title, (str,type(None))), 'title is not a string or None type.'
     assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
     assert isinstance(ylabel, (str,type(None))), "ylabel is not a string or None type."
     assert isinstance(width, int), "width is not an integer."
     assert isinstance(height, int), "height is not an integer."
 
+    #xtick labels and values
+    vals, text = get_xticks_(df)
+    
     fig = px.bar(df)
+    
     fig.update_layout(title = title,
                       xaxis_title = xlabel,
                       yaxis_title = ylabel,
                       width = width,
-                      height = height)
+                      height = height,
+                      xaxis = dict(tickmode = 'array',
+                                   tickvals = vals,
+                                   ticktext = text)
+    )
+
     return fig
 
 def questionnaire_summary(
@@ -165,10 +196,9 @@ def question_by_group(df, question, id_column = 'id', answer_column = 'answer', 
     
     grouped = df[df[id_column] == question][[answer_column, group]].reset_index(drop=True)
     grouped = grouped.groupby([group,answer_column]).agg({answer_column:'count'}).rename(columns={answer_column:'count'}).reset_index()
-    
     return grouped
 
-def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900, height=900):
+def plot_grouped_categories(df, group, title=None, xlabel=None, ylabel=None, width=900, height=900):
     """Plot summary barplot for questionnaire data.
 
     Parameters
@@ -176,6 +206,9 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
     df: Pandas DataFrameGroupBy
         A grouped dataframe containing categorical data
 
+    group: str
+        Column used to describe group 
+        
     title : str
         Plot title
 
@@ -206,7 +239,7 @@ def plot_grouped_categories(df, title=None, xlabel=None, ylabel=None, width=900,
     fig = px.bar(df, 
                  x="answer", 
                  y="count",
-                 color='group', 
+                 color=group, 
                  barmode='group',)
     
     fig.update_layout(xaxis={'categoryorder':'category ascending'},
@@ -269,8 +302,9 @@ def questionnaire_grouped_summary(
     assert isinstance(height, int), "height is not an integer."
     
     df_filt = question_by_group(df, question, id_column, answer_column, group)
-    
+
     fig = plot_grouped_categories(df_filt,
+                                  group=group,
                                   title=title, 
                                   xlabel=xlabel, 
                                   ylabel=ylabel,

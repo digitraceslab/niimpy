@@ -76,24 +76,30 @@ PHQ2_ANSWER_MAP = {
     'nearly-every-day': 3
 }
 
+# use this mapping for prefix option, so that multiple question id's can be processed
+# simultaneuously
 ID_MAP_PREFIX = {'PSS' : PSS_ANSWER_MAP,
                  'PHQ2' : PHQ2_ANSWER_MAP,
                  'GAD2' : PHQ2_ANSWER_MAP}
 
-ID_MAP = {'PHQ2_1':'PSS10_MAP',
-          'PHQ2_2':'PSS10_MAP',
-          'PSQI_1':'PSS10_MAP',
-          'PSQI_2':'PSS10_MAP',
-          'PSQI_3':'PSS10_MAP',
-          'PSQI_4':'PSS10_MAP',
-          'PSQI_5':'PSS10_MAP',
-          'PSQI_6':'PSS10_MAP',
-          'PSQI_7':'PSS10_MAP',
-          'PSQI_8':'PSS10_MAP',
-          'PSQI_9':'PSS10_MAP'}
-
-def convert_to_numerical_answer(df, answer_col, encoded_column, question_id, id_map, use_prefix=False):
+# use this mapping if you want to explicitly specify the mapping for each question
+ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
+           'PSS10_2' : PSS_ANSWER_MAP,
+           'PSS10_3' : PSS_ANSWER_MAP,
+           'PSS10_4' : PSS_ANSWER_MAP,
+           'PSS10_5' : PSS_ANSWER_MAP,
+           'PSS10_6' : PSS_ANSWER_MAP,
+           'PSS10_7' : PSS_ANSWER_MAP,
+           'PSS10_8' : PSS_ANSWER_MAP,
+           'PSS10_9' : PSS_ANSWER_MAP}
+                                 
+def convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
+    Use answer mapping dictionariess provided by the uses to convert the answers.
+    Can convert multiple questions having same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
+    at same time if prefix mapping is provided. Function returns original values for the 
+    answers that have not been specified for conversion.
+    
     
     Parameters
     ----------
@@ -103,36 +109,120 @@ def convert_to_numerical_answer(df, answer_col, encoded_column, question_id, id_
     answer_col : str
         Name of the column containing the answers
         
-    encoded_column : str
-        Name of the column for converted values
-        
     question_id : str
         Name of the column containing the question id.
         
     id_map : dictionary
-        Dictionary containing answer mappings (value) for each each question id (key).
-    
+        Dictionary containing answer mappings (value) for each each question_id (key),
+        or a dictionary containing a map for each question id prefix if use_prefix 
+        option is used.
+           
     use_prefix : boolean
-        If True, use question id prefix map. The default is False.
+        If False, uses given map (id_map) to convert questions. The default is False.  
+        If True, use question id prefix map, so that multiple question_id's having 
+        the same prefix may be converted on the same time. 
     
     Returns
     -------
     result : pandas series
-        Series containing converted values
+        Series containing converted values and original values for aswers hat are not 
+        supposed to be converted.
     
     """
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(answer_col, str), "answer_col is not a string."
+    assert isinstance(question_id, str), "question_id is not a string."
+    assert isinstance(id_map, dict), "id_map is not a dictionary."
+    assert isinstance(use_prefix, bool), "use_prefix is not a bool."
+    
+    # copy original answers
     result = df[answer_col]
     
     for key,value in id_map.items():
         if use_prefix == True:
             temp = df[df[question_id].str.startswith(key)][answer_col]
+        
         else:
             temp = df[df[question_id] == key][answer_col]
+        
         temp = temp.replace(value)
         result.loc[temp.index] = temp[:]
         del temp
         
     return result
+
+def print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, group=None):
+    '''
+    Return survey statistic. The statistic includes min, max, average and s.d values.
+
+    :param df: 
+        DataFrame contains survey score.
+    :param question_id: string. 
+        Column contains question id.
+    :param answer: 
+        Column contains answer in numerical values.
+    :param prefix: list. 
+        List contains survey prefix. If None is given, search question_id for all possible categories.
+    
+    Return: dict
+        A dictionary contains summary of each questionaire category.
+        Example: {'PHQ9': {'min': 3, 'max': 8, 'avg': 4.5, 'std': 2}}
+    '''
+    
+    def calculate_statistic(df, prefix, answer_col, group=None):
+        
+        d = {}
+        if group:
+            assert isinstance(group, str),"group is not given in string format"
+            
+            # Groupby, aggregate and extract statistic from answer column 
+            agg_df = df.groupby(['user', group]) \
+                         .agg({'answer': sum}) \
+                         .groupby(group) \
+                         .agg({'answer': ['mean', 'min', 'max','std']})
+            agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
+            agg_df = agg_df.rename(columns={'': group}).reset_index() # reassign group column 
+            lst = []
+
+            for index, row in agg_df.iterrows():
+                temp = {'min': row['min'], 'max': row['max'], 
+                        'avg': row['mean'], 'std': row['std']}
+                d[(prefix,row[group])] = temp
+        else:
+            
+            agg_df = df.groupby('user').agg({answer_col: sum})
+            d[prefix] = {'min': agg_df[answer_col].min(), 'max': agg_df[answer_col].max(), 
+                         'avg': agg_df[answer_col].mean(), 'std': agg_df[answer_col].std()}
+        return d
+    
+    res = {}
+    
+    # Collect questions with the given prefix. Otherwise, collect all prefix, assuming that 
+    # the question id follows this format: {prefix}_id.
+    if prefix:
+        if isinstance(prefix, str):
+            
+            temp = df[df[question_id].str.startswith(prefix)]
+            return calculate_statistic(temp, prefix, answer_col, group)
+        elif isinstance(prefix, list):
+            
+            for pr in prefix:
+                temp = df[df[question_id].str.startswith(pr)]
+                d = calculate_statistic(temp, prefix, answer_col, group)
+                res.update(d)
+        else:
+            raise ValueError('prefix should be either list or string')
+
+    else:
+        
+        # Search for all possible prefix (extract everything before the '_' delimimeter)
+        # Then compute statistic as usual
+        prefix_lst = list(set(df[question_id].str.split('_').str[0]))
+        for pr in prefix_lst:
+            temp = df[df[question_id].str.startswith(pr)]
+            d = calculate_statistic(temp, pr, answer_col, group)
+            res.update(d)
+    return res
 
 def get_phq9(database,subject):
     """ Returns the phq9 scores from the databases per subject
