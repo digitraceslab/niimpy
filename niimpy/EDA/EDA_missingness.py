@@ -3,6 +3,7 @@ This module is rewritten based on the missingno package.
 The original files can be found here: https://github.com/ResidentMario/missingno
 '''
 
+import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
@@ -56,7 +57,7 @@ def matrix(df, height=500, title='Data frequency'):
 
     return fig
 
-def heatmap(df):
+def heatmap(df, height=800, width=800):
     ''' Return 'plotly' heatmap visualization of the nullity correlation of the Dataframe.
     
     :param df: DataFrame to plot
@@ -69,9 +70,8 @@ def heatmap(df):
 
     # Create and mask the correlation matrix. Construct the base heatmap.
     corr_mat = df.isnull().corr()
-    mask = np.zeros_like(corr_mat)
-    mask[np.triu_indices_from(mask)] = True
     
-    fig = px.imshow(mask, text_auto=True)
+    fig = go.Figure(data=go.Heatmap(z=corr_mat, x = df.columns, y=df.columns)) 
     
+    fig.update_layout(height=height, width=width)
     return fig
