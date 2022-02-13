@@ -1,8 +1,49 @@
-
 import pandas as pd
 import numpy as np
 
 from geopy.distance import geodesic
+
+
+def filter_location(location,
+                    remove_disabled=True,
+                    remove_zeros=True,
+                    remove_network=True):
+    """Remove low-quality or weird location samples
+
+    Parameters
+    ----------
+
+    location : pd.DataFrame
+        DataFrame of locations
+
+    remove_disabled : bool
+        Remove locations whose `label` is disabled
+
+    remove_zerso : bool
+        Remove locations which their latitude and longitueds are close to 0
+
+    remove_network : bool
+        Keep only locations whose `provider` is `gps`
+
+    Returns
+    -------
+    location : pd.DataFrame
+    """
+
+    if remove_disabled:
+        assert 'label' in location
+        location = location[location['label'] != 'disabled']
+
+    if remove_zeros:
+        index = (location["double_latitude"] ** 2 +
+                 location["double_longitude"] ** 2) > 0.001
+        location = location[index]
+
+    if remove_network:
+        assert 'provider' in location
+        location = location[location['provider'] == 'gps']
+
+    return location
 
 
 def bin_location(location,
@@ -93,29 +134,44 @@ def extract_distance_features(location, column_prefix=None):
     """
     def compute_distance_features(df):
         """Compute features for a single user"""
-        total_dist = 0
-        speeds = []
-        for i in range(df.shape[0] - 2):
-            loc1 = df.iloc[i][['double_latitude', 'double_longitude']]
-            loc2 = df.iloc[i + 1][['double_latitude', 'double_longitude']]
-            dist = geodesic(loc1, loc2).meters
-            total_dist += dist
+        df = df.sort_index()  # sort based on time
 
-            time_delta = (df.index[i + 1] - df.index[i]).seconds
-            if time_delta > 0:
-                speeds.append(dist / time_delta)
-        speed_average = np.mean(speeds)
-        speed_variance = np.var(speeds)
+        dists = np.zeros(df.shape[0])
+        time_deltas = np.zeros(df.shape[0])
+
+        for i in range(1, df.shape[0]):
+            loc1 = df.iloc[i - 1][['double_latitude', 'double_longitude']]
+            loc2 = df.iloc[i][['double_latitude', 'double_longitude']]
+
+            time_deltas[i] = (df.index[i] - df.index[i - 1]).total_seconds()
+            dists[i] = geodesic(loc1, loc2).meters
+
+        speeds = dists / time_deltas
+        speed_average = np.nanmean(speeds)
+        speed_variance = np.nanvar(speeds)
+        speed_max = np.nanmax(speeds)
+
+        total_dist = sum(dists)
+
         row = pd.DataFrame({
             'dist_total': [total_dist],
             'n_bins': [df.shape[0]],
             'speed_average': [speed_average],
-            'speed_variance': [speed_variance]
+            'speed_variance': [speed_variance],
+            'speed_max': [speed_max]
         })
         return row
 
-    features = location.groupby('user').apply(compute_distance_features)
+    location = location.sort_index()
+
+    features = pd.DataFrame(index=location.user.unique())
+    grouped = location.groupby('user')
+    var = grouped.var()
+
+    features = grouped.apply(compute_distance_features)
     features = features.reset_index(level=[1], drop=True)
+    features['variance'] = var['double_latitude'] + var['double_longitude']
+    features['log_variance'] = np.log(features['variance'])
 
     if column_prefix:
         new_columns = [
