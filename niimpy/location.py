@@ -3,6 +3,49 @@ import numpy as np
 
 from geopy.distance import geodesic
 
+def distance_matrix(lats, lons):
+    """Compute distance matrix using great-circle distance formula
+
+    https://en.wikipedia.org/wiki/Great-circle_distance#Formulae
+
+    Parameters
+    ----------
+    lats : array
+        Latitudes
+
+    lons : array
+        Longitudes
+
+    Returns
+    -------
+    dists : matrix
+        Entry `(i, j)` shows the great-circle distance between
+        Point `i` and `j`, i.e. distance between `(lats[i], lons[i])`
+        and `(lats[j], lons[j])`.
+    """
+
+    assert len(lats) == len(lons), "lats and lons should be of the same size"
+    assert any(np.isnan(lats)), "nan in lats"
+    assert any(np.isnan(lons)), "nan in lons"
+
+    R = 6372795.477598
+
+    # convert degree to radian
+    lats = lats * np.pi / 180.0
+    lons = lons * np.pi / 180.0
+
+    sins = np.sin(lats)
+    sin_matrix = sins.reshape(-1, 1) @ sins.reshape(1, -1)
+
+    coss = np.cos(lats)
+    cos_matrix = coss.reshape(-1, 1) @ coss.reshape(1, -1)
+
+    lons_matrix = lons * np.ones((len(lons), len(lons)))
+    lons_diff = lons_matrix - lons_matrix.T
+    lons_diff = np.cos(lons_diff)
+
+    dists = R * np.arccos(sin_matrix + cos_matrix * lons_diff)
+    return dists
 
 def filter_location(location,
                     remove_disabled=True,
@@ -147,18 +190,54 @@ def extract_distance_features(location, column_prefix=None):
             dists[i] = geodesic(loc1, loc2).meters
 
         speeds = dists / time_deltas
+        speeds[0] = 0
         speed_average = np.nanmean(speeds)
         speed_variance = np.nanvar(speeds)
         speed_max = np.nanmax(speeds)
-
         total_dist = sum(dists)
+
+        static_bins = speeds < 0.277
+        static_bins_index = np.arange(len(static_bins))[static_bins]
+        dists_matrix = np.zeros((len(static_bins_index), len(static_bins_index)))
+
+        lats_binned = df['double_latitude']
+        lons_binned = df['double_longitude']
+
+        for i, loc_index_i in enumerate(static_bins_index):
+            for j, loc_index_j in enumerate(static_bins_index):
+                lat_lon_i = lats_binned[loc_index_i], lons_binned[loc_index_i]
+                lat_lon_j = lats_binned[loc_index_j], lons_binned[loc_index_j]
+                dists_matrix[i][j] = geodesic(lat_lon_i, lat_lon_j).meters
+                dists_matrix[j][i] = dists_matrix[i][j]
+
+        from sklearn.cluster import DBSCAN
+        import collections
+
+        dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
+        clusters = dbscan.fit_predict(dists_matrix)
+        non_rare_clusters = clusters[clusters != -1]
+        n_unique_sps = len(set(non_rare_clusters))
+        n_rare_sps = len(set(clusters)) - n_unique_sps
+
+        stay_times = collections.Counter(clusters).values()
+        stay_times = np.sort(list(stay_times))[::-1]
+        n_bins = df.shape[0]
+
+        stay_perc_top1 = stay_times[0] / n_bins if len(stay_times) > 0 else 0
+        stay_perc_top2 = stay_times[1] / n_bins if len(stay_times) > 1 else 0
+        stay_perc_top3 = stay_times[2] / n_bins if len(stay_times) > 2 else 0
 
         row = pd.DataFrame({
             'dist_total': [total_dist],
-            'n_bins': [df.shape[0]],
+            'n_bins': [n_bins],
             'speed_average': [speed_average],
             'speed_variance': [speed_variance],
-            'speed_max': [speed_max]
+            'speed_max': [speed_max],
+            'n_sps': [n_unique_sps],
+            'n_rare_sps': [n_rare_sps],
+            'stay_prec_top1': [stay_perc_top1],
+            'stay_prec_top2': [stay_perc_top2],
+            'stay_prec_top3': [stay_perc_top3],
         })
         return row
 
