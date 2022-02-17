@@ -8,7 +8,7 @@ Created on Mon Nov  8 14:42:18 2021
 import pandas as pd
 import plotly.express as px
 
-def get_counts_(df,aggregation):
+def get_counts(df,aggregation):
     """Calculate datapoint counts by group or by user
     
     Parameters
@@ -28,7 +28,7 @@ def get_counts_(df,aggregation):
     assert isinstance(aggregation,str), "aggregation is not a string"
     
     if aggregation == 'group':
-            n_events = df[['group', 'user']].groupby(['user', 'group']).size().to_frame()
+            n_events = df[['group', 'user']].groupby(['group']).size().to_frame()
             n_events.columns = ['values']
             n_events = n_events.reset_index()
             
@@ -39,7 +39,7 @@ def get_counts_(df,aggregation):
     
     return n_events
 
-def calculate_bins_(df,binning,to_string=True):
+def calculate_bins(df,binning):
     """Calculate time index based bins for each observation in the dataframe.
     
     Parameters
@@ -55,17 +55,14 @@ def calculate_bins_(df,binning,to_string=True):
     
     bins : pandas period index
     
-    n_events : Pandas DataFrame
     """  
     
     assert isinstance(df,pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(binning,str), "binning is not a string"
-    assert isinstance(to_string,bool), "to_string is not a bool"
+    #assert isinstance(to_string,bool), "to_string is not a bool"
     
     bins = df.index.to_period(binning)
-    
-    if to_string:
-        bins = bins.astype('string')
+    bins = bins.to_series().astype(str)
     
     return bins
     
@@ -111,9 +108,9 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
 
     #TODO! check if this is necessary!
     #df[y] = df[y].astype(np.float64)
-    
+        
     if binning is not False:
-        df['bin'] = calculate_bins_(df,binning,to_string=True)
+        df['bin'] = calculate_bins(df,binning)
         fig = px.box(df,
                      x = "bin", 
                      y = y,
@@ -132,7 +129,7 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
                       yaxis_title = ylabel,
                       autotypenumbers='convert types') 
     
-    fig.show()
+    return fig
 
 def EDA_barplot_(df, fig_title, xlabel, ylabel):
     """Plot a barplot showing counts for each subjects
@@ -172,7 +169,7 @@ def EDA_barplot_(df, fig_title, xlabel, ylabel):
                       xaxis_title = xlabel,
                       yaxis_title = ylabel)
     
-    fig.show()  
+    return fig 
 
 def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
                   aggregation = 'group', user = None, column=None,\
@@ -219,38 +216,27 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
     # Plot counts
     if plot_type == 'count':
         if aggregation == 'group':
-            
-            '''
-            n_events = df[['group', 'user']].groupby(['user', 'group']).size().to_frame()
-            n_events.columns = ['values']
-            n_events = n_events.reset_index()
-            '''
-            
-            n_events = get_counts_(df,aggregation)
-                                  
-            EDA_boxplot_(n_events,
-                         fig_title,
-                         points,
-                         binning,
-                         y = 'values',
-                         xlabel="Group",
-                         ylabel="Count",
-                         )
+                       
+            n_events = get_counts(df,aggregation)
+            print(n_events)
+                   
+            fig = EDA_boxplot_(n_events,
+                               fig_title,
+                               points,
+                               y = 'values',
+                               xlabel="Group",
+                               ylabel="Count",
+                               binning=binning
+                               )
         
         elif aggregation == 'user':
+                       
+            n_events = get_counts(df,aggregation)
             
-            '''
-            n_events = df[['user']].groupby(['user']).size().to_frame()
-            n_events.columns = ['values']
-            n_events = n_events.reset_index()
-            '''
-            
-            n_events = get_counts_(df,aggregation)
-            
-            EDA_barplot_(n_events, 
-                        fig_title, 
-                        xlabel="User",
-                        ylabel="Count")
+            fig = EDA_barplot_(n_events, 
+                               fig_title, 
+                               xlabel="User",
+                               ylabel="Count")
         
         else:
             pass
@@ -258,14 +244,16 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
     # Plot values
     elif plot_type == 'value':
         if aggregation == 'group':
-            EDA_boxplot_(df,
-                        fig_title,
-                        points,
-                        binning,
-                        y=column,
-                        xlabel="Group",
-                        ylabel="Value",
-                        )
+            fig = EDA_boxplot_(df,
+                               fig_title,
+                               points,
+                               y=column,
+                               xlabel="Group",
+                               ylabel="Value",
+                               binning=binning
+                               )
         
     else:
         pass
+    
+    return fig
