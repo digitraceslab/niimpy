@@ -42,12 +42,21 @@ def test_questionnaire_summary():
                                                 width=900, height=900)
     assert (type(fig) == plotly.graph_objs._figure.Figure)
     
+def test_questionnaire_summary_one_subject():
+    df = setup_dataframe.create_categorical_dataframe()
+    fig = EDA_categorical.questionnaire_summary(df, 'id_1', 'answer', title=None,\
+                                                xlabel=None, ylabel=None, user='user_1',\
+                                                width=900, height=900)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+    
 def test_question_by_group():
     df = setup_dataframe.create_categorical_dataframe()
     grouped = EDA_categorical.question_by_group(df, question = 'id_1', id_column = 'id',\
                                                 answer_column = 'answer',   group='group')
     #TODO! test contents of groupby object
     assert (type(grouped) == pd.core.frame.DataFrame)
+    
+
     
 def test_plot_grouped_categories():
     df = setup_dataframe.create_categorical_dataframe()
