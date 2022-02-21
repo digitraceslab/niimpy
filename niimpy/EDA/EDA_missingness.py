@@ -31,10 +31,6 @@ def bar(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title 
     
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     
-    def __resample(df, freq):
-        resampled_df = df.resample('T').sum()
-        return resampled_df
-
     def _missing_percentage(df):
         
         # Return each column missing percentage
