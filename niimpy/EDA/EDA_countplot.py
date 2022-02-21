@@ -257,3 +257,4 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
         pass
     
     return fig
+    
