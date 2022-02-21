@@ -152,7 +152,7 @@ def occurrence(series, bin_width=720, grouping_width=3600):
     gb2.index = gb2.loc[:, ['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
     return gb2
 
-def createMissingDataFrame(nrows, ncols, density=.9, random_state=None, index_type=None, freq=None):
+def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_type=None, freq=None):
     """Create a Pandas dataframe with random missingness.
     
     Parameters
@@ -168,7 +168,7 @@ def createMissingDataFrame(nrows, ncols, density=.9, random_state=None, index_ty
     index_type: float, optional
         Accepts the following values: "dt" for timestamp, "int" for integer.
     freq: string, optional:
-        Sampling frequency. This option is only available is index_type is "dt". Possible values: 's', 'm', 'h', 'M'.
+        Sampling frequency. This option is only available is index_type is "dt". 
     Returns
     -------
     df : pandas.DataFrame
@@ -183,8 +183,6 @@ def createMissingDataFrame(nrows, ncols, density=.9, random_state=None, index_ty
         if index_type == "dt":
             if freq is None:
                 freq='h'
-            else:
-                assert((freq in ['s', 'm', 'h', 'M']) == True, "Cannot recognize frequency value.")
             idx = _makeDatetimeIndex(nrows, freq=freq)
             df = df.set_index(idx)
         elif index_type == "int":
@@ -227,4 +225,3 @@ def _create_missing_idx(nrows, ncols, density, random_state=None):
     i = (ind - j * nrows).astype(int)
     return i.tolist(), j.tolist()
 
-df = createMissingDataFrame(nrows=24*30, ncols=10,  density=0.5, index_type="dt", freq='h')
