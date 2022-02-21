@@ -1,7 +1,11 @@
+import collections
+
 import pandas as pd
 import numpy as np
+from sklearn.cluster import DBSCAN
 
 from geopy.distance import geodesic
+
 
 def distance_matrix(lats, lons):
     """Compute distance matrix using great-circle distance formula
@@ -20,15 +24,17 @@ def distance_matrix(lats, lons):
     -------
     dists : matrix
         Entry `(i, j)` shows the great-circle distance between
-        Point `i` and `j`, i.e. distance between `(lats[i], lons[i])`
+        point `i` and `j`, i.e. distance between `(lats[i], lons[i])`
         and `(lats[j], lons[j])`.
     """
+    R = 6372795.477598
+
+    lats = np.array(lats)
+    lons = np.array(lons)
 
     assert len(lats) == len(lons), "lats and lons should be of the same size"
-    assert any(np.isnan(lats)), "nan in lats"
-    assert any(np.isnan(lons)), "nan in lons"
-
-    R = 6372795.477598
+    assert not any(np.isnan(lats)), "nan in lats"
+    assert not any(np.isnan(lons)), "nan in lons"
 
     # convert degree to radian
     lats = lats * np.pi / 180.0
@@ -44,8 +50,11 @@ def distance_matrix(lats, lons):
     lons_diff = lons_matrix - lons_matrix.T
     lons_diff = np.cos(lons_diff)
 
+    # TODO: make this function more efficient
     dists = R * np.arccos(sin_matrix + cos_matrix * lons_diff)
+    dists[np.isnan(dists)] = 0
     return dists
+
 
 def filter_location(location,
                     remove_disabled=True,
@@ -92,7 +101,7 @@ def filter_location(location,
 def bin_location(location,
                  bin_width=10,
                  aggregation='median',
-                 columns_to_aggregate=['double_latitude', 'double_longitude']):
+                 columns_to_aggregate=None):
     """Downsample location data and aggregate points in bins
 
     Parameters
@@ -119,6 +128,9 @@ def bin_location(location,
     location : pd.DataFrame
         Binned location. This dataframe is indexed by rounded times.
     """
+    if columns_to_aggregate is None:
+        columns_to_aggregate = ['double_latitude', 'double_longitude']
+
     freq = '{}T'.format(bin_width)
     location['time'] = location.index
     location['time'] = location['time'].apply(
@@ -153,7 +165,8 @@ def bin_location(location,
     return location
 
 
-def extract_distance_features(location, column_prefix=None):
+def extract_distance_features(location, bin_width=10.0,
+                              speed_threshold=0.277, column_prefix=None):
     """Calculates features realted distance and speed
 
     Parameters
@@ -161,6 +174,13 @@ def extract_distance_features(location, column_prefix=None):
     location : pd.DataFrame
         Dataframe of locations indexed by time. These columns have to exist
         in the dataframe: `user`, `double_latitude`, `double_longitude`.
+
+    bin_width : float
+        Lenght of bins in minutes
+
+    speed_threshold : float
+        Bins whose speed is lower than `speed_threshold` are considred
+        `static` and the rest are `moving`.
 
     column_prefix : str
         Add a prefix to all column names.
@@ -178,13 +198,17 @@ def extract_distance_features(location, column_prefix=None):
     def compute_distance_features(df):
         """Compute features for a single user"""
         df = df.sort_index()  # sort based on time
+        n_bins = df.shape[0]
 
-        dists = np.zeros(df.shape[0])
-        time_deltas = np.zeros(df.shape[0])
+        lats = df['double_latitude']
+        lons = df['double_longitude']
 
-        for i in range(1, df.shape[0]):
-            loc1 = df.iloc[i - 1][['double_latitude', 'double_longitude']]
-            loc2 = df.iloc[i][['double_latitude', 'double_longitude']]
+        dists = np.zeros(n_bins)
+        time_deltas = np.zeros(n_bins)
+
+        for i in range(1, n_bins):
+            loc1 = (lats[i - 1], lons[i - 1])
+            loc2 = (lats[i], lons[i])
 
             time_deltas[i] = (df.index[i] - df.index[i - 1]).total_seconds()
             dists[i] = geodesic(loc1, loc2).meters
@@ -196,36 +220,31 @@ def extract_distance_features(location, column_prefix=None):
         speed_max = np.nanmax(speeds)
         total_dist = sum(dists)
 
-        static_bins = speeds < 0.277
-        static_bins_index = np.arange(len(static_bins))[static_bins]
-        dists_matrix = np.zeros((len(static_bins_index), len(static_bins_index)))
-
-        lats_binned = df['double_latitude']
-        lons_binned = df['double_longitude']
-
-        for i, loc_index_i in enumerate(static_bins_index):
-            for j, loc_index_j in enumerate(static_bins_index):
-                lat_lon_i = lats_binned[loc_index_i], lons_binned[loc_index_i]
-                lat_lon_j = lats_binned[loc_index_j], lons_binned[loc_index_j]
-                dists_matrix[i][j] = geodesic(lat_lon_i, lat_lon_j).meters
-                dists_matrix[j][i] = dists_matrix[i][j]
-
-        from sklearn.cluster import DBSCAN
-        import collections
+        static_bins = speeds < speed_threshold
+        lats_static = lats[static_bins]
+        lons_static = lons[static_bins]
+        dists_matrix = distance_matrix(lats_static, lons_static)
 
         dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
         clusters = dbscan.fit_predict(dists_matrix)
         non_rare_clusters = clusters[clusters != -1]
         n_unique_sps = len(set(non_rare_clusters))
-        n_rare_sps = len(set(clusters)) - n_unique_sps
 
-        stay_times = collections.Counter(clusters).values()
+        counter = collections.Counter(clusters)
+        stay_times = counter.values()
         stay_times = np.sort(list(stay_times))[::-1]
-        n_bins = df.shape[0]
 
-        stay_perc_top1 = stay_times[0] / n_bins if len(stay_times) > 0 else 0
-        stay_perc_top2 = stay_times[1] / n_bins if len(stay_times) > 1 else 0
-        stay_perc_top3 = stay_times[2] / n_bins if len(stay_times) > 2 else 0
+        time_static = bin_width * sum(static_bins)
+        time_moving = bin_width * sum(~static_bins)
+        time_rare = bin_width * counter[-1]
+
+        n_transitions = sum(np.diff(clusters) != 0)
+
+        stay_top1 = stay_times[0] * bin_width if len(stay_times) > 0 else 0
+        stay_top2 = stay_times[1] * bin_width if len(stay_times) > 1 else 0
+        stay_top3 = stay_times[2] * bin_width if len(stay_times) > 2 else 0
+        stay_top4 = stay_times[3] * bin_width if len(stay_times) > 3 else 0
+        stay_top5 = stay_times[4] * bin_width if len(stay_times) > 4 else 0
 
         row = pd.DataFrame({
             'dist_total': [total_dist],
@@ -234,10 +253,15 @@ def extract_distance_features(location, column_prefix=None):
             'speed_variance': [speed_variance],
             'speed_max': [speed_max],
             'n_sps': [n_unique_sps],
-            'n_rare_sps': [n_rare_sps],
-            'stay_prec_top1': [stay_perc_top1],
-            'stay_prec_top2': [stay_perc_top2],
-            'stay_prec_top3': [stay_perc_top3],
+            'time_static': [time_static],
+            'time_moving': [time_moving],
+            'time_rare': [time_rare],
+            'n_transitions': [n_transitions],
+            'stay_top1': [stay_top1],
+            'stay_top2': [stay_top2],
+            'stay_top3': [stay_top3],
+            'stay_top4': [stay_top4],
+            'stay_top5': [stay_top5],
         })
         return row
 
