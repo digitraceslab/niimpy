@@ -121,7 +121,7 @@ def bin_location(location,
     columns_to_aggregate : list of str
         Specifies which columns to aggregate according to `aggregation`
         parameter. For other columns, the first value is picked for the
-        aggregated bin.
+        aggregated bin. Default is ['double_latitude', 'double_longitude']
 
     Returns
     -------
@@ -165,8 +165,89 @@ def bin_location(location,
     return location
 
 
-def extract_distance_features(location, bin_width=10.0,
-                              speed_threshold=0.277, column_prefix=None):
+def get_speeds_totaldist(lats, lons, times):
+    """Computes speed of bins with dividing distance by their time difference
+
+    Parameters
+    ----------
+    lats : array-like
+        Array of latitudes
+
+    lons : array-like
+        Array of longitudes
+
+    times : array-like
+        Array of times associted with bins
+
+
+    Returns
+    ------
+    (speeds, total_distances) : tuple of speeds (array) and total distance travled (float)
+    """
+    assert len(lats) == len(lons) == len(times)
+    n_bins = len(lats)
+
+    dists = np.zeros(n_bins)
+    time_deltas = np.zeros(n_bins)
+    for i in range(1, n_bins):
+        loc1 = (lats[i - 1], lons[i - 1])
+        loc2 = (lats[i], lons[i])
+
+        time_deltas[i] = (times[i] - times[i - 1]).total_seconds()
+        dists[i] = geodesic(loc1, loc2).meters
+    speeds = dists / time_deltas
+    speeds[0] = 0
+    return speeds, sum(dists)
+
+
+def find_home(lats, lons, times):
+    """Find coordinates of the home of a person
+
+    Home is defined as the place most visited between
+    12am - 6am. Locations within this time period first
+    clustered and then the center of largest clusetr
+    shows the home.
+
+    Parameters
+    ----------
+    lats : array-like
+        Latitudes
+    lons : array-like
+        Longitudes
+    times : array-like
+        Time of the recorderd coordinates
+
+    Returns
+    ------
+    (lat_home, lon_home) : tuple of floats
+        Coordinates of the home
+    """
+    idx_night = [True if t.hour <= 6 else False for t in times]
+    if sum(idx_night) == 0:
+        return np.nan, np.nan
+
+    lats_night = lats[idx_night]
+    lons_night = lons[idx_night]
+    dists_matrix = distance_matrix(lats_night, lons_night)
+    dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
+    clusters = dbscan.fit_predict(dists_matrix)
+    counter = collections.Counter(clusters)
+    home_cluster = counter.most_common()[0][0]
+
+    lats_home = lats_night[clusters == home_cluster]
+    lons_home = lons_night[clusters == home_cluster]
+
+    lat_home = np.mean(lats_home)
+    lon_home = np.mean(lons_home)
+
+    return lat_home, lon_home
+
+
+def extract_distance_features(location,
+                              bin_width=10.0,
+                              compute_speeds=False,
+                              speed_threshold=0.277,
+                              column_prefix=None):
     """Calculates features realted distance and speed
 
     Parameters
@@ -177,6 +258,11 @@ def extract_distance_features(location, bin_width=10.0,
 
     bin_width : float
         Lenght of bins in minutes
+
+    compute_speeds : bool
+        If true, computes speeds by dividing distance between each two
+        consequitive bins by their time difference. Otherwise, use column
+        `speed` instead. Default is False.
 
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
@@ -202,23 +288,29 @@ def extract_distance_features(location, bin_width=10.0,
 
         lats = df['double_latitude']
         lons = df['double_longitude']
+        times = df.index
 
-        dists = np.zeros(n_bins)
-        time_deltas = np.zeros(n_bins)
+        lat_home, lon_home = find_home(lats, lons, times)
+        if any(np.isnan([lat_home, lon_home])):
+            time_home = np.nan
+            max_dist_home = np.nan
+        else:
+            home_idx = []
+            max_dist_home = 0
+            print(lat_home, lon_home)
+            for lat, lon in zip(lats, lons):
+                dist_home = geodesic((lat, lon), (lat_home, lon_home)).meters
+                home_idx.append(dist_home <= 10)
+                max_dist_home = max(max_dist_home, dist_home)
+            time_home = sum(home_idx) * bin_width
 
-        for i in range(1, n_bins):
-            loc1 = (lats[i - 1], lons[i - 1])
-            loc2 = (lats[i], lons[i])
+        speeds, total_dist = get_speeds_totaldist(lats, lons, times)
+        if compute_speeds == False:
+            speeds = df['double_speed']
 
-            time_deltas[i] = (df.index[i] - df.index[i - 1]).total_seconds()
-            dists[i] = geodesic(loc1, loc2).meters
-
-        speeds = dists / time_deltas
-        speeds[0] = 0
         speed_average = np.nanmean(speeds)
         speed_variance = np.nanvar(speeds)
         speed_max = np.nanmax(speeds)
-        total_dist = sum(dists)
 
         static_bins = speeds < speed_threshold
         lats_static = lats[static_bins]
@@ -246,6 +338,8 @@ def extract_distance_features(location, bin_width=10.0,
         stay_top4 = stay_times[3] * bin_width if len(stay_times) > 3 else 0
         stay_top5 = stay_times[4] * bin_width if len(stay_times) > 4 else 0
 
+
+
         row = pd.DataFrame({
             'dist_total': [total_dist],
             'n_bins': [n_bins],
@@ -256,6 +350,8 @@ def extract_distance_features(location, bin_width=10.0,
             'time_static': [time_static],
             'time_moving': [time_moving],
             'time_rare': [time_rare],
+            'time_home': [time_home],
+            'max_dist_home': [max_dist_home],
             'n_transitions': [n_transitions],
             'stay_top1': [stay_top1],
             'stay_top2': [stay_top2],
