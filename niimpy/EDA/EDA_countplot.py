@@ -8,8 +8,67 @@ Created on Mon Nov  8 14:42:18 2021
 import pandas as pd
 import plotly.express as px
 
+def get_counts(df,aggregation):
+    """Calculate datapoint counts by group or by user
+    
+    Parameters
+    ----------
+    
+    df : Pandas DataFrame
+    
+    aggregation : str
+    
+    Returns
+    -------
+    
+    n_events : Pandas DataFrame
+    """
+    
+    assert isinstance(df,pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(aggregation,str), "aggregation is not a string"
+    
+    if aggregation == 'group':
+            n_events = df[['group', 'user']].groupby(['group']).size().to_frame()
+            n_events.columns = ['values']
+            n_events = n_events.reset_index()
+            
+    elif aggregation == 'user':
+            n_events = df[['user']].groupby(['user']).size().to_frame()
+            n_events.columns = ['values']
+            n_events = n_events.reset_index()
+    
+    return n_events
 
-def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group", ylabel="Count"):
+def calculate_bins(df,binning):
+    """Calculate time index based bins for each observation in the dataframe.
+    
+    Parameters
+    ----------
+    df : Pandas DataFrame
+    
+    binning : str
+    
+    to_string : bool
+    
+    Returns
+    -------
+    
+    bins : pandas period index
+    
+    """  
+    
+    assert isinstance(df,pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(binning,str), "binning is not a string"
+    #assert isinstance(to_string,bool), "to_string is not a bool"
+    
+    bins = df.index.to_period(binning)
+    bins = bins.to_series().astype(str)
+    
+    return bins
+    
+
+
+def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group", ylabel="Count",binning=False):
     """Plot a boxplot
     
     Parameters
@@ -45,21 +104,24 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
     assert isinstance(fig_title,str), "Title is not a string."
     assert isinstance(xlabel,str), "Xlabel is not a string."
     assert isinstance(ylabel,str), "Ylabel is not a string."
+    assert ((isinstance(binning,str)) or (binning,bool)), "binning."
 
-
-    '''
-    if binning:
-    n_events = n_events.groupby('group').resample('H').size().reset_index()
-    n_events = n_events.set_index("level_1")
-    n_events.loc[n_events[0] >= 1,0] = 1'''
-    
-    
-    
-    fig = px.box(df,
-                 x = "group", 
-                 y = y,
-                 color = "group",
-                 points = points)
+    #TODO! check if this is necessary!
+    #df[y] = df[y].astype(np.float64)
+        
+    if binning is not False:
+        df['bin'] = calculate_bins(df,binning)
+        fig = px.box(df,
+                     x = "bin", 
+                     y = y,
+                     color = "group",
+                     )
+    else:
+        fig = px.box(df,
+                     x = "group", 
+                     y = y,
+                     color = "group",
+                     points = points)
 
     fig.update_traces(quartilemethod='inclusive') # or "inclusive", or "linear" by default
     fig.update_layout(title = fig_title,
@@ -67,7 +129,7 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
                       yaxis_title = ylabel,
                       autotypenumbers='convert types') 
     
-    fig.show()
+    return fig
 
 def EDA_barplot_(df, fig_title, xlabel, ylabel):
     """Plot a barplot showing counts for each subjects
@@ -107,9 +169,11 @@ def EDA_barplot_(df, fig_title, xlabel, ylabel):
                       xaxis_title = xlabel,
                       yaxis_title = ylabel)
     
-    fig.show()  
+    return fig 
 
-def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers', aggregation = 'group', user = None, column=None):
+def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
+                  aggregation = 'group', user = None, column=None,\
+                  binning=False):
     """Create boxplot comparing groups or individual users.
     
     Parameters
@@ -149,38 +213,48 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers', aggre
     assert ((isinstance(user,str)) or (user is None)), "user is not a string or None type."
     assert ((isinstance(column,str)) or (column is None)), "column in not a string or None type."
     
+    # Plot counts
     if plot_type == 'count':
         if aggregation == 'group':
-            n_events = df[['group', 'user']].groupby(['user', 'group']).size().to_frame()
-            n_events.columns = ['values']
-            n_events = n_events.reset_index()
-            EDA_boxplot_(n_events,
-                         fig_title,
-                         points, 
-                         y = 'values',
-                         xlabel="Group",
-                         ylabel="Count")
+                       
+            n_events = get_counts(df,aggregation)
+            print(n_events)
+                   
+            fig = EDA_boxplot_(n_events,
+                               fig_title,
+                               points,
+                               y = 'values',
+                               xlabel="Group",
+                               ylabel="Count",
+                               binning=binning
+                               )
         
         elif aggregation == 'user':
-            n_events = df[['user']].groupby(['user']).size().to_frame()
-            n_events.columns = ['values']
-            n_events = n_events.reset_index()
-            EDA_barplot_(n_events, 
-                        fig_title, 
-                        xlabel="User",
-                        ylabel="Count")
+                       
+            n_events = get_counts(df,aggregation)
+            
+            fig = EDA_barplot_(n_events, 
+                               fig_title, 
+                               xlabel="User",
+                               ylabel="Count")
         
         else:
             pass
         
+    # Plot values
     elif plot_type == 'value':
         if aggregation == 'group':
-            EDA_boxplot_(df,
-                        fig_title,
-                        points,
-                        y=column,
-                        xlabel="Group",
-                        ylabel="Value")
+            fig = EDA_boxplot_(df,
+                               fig_title,
+                               points,
+                               y=column,
+                               xlabel="Group",
+                               ylabel="Value",
+                               binning=binning
+                               )
         
     else:
         pass
+    
+    return fig
+    
