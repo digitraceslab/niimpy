@@ -4,7 +4,7 @@ import numpy as np
 import os
 import pandas as pd
 import sys
-
+import warnings
 
 def date_range(df, begin, end):
     """Extract out a certain date range from a DataFrame.
@@ -87,12 +87,15 @@ def uninstall_extensions():
 
 #TODO: reanme to data.py
 
-def df_normalize(df, old_tz=None):
+def df_normalize(df, tz=None, old_tz=None):
     """Normalize a df (from sql) before presenting it to the user.
 
     This sets the dataframe index to the time values, and converts times
     to pandas.TimeStamp:s.  Modifies the data frame inplace.
     """
+    if tz is None:
+        warnings.warn(DeprecationWarning("From now on, you should explicitely specify timezone with e.g. tz='Europe/Helsinki'"), stacklevel=2)
+        tz = TZ
     if 'time' in df:
         df.index = to_datetime(df['time'])
         df.index.name = None
@@ -101,9 +104,9 @@ def df_normalize(df, old_tz=None):
         index = df[['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
         if old_tz is not None:
             # old_tz is given - e.g. sqlite already converts it to localtime
-            index = index.dt.tz_localize(old_tz).dt.tz_convert(TZ)
+            index = index.dt.tz_localize(old_tz).dt.tz_convert(tz)
         else:
-            index = index.dt.tz_localize(TZ)
+            index = index.dt.tz_localize(tz)
         df.index = index
         df.index.name = None
 
