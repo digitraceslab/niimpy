@@ -5,6 +5,7 @@ Created on Thu Nov 18 16:14:47 2021
 @author: arsii
 """
 import pandas as pd
+import numpy as np
 import plotly.express as px
 
 def get_timerange_(df,resample):
@@ -39,7 +40,7 @@ def get_timerange_(df,resample):
             
     return date_index
 
-def combine_dataframe_(df,user_list,columns,res,date_index):
+def combine_dataframe_(df,user_list,columns,res,date_index,agg_func=np.mean):
     """resample values from multiple users into new dataframe
     
     Parameters
@@ -54,6 +55,8 @@ def combine_dataframe_(df,user_list,columns,res,date_index):
         Resample parameter e.g., 'D' for resampling by day
     date_index : pd.date_range
         Date range used as an index
+    agg_func : numpy function
+        Aggregation function used with resample. The default is np.mean
     
     Returns
     -------
@@ -70,7 +73,7 @@ def combine_dataframe_(df,user_list,columns,res,date_index):
     df_comb.index = pd.to_datetime(df_comb.index)
 
     for u in user_list:
-        df_temp = df[df['user'] == u][columns].resample(res).mean()
+        df_temp = df[df['user'] == u][columns].resample(res).agg(agg_func)
         df_temp.index = df_temp.index.strftime('%Y-%m-%d')
         df_temp.index = pd.to_datetime(df_temp.index)
         df_temp = df_temp.reindex(date_index)
@@ -118,7 +121,7 @@ def punchcard_(df,title,n_xticks,xtitle,ytitle):
                           yaxis_title=ytitle)
     return fig
 
-def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot", resample = 'D', normalize = False, timerange = False):
+def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot", resample = 'D', normalize = False, agg_func = np.mean, timerange = False):
     """Punchcard plot for given users and column with optional resampling
     
     Parameters
@@ -132,7 +135,9 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
     title : str, optional
         Plot title. The default is "Punchcard Plot".
     resample : str, optional
-        Indicator for resampling. The default is 'D'.
+        Indicator for resampling frequency. The default is 'D' (day).
+    agg_func : numpy function
+        Aggregation function used with resample. The default is np.mean
     normalize : boolean, optional
         If true, data is normalized using min-max-scaling. The default is False.
     timerange : boolean or tuple, optional
@@ -152,6 +157,7 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
     assert isinstance(columns, (list,type(None))), "columns is not a list or None"
     assert isinstance(title,str), "title is not a string."
     assert isinstance(resample,str), "resample is not a string."
+    assert callable(agg_func), "agg_function is not a callable."
     assert isinstance(normalize,bool), "normalize is not a boolean."
     assert isinstance(timerange,(bool,tuple)), "timerange is not a boolean or tuple."
         
@@ -159,14 +165,14 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
     if len(user_list) == 1:
         # one colums
         if len(columns) == 1:
-            df_sel = df[df['user'] == user_list[0]][[columns[0]]].resample(resample).mean()
+            df_sel = df[df['user'] == user_list[0]][[columns[0]]].resample(resample).agg(agg_func)
             fp = pd.pivot_table(df_sel, index=df_sel.index.month, values = columns[0], columns=df_sel.index.day)
             fig = punchcard_(fp,title,n_xticks=31, xtitle='Day',ytitle='Month')
             
         # multiple columns
         else:
             bools = df['user'].isin(user_list)
-            df_sel = df[bools][columns].resample(resample).mean()
+            df_sel = df[bools][columns].resample(resample).agg(agg_func)
             
             if normalize:
                 df_sel[columns] = (df_sel[columns] - df_sel[columns].min()) / (df_sel[columns].max() - df_sel[columns].min())
@@ -176,7 +182,7 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
     # multiple users, one column
     else:
         date_index = get_timerange_(df,resample)
-        df_comb = combine_dataframe_(df,user_list,columns,resample,date_index)
+        df_comb = combine_dataframe_(df,user_list,columns,resample,date_index,agg_func)
         if timerange:
             fig = punchcard_(df_comb.loc[timerange[0]:timerange[1]].transpose(),title,n_xticks=None, xtitle='Date',ytitle='User')
         else:

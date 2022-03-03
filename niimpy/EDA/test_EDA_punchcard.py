@@ -1,5 +1,7 @@
 import pytest
 import plotly
+import numpy as np
+import datetime
 from niimpy.EDA import setup_dataframe
 from niimpy.EDA import EDA_punchcard
 
@@ -12,6 +14,9 @@ def test_punchcard_one_user():
 
     fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample)
     assert (type(fig) == plotly.graph_objs._figure.Figure)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+    assert (fig.layout.xaxis.nticks == 31)
+    assert (fig.layout.title.text == 'test_title')
     
 def test_punchcard_one_user_two_columns():
     df = setup_dataframe.create_dataframe()
@@ -21,8 +26,10 @@ def test_punchcard_one_user_two_columns():
     resample = "D"
     normalize = True
 
-    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample,normalize)
+    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample, normalize)
     assert (type(fig) == plotly.graph_objs._figure.Figure)
+    assert(fig.layout.legend.x == None)
+    assert(fig.layout.legend.y == None)
     
 def test_punchcard_two_users():
     df = setup_dataframe.create_dataframe()
@@ -41,7 +48,9 @@ def test_punchcard_two_users_timerange():
     title = 'test_title'
     resample = "D"
     normalize = False
+    agg_function = np.mean
     timerange = ('20171231','20180101')
     
-    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample,normalize,timerange)
-    assert (type(fig) == plotly.graph_objs._figure.Figure)    
+    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample,normalize,agg_function,timerange)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)  
+    assert(fig.data[0].x == datetime.datetime(2018, 1, 1, 0, 0))
