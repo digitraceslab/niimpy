@@ -153,6 +153,37 @@ def occurrence(series, bin_width=720, grouping_width=3600):
     gb2.index = gb2.loc[:, ['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
     return gb2
 
+def create_timeindex_dataframe(nrows, ncols, random_state=None, freq=None):
+    """Create a datetime index Pandas dataframe 
+    
+    Parameters
+    ----------
+    nrows : int
+        Number of rows
+    ncols : int
+        Number of columns
+    random_state: float, optional
+        Random seed. If not given, default to 33.
+    freq: string, optional:
+        Sampling frequency.
+    Returns
+    -------
+    df : pandas.DataFrame
+        Pandas dataframe containing sample data with random missing rows.    
+    """
+    
+    # Create a nrows x ncols matrix
+    data = np.random.uniform(100, size=(nrows, ncols))
+    df = pd.DataFrame(data)
+    
+    if freq is None:
+        freq='h'
+    idx = _makeDatetimeIndex(nrows, freq=freq)
+    df = df.set_index(idx)
+    
+    return df
+
+
 def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_type=None, freq=None):
     """Create a Pandas dataframe with random missingness.
     
