@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import sys
 from datetime import date, datetime
+from scipy import stats
 
 def date_range(df, begin, end):
     """Extract out a certain date range from a DataFrame.
@@ -225,3 +226,46 @@ def _create_missing_idx(nrows, ncols, density, random_state=None):
     i = (ind - j * nrows).astype(int)
     return i.tolist(), j.tolist()
 
+def aggregate(df, freq, method='mean', groups=['user']):
+    ''' Grouping and resampling the data. This function performs separated resampling for different types of columns: numerical and categorical.
+    
+    :param df: pandas Dataframe
+        Dataframe to resample
+    :param freq: string
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. 
+    :param method: str
+        Resampling method. Possible values: 'sum', 'mean', 'median'. Default value is 'mean'.
+    :param groups: list
+        Groupby columns.
+    Return:
+        Aggregated and resampled dataframe.
+    '''
+    
+    #Groupby user
+    groupby = df.groupby(groups)
+    
+    #Resample numerical columns -> sub_df1
+    assert method in ['mean', 'sum', 'median'], 'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
+    if method == 'sum':
+        sub_df1 = groupby.resample(freq).sum()
+    elif  method == 'mean':
+        sub_df1 = groupby.resample(freq).mean()
+    elif  method == 'median':
+        sub_df1 = groupby.resample(freq).median()
+    else:
+        print("Can't recognize sampling method")
+    
+    #Resample cat columns -> sub_df2
+    cat_cols = df.select_dtypes(include=['object']).columns.to_list()
+    cat_cols.extend(groups)
+    cat_cols = list(set(cat_cols))
+    
+    groupby = df[cat_cols].groupby(groups)
+    sub_df2 = groupby.resample(freq).agg(lambda x: tuple(stats.mode(x)[0]))
+    
+    #Merge sub_df1 and sub_df2
+    sub_df1 = sub_df1.drop(groups, axis=1)
+    sub_df2 = sub_df2.drop(groups, axis=1)
+    final_df = sub_df1.join(sub_df2)
+    
+    return final_df

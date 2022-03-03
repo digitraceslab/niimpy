@@ -36,3 +36,8 @@ def test_install_extensions_notpresent(capsys):
     assert not outputs.err
     assert 'not available' not in outputs.err, "We have the warning when trying to install extensions"
     niimpy.util.uninstall_extensions()
+
+# TODO: add test for util.aggregate
+def test_aggregate_correct_frequency():
+    
+    pass
