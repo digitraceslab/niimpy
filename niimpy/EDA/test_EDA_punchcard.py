@@ -1,113 +1,56 @@
 import pytest
+import plotly
+import numpy as np
+import datetime
 from niimpy.EDA import setup_dataframe
 from niimpy.EDA import EDA_punchcard
 
+def test_punchcard_one_user():
+    df = setup_dataframe.create_dataframe()
+    user_list = ['user_1']
+    columns = ['col_1']
+    title = 'test_title'
+    resample = "D"
 
-class TestEDApunchcard(object):
+    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+    assert (fig.layout.xaxis.nticks == 31)
+    assert (fig.layout.title.text == 'test_title')
     
-    def test_EDA_punchcard(self):
-        """   
-        Returns
-        -------
-        None.
+def test_punchcard_one_user_two_columns():
+    df = setup_dataframe.create_dataframe()
+    user_list = ['user_1']
+    columns = ['col_1','col_2']
+    title = 'test_title'
+    resample = "D"
+    normalize = True
+
+    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample, normalize)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+    assert(fig.layout.legend.x == None)
+    assert(fig.layout.legend.y == None)
     
-        """
-        df = setup_dataframe.create_dataframe()
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df.to_numpy(),
-                                         user_list = ['user_1'],
-                                         columns = ['col_1'],
-                                         title = 'title',
-                                         resample = 'D',
-                                         normalize = False,
-                                         timerange = ('20190125','20190701'))
-                                                  
-        expected_error_msg = "df is not a pandas dataframe."
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df,
-                                         user_list = 1,
-                                         columns = ['col_1'],
-                                         title = 'title',
-                                         resample = 'D',
-                                         normalize = False,
-                                         timerange = ('20190125','20190701'))
-                                                  
-        expected_error_msg = "user_list is not a list or None."
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df,
-                                         user_list = ['user_1'],
-                                         columns = 1,
-                                         title = 'title',
-                                         resample = 'D',
-                                         normalize = False,
-                                         timerange = ('20190125','20190701'))
-                                                  
-        expected_error_msg = "columns is not a list or None"
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df,
-                                         user_list = ['user_1'],
-                                         columns = ['col_1'],
-                                         title = 1,
-                                         resample = 'D',
-                                         normalize = False,
-                                         timerange = ('20190125','20190701'))
-                                                  
-        expected_error_msg = "title is not a string."
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df,
-                                         user_list = ['user_1'],
-                                         columns = ['col_1'],
-                                         title = 'title',
-                                         resample = 1,
-                                         normalize = False,
-                                         timerange = ('20190125','20190701'))
-                                                  
-        expected_error_msg = "resample is not a string."
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df,
-                                         user_list = ['user_1'],
-                                         columns = ['col_1'],
-                                         title = 'title',
-                                         resample = 'D',
-                                         normalize = 'False',
-                                         timerange = ('20190125','20190701'))
-                                                  
-        expected_error_msg = "normalize is not a boolean."
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
-        
-        # Store information about raised ValueError in exc_info
-        with pytest.raises(AssertionError) as exc_info:
-            EDA_punchcard.punchcard_plot(df,
-                                         user_list = ['user_1'],
-                                         columns = ['col_1'],
-                                         title = 'title',
-                                         resample = 'D',
-                                         normalize = False,
-                                         timerange = ['20190125','20190701'])
-                                                  
-        expected_error_msg = "timerange is not a boolean or tuple."
-        # Check if the raised ValueError contains the correct message
-        assert exc_info.match(expected_error_msg)
+def test_punchcard_two_users():
+    df = setup_dataframe.create_dataframe()
+    user_list = ['user_1','user_2']
+    columns = ['col_1']
+    title = 'test_title'
+    resample = "D"
+
+    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+
+def test_punchcard_two_users_timerange():
+    df = setup_dataframe.create_dataframe()
+    user_list = ['user_1','user_2']
+    columns = ['col_1']
+    title = 'test_title'
+    resample = "D"
+    normalize = False
+    agg_function = np.mean
+    timerange = ('20171231','20180101')
+    
+    fig = EDA_punchcard.punchcard_plot(df,user_list,columns,title, resample,normalize,agg_function,timerange)
+    assert (type(fig) == plotly.graph_objs._figure.Figure)  
+    assert(fig.data[0].x == datetime.datetime(2018, 1, 1, 0, 0))
