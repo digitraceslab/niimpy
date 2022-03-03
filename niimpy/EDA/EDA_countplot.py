@@ -216,8 +216,7 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggreg
         if aggregation == 'group':
                        
             n_events = get_counts(df,aggregation)
-            print(n_events)
-                   
+                      
             fig = EDA_boxplot_(n_events,
                                fig_title,
                                points,
