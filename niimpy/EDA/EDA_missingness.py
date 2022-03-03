@@ -61,19 +61,38 @@ def bar(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title 
     return fig
         
     
-def matrix(df, height=500, title='Data frequency'):
-    ''' Retu matrix visualization of the nullity of data.
+def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq=None, sampling_method='mean'):
+    ''' Return matrix visualization of the nullity of data.
     For now, this function assumes that the data frame is datetime indexed.
     
     :param df: DataFrame to plot
     
-    :return: Plotly figure
+    :param xaxis_title: str, optional
+        x_axis's label
+    :param yaxis_title: str, optional
+        y_axis's label
+    :param sampling_freq: str, optional
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. 
+    :param sampling_method: str, optional
+        Resampling method. Possible values: 'sum', 'mean'. Default value is 'mean'.
+
+    Return:
+        fig: Plotly figure.
     '''
 
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     
+    if sampling_freq:
+        assert sampling_method in ['mean', 'sum'], 'Cannot recognize sampling method. Possible values: "mean", "sum".'
+        if sampling_method == 'mean':
+            resampled_df = df.resample(sampling_freq).mean()
+        else:
+            resampled_df = df.resample(sampling_freq).sum()
+    else:
+        resampled_df = df.copy()
+        
     # Create a boolean mask for the dataframe, where the null values are masked with False
-    bool_mask = df.isna()
+    bool_mask = resampled_df.isna()
     
     # Plot the dataframe as pixel
     fig = px.imshow(bool_mask, color_continuous_scale='gray')
@@ -82,6 +101,7 @@ def matrix(df, height=500, title='Data frequency'):
     fig.update_layout(title=title, coloraxis_showscale=False, height=height)
 
     return fig
+
 
 def heatmap(df, height=800, width=800):
     ''' Return 'plotly' heatmap visualization of the nullity correlation of the Dataframe.
