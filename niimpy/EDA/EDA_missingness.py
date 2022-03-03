@@ -7,6 +7,10 @@ import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+import plotly.figure_factory as ff
+
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from scipy.spatial.distance import squareform
 
 def bar(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq=None, sampling_method='mean'):
     ''' Display bar chart visualization of the nullity of the given DataFrame.
@@ -102,7 +106,6 @@ def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title
 
     return fig
 
-
 def heatmap(df, height=800, width=800):
     ''' Return 'plotly' heatmap visualization of the nullity correlation of the Dataframe.
     
@@ -117,7 +120,87 @@ def heatmap(df, height=800, width=800):
     # Create and mask the correlation matrix. Construct the base heatmap.
     corr_mat = df.isnull().corr()
     
-    fig = go.Figure(data=go.Heatmap(z=corr_mat, x = df.columns, y=df.columns)) 
+    # Calculate dissimilarity distance. 
+    # Dissimilarity is close to zero if correlation is close to 1 or -1. 
+    dissimilarity = 1 - abs(corr_mat)
+    labels = df.columns
+
+    # Initialize figure by creating upper dendrogram
+    fig = ff.create_dendrogram(dissimilarity, orientation='bottom', labels=labels)
+    for i in range(len(fig['data'])):
+        fig['data'][i]['yaxis'] = 'y2'
+
+    # Create Side Dendrogram
+    dendro_side = ff.create_dendrogram(dissimilarity, orientation='right', labels=labels)
+    dendro_side.for_each_trace(lambda trace: trace.update(visible=False))
+    for i in range(len(dendro_side['data'])):
+        dendro_side['data'][i]['xaxis'] = 'x2'
+
+    # Add Side Dendrogram Data to Figure
+    for data in dendro_side['data']:
+        fig.add_trace(data)
+
+    # Create Heatmap
+    dendro_leaves = dendro_side['layout']['yaxis']['ticktext']
+    dendro_vals =  dendro_side['layout']['yaxis']['tickvals']
+
+    heat_data = corr_mat.reindex(columns=dendro_leaves)
+    heat_data = heat_data.reindex(dendro_leaves)
     
-    fig.update_layout(height=height, width=width)
+    heatmap = [
+        go.Heatmap(
+            x = dendro_leaves,
+            y = dendro_leaves,
+            z = heat_data,
+            colorscale = 'Blues'
+        )
+    ]
+
+    heatmap[0]['x'] = fig['layout']['xaxis']['tickvals']
+    heatmap[0]['y'] = dendro_side['layout']['yaxis']['tickvals']
+
+    # Add Heatmap Data to Figure
+    for data in heatmap:
+        fig.add_trace(data)
+    
+    # Edit Layout
+    fig.update_layout({'width':width, 
+                       'height':height,
+                       'showlegend':False, 
+                       'hovermode': 'closest'})
+    # Edit xaxis
+    fig.update_layout(xaxis={'domain': [.15, 1],
+                              'mirror': False,
+                              'showgrid': False,
+                              'showline': False,
+                              'zeroline': False,
+                              'ticks':""})
+    # Edit xaxis2
+    fig.update_layout(xaxis2={'domain': [0, .15],
+                               'mirror': False,
+                               'showgrid': False,
+                               'showline': False,
+                               'zeroline': False,
+                               'showticklabels': False,
+                               'ticks':""})
+
+    # Edit yaxis
+    fig.update_layout(yaxis={'domain': [0, .85],
+                             'mirror': False,
+                             'showgrid': False,
+                             'showline': False,
+                             'zeroline': False,
+                             'ticks': "",
+                             'tickmode': 'array',
+                             'ticktext': dendro_leaves,
+                             'tickvals': dendro_vals})
+    # Edit yaxis2
+    fig.update_layout(yaxis2={'domain':[.825, .975],
+                               'mirror': False,
+                               'showgrid': False,
+                               'showline': False,
+                               'zeroline': False,
+                               'showticklabels': False,
+                               'ticks':""})
+
     return fig
