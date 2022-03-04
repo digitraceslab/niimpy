@@ -9,8 +9,8 @@ from niimpy.util import TZ
 
 
 def test_screen_duration():
-    screen  = niimpy.read_csv(niimpy.sampledata.TEST_SCREEN_1)
-    battery = niimpy.read_csv(niimpy.sampledata.TEST_BATTERY_1)
+    screen  = niimpy.read_csv(niimpy.sampledata.TEST_SCREEN_1, tz=TZ)
+    battery = niimpy.read_csv(niimpy.sampledata.TEST_BATTERY_1, tz=TZ)
     duration, count = niimpy.preprocess.screen_duration(screen, battery=battery)
     print('duration:')
     print(duration)
@@ -36,14 +36,14 @@ time,screen_status
 1700,1
 3600,1
 3601,2
-""")
+""", tz=TZ)
 
 @pytest.fixture
 def battery1():
     return niimpy.read_csv_string("""\
 time,battery_level,battery_status
 1800,,-1
-""")
+""", tz=TZ)
 
 def test_screen_off(screen1, battery1):
     off = niimpy.preprocess.screen_off(screen1, battery=battery1)
