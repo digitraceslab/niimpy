@@ -9,13 +9,13 @@ import numpy as np
 import plotly.graph_objects as go
 import plotly.express as px
 
-def get_xticks_(df):
+def get_xticks_(ser):
     """ Helper function for plot_categories function.
     Convert series index into xtick values and text.
     
     Parameters
     ----------
-    df : Pandas series
+    ser : Pandas series
         Series containing the categorized counts
         
     Return
@@ -26,9 +26,9 @@ def get_xticks_(df):
     text : list of strings
         xtick text for plotting
     """
-    assert isinstance(df, pd.Series), "df is not a pandas series."
+    assert isinstance(ser, pd.Series), "ser is not a pandas series."
     
-    vals = df.index.values
+    vals = ser.index.values
     text = [str(i) for i in vals]
     return vals,text
     

@@ -171,9 +171,7 @@ def EDA_barplot_(df, fig_title, xlabel, ylabel):
     
     return fig 
 
-def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
-                  aggregation = 'group', user = None, column=None,\
-                  binning=False):
+def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggregation = 'group', user = None, column=None, binning=False):
     """Create boxplot comparing groups or individual users.
     
     Parameters
@@ -218,8 +216,7 @@ def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',\
         if aggregation == 'group':
                        
             n_events = get_counts(df,aggregation)
-            print(n_events)
-                   
+                      
             fig = EDA_boxplot_(n_events,
                                fig_title,
                                points,
