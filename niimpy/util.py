@@ -5,6 +5,7 @@ import os
 import pandas as pd
 import sys
 from datetime import date, datetime
+from scipy import stats
 
 def date_range(df, begin, end):
     """Extract out a certain date range from a DataFrame.
@@ -152,6 +153,37 @@ def occurrence(series, bin_width=720, grouping_width=3600):
     gb2.index = gb2.loc[:, ['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
     return gb2
 
+def create_timeindex_dataframe(nrows, ncols, random_state=None, freq=None):
+    """Create a datetime index Pandas dataframe 
+    
+    Parameters
+    ----------
+    nrows : int
+        Number of rows
+    ncols : int
+        Number of columns
+    random_state: float, optional
+        Random seed. If not given, default to 33.
+    freq: string, optional:
+        Sampling frequency.
+    Returns
+    -------
+    df : pandas.DataFrame
+        Pandas dataframe containing sample data with random missing rows.    
+    """
+    
+    # Create a nrows x ncols matrix
+    data = np.random.uniform(100, size=(nrows, ncols))
+    df = pd.DataFrame(data)
+    
+    if freq is None:
+        freq='h'
+    idx = _makeDatetimeIndex(nrows, freq=freq)
+    df = df.set_index(idx)
+    
+    return df
+
+
 def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_type=None, freq=None):
     """Create a Pandas dataframe with random missingness.
     
@@ -169,6 +201,7 @@ def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_
         Accepts the following values: "dt" for timestamp, "int" for integer.
     freq: string, optional:
         Sampling frequency. This option is only available is index_type is "dt". 
+        
     Returns
     -------
     df : pandas.DataFrame
@@ -225,3 +258,51 @@ def _create_missing_idx(nrows, ncols, density, random_state=None):
     i = (ind - j * nrows).astype(int)
     return i.tolist(), j.tolist()
 
+def aggregate(df, freq, method='mean', groups=['user']):
+    """ Grouping and resampling the data. This function performs separated resampling for different types of columns: numerical
+    and categorical. For categorical data, the sampling method will be 'mode'.
+    
+    Parameters
+    ----------
+    df : pandas Dataframe
+        Dataframe to resample
+    freq : string
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. 
+    method : str
+        Resampling method for numerical columns. Possible values: 'sum', 'mean', 'median'. Default value is 'mean'.
+    groups : list
+        Columns used for groupby operation.
+        
+    Returns
+    -------
+        An aggregated and resampled multi-index dataframe.
+    """
+    
+    #Groupby user
+    groupby = df.groupby(groups)
+    
+    #Resample numerical columns -> sub_df1
+    assert method in ['mean', 'sum', 'median'], 'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
+    if method == 'sum':
+        sub_df1 = groupby.resample(freq).sum()
+    elif  method == 'mean':
+        sub_df1 = groupby.resample(freq).mean()
+    elif  method == 'median':
+        sub_df1 = groupby.resample(freq).median()
+    else:
+        print("Can't recognize sampling method")
+    
+    #Resample cat columns -> sub_df2
+    cat_cols = df.select_dtypes(include=['object']).columns.to_list()
+    cat_cols.extend(groups)
+    cat_cols = list(set(cat_cols))
+    
+    groupby = df[cat_cols].groupby(groups)
+    sub_df2 = groupby.resample(freq).agg(lambda x: tuple(stats.mode(x)[0]))
+    
+    #Merge sub_df1 and sub_df2
+    sub_df1 = sub_df1.drop(groups, axis=1)
+    sub_df2 = sub_df2.drop(groups, axis=1)
+    final_df = sub_df1.join(sub_df2)
+    
+    return final_df
