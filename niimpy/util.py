@@ -201,6 +201,7 @@ def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_
         Accepts the following values: "dt" for timestamp, "int" for integer.
     freq: string, optional:
         Sampling frequency. This option is only available is index_type is "dt". 
+        
     Returns
     -------
     df : pandas.DataFrame
@@ -258,19 +259,24 @@ def _create_missing_idx(nrows, ncols, density, random_state=None):
     return i.tolist(), j.tolist()
 
 def aggregate(df, freq, method='mean', groups=['user']):
-    ''' Grouping and resampling the data. This function performs separated resampling for different types of columns: numerical and categorical.
+    """ Grouping and resampling the data. This function performs separated resampling for different types of columns: numerical
+    and categorical. For categorical data, the sampling method will be 'mode'.
     
-    :param df: pandas Dataframe
+    Parameters
+    ----------
+    df : pandas Dataframe
         Dataframe to resample
-    :param freq: string
+    freq : string
         Frequency to resample the data. Requires the dataframe to have datetime-like index. 
-    :param method: str
-        Resampling method. Possible values: 'sum', 'mean', 'median'. Default value is 'mean'.
-    :param groups: list
-        Groupby columns.
-    Return:
-        Aggregated and resampled dataframe.
-    '''
+    method : str
+        Resampling method for numerical columns. Possible values: 'sum', 'mean', 'median'. Default value is 'mean'.
+    groups : list
+        Columns used for groupby operation.
+        
+    Returns
+    -------
+        An aggregated and resampled multi-index dataframe.
+    """
     
     #Groupby user
     groupby = df.groupby(groups)

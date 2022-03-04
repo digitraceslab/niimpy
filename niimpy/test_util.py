@@ -1,6 +1,7 @@
 import os
 import pytest
-
+import pandas as pd
+import numpy as np
 import niimpy
 
 DATA = niimpy.sampledata.DATA
@@ -42,7 +43,7 @@ def test_aggregate_correct_frequency():
     
     df = niimpy.util.create_timeindex_dataframe(nrows=120, ncols=6, freq='T')
     df['user'] = 1234
-    res_df = niimpy.aggregate(df)
+    res_df = niimpy.util.aggregate(df, freq='H')
     
     m = pd.MultiIndex.from_tuples([(1234, pd.Timestamp('2022-01-01 00:00:00')),
                                    (1234, pd.Timestamp('2022-01-01 01:00:00'))], names=["user", None])
