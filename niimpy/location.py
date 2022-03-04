@@ -2,6 +2,7 @@ import collections
 
 import pandas as pd
 import numpy as np
+import scipy.stats
 from sklearn.cluster import DBSCAN
 
 from geopy.distance import geodesic
@@ -228,9 +229,7 @@ def find_home(lats, lons, times):
 
     lats_night = lats[idx_night]
     lons_night = lons[idx_night]
-    dists_matrix = distance_matrix(lats_night, lons_night)
-    dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
-    clusters = dbscan.fit_predict(dists_matrix)
+    clusters = cluster_locations(lats_night, lons_night)
     counter = collections.Counter(clusters)
     home_cluster = counter.most_common()[0][0]
 
@@ -241,6 +240,81 @@ def find_home(lats, lons, times):
     lon_home = np.mean(lons_home)
 
     return lat_home, lon_home
+
+
+def cluster_locations(lats, lons, min_samples=5, eps=200):
+    """Performs clustering on the locations
+
+    Parameters
+    ----------
+    lats : pd.DataFrame
+        Latitudes
+    lons : pd.DataFrame
+        Longitudes
+    mins_samples : int
+        Minimum number of samples to form a cluster. Default is 5.
+    eps : float
+        Epsilone parameter in DBSCAN. The maximum distance between
+        two neighbour samples. Default is 200.
+
+    Returns
+    -------
+    clusters : array
+        Array of clusters. -1 indicates outlier.
+    """
+    dists_matrix = distance_matrix(lats, lons)
+    dbscan = DBSCAN(min_samples=min_samples, eps=eps, metric='precomputed')
+    clusters = dbscan.fit_predict(dists_matrix)
+    return clusters
+
+
+def number_of_significant_places(lats, lons, times):
+    """Computes number of significant places
+
+    Number of significant plcaes is computed by first clustering
+    the locations in each month and then taking the median of the
+    number of clusters in each month.
+
+    It is assumed that `lats` and `lons` are the coordinates of
+    static points.
+
+    Parameters
+    ----------
+    lats : pd.DataFrame
+        Latitudes
+    lons : pd.DataFrame
+        Longitudes
+    times : array
+        Array of times
+
+    Returns
+    """
+    sps = []
+    numper_of_places = []
+    months = pd.date_range(min(times), max(times), freq='M')
+    months = list(months)
+    if len(months) == 0:
+        return np.nan
+    last_month = months[-1] + pd.Timedelta(weeks=4)
+    months += [last_month]
+    for i in range(len(months) - 1):
+        start = months[i]
+        end = months[i + 1]
+        idx = (times >= start) & (times <= end)
+        if sum(idx) < 2:
+            continue
+
+        lats_month = lats[idx]
+        lons_month = lons[idx]
+
+        clusters = cluster_locations(lats_month, lons_month)
+        number_of_sps = len(set(clusters))
+        if -1 in clusters:
+            number_of_sps -= 1
+        numper_of_places.append(sum(idx))
+        sps.append(number_of_sps)
+
+    return np.nanmedian(sps)
 
 
 def extract_distance_features(location,
@@ -297,7 +371,6 @@ def extract_distance_features(location,
         else:
             home_idx = []
             max_dist_home = 0
-            print(lat_home, lon_home)
             for lat, lon in zip(lats, lons):
                 dist_home = geodesic((lat, lon), (lat_home, lon_home)).meters
                 home_idx.append(dist_home <= 10)
@@ -315,12 +388,16 @@ def extract_distance_features(location,
         static_bins = speeds < speed_threshold
         lats_static = lats[static_bins]
         lons_static = lons[static_bins]
-        dists_matrix = distance_matrix(lats_static, lons_static)
+        times_static = times[static_bins]
+        clusters = cluster_locations(lats_static, lons_static)
 
-        dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
-        clusters = dbscan.fit_predict(dists_matrix)
+        # n_unique_sps = len(set(non_rare_clusters))
+        n_unique_sps = number_of_significant_places(lats_static,
+                                                    lons_static,
+                                                    times_static)
         non_rare_clusters = clusters[clusters != -1]
-        n_unique_sps = len(set(non_rare_clusters))
+        entropy = scipy.stats.entropy(non_rare_clusters)
+        normalized_entropy = entropy / np.log(len(set(non_rare_clusters)))
 
         counter = collections.Counter(clusters)
         stay_times = counter.values()
@@ -337,7 +414,6 @@ def extract_distance_features(location,
         stay_top3 = stay_times[2] * bin_width if len(stay_times) > 2 else 0
         stay_top4 = stay_times[3] * bin_width if len(stay_times) > 3 else 0
         stay_top5 = stay_times[4] * bin_width if len(stay_times) > 4 else 0
-
 
 
         row = pd.DataFrame({
@@ -358,12 +434,12 @@ def extract_distance_features(location,
             'stay_top3': [stay_top3],
             'stay_top4': [stay_top4],
             'stay_top5': [stay_top5],
+            'entropy': [entropy],
+            'normalized_entropy': [normalized_entropy],
         })
         return row
 
     location = location.sort_index()
-
-    features = pd.DataFrame(index=location.user.unique())
     grouped = location.groupby('user')
     var = grouped.var()
 
