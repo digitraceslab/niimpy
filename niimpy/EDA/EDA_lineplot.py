@@ -5,6 +5,7 @@ Created on Wed Oct 27 09:53:46 2021
 """
 
 import pandas as pd
+import matplotlib.pyplot as plt
 import plotly.graph_objects as go
 import plotly.express as px
 
@@ -60,12 +61,12 @@ def timeplot(df, users, columns, title, xlabel, ylabel, resample=False,
     
     
     if users == 'Group':
-        plot_averages_(df,
+        fig = plot_averages_(df,
                        columns[0],
                        by)
 
     else:
-        plot_timeseries_(df, 
+        fig = plot_timeseries_(df, 
                          columns,
                          users,
                          title,
@@ -75,7 +76,20 @@ def timeplot(df, users, columns, title, xlabel, ylabel, resample=False,
                          interpolate,
                          window,
                          reset_index)
+    return fig
 
+def calculate_averages_(df,column, by):
+    """calculate group averages by given timerange
+    """
+    
+    if by == 'hour':
+        averages = df[[column,'group']].groupby([df.index.hour,'group']).mean().reset_index()
+    elif by == 'weekday':
+        averages = df[[column, 'group']].groupby([df.index.weekday, 'group']).mean().reset_index()
+    else:
+        averages = 0
+    
+    return averages
 
 def plot_averages_(df, column, by='hour'):
     """Plot user group level averages by hour or by weekday.
@@ -102,7 +116,7 @@ def plot_averages_(df, column, by='hour'):
     
     # GROUP AVERAGES BY HOUR
     if by == 'hour':
-        averages = df[[column,'group']].groupby([df.index.hour,'group']).mean().reset_index()
+        averages = calculate_averages_(df,column,by)
 
         fig = px.line(averages,
                       x='level_0',
@@ -118,11 +132,9 @@ def plot_averages_(df, column, by='hour'):
                                      tickvals=[0, 3, 6, 9, 12, 15, 18, 21],
                                      ticktext=['0am', '3am', '6am', '9am', '12pm', '15pm', '18pm', '21pm']))
 
-        fig.show()
-
     # GROUP AVERAGES BY WEEKDAY
     elif by == 'weekday':
-        averages = df[[column, 'group']].groupby([df.index.weekday, 'group']).mean().reset_index()
+        averages = calculate_averages_(df,column,by)
 
         fig = px.line(averages,
                       x='level_0',
@@ -138,11 +150,31 @@ def plot_averages_(df, column, by='hour'):
                           tickmode='array',
                           tickvals=[0, 1, 2, 3, 4, 5, 6],
                           ticktext=['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']))
-        fig.show()
         
     else:
         pass
+    
+    return fig
             
+
+def resample_data_(df, resample, interpolate, window_len, reset_index):
+    """resample dataframe for plotting
+    """
+    if resample:
+        df = df.resample(resample).mean()
+            
+    if interpolate:
+        df = df.interpolate(method='spline',order=2)
+            
+    if window_len:
+        df = df.rolling(window_len, win_type='gaussian').mean(std=2)
+                
+    if reset_index:
+        df = df.reset_index(drop=True)
+            
+    df.dropna(axis=0, how='any', inplace=True)
+    
+    return df
 
 def plot_timeseries_(df, columns, users, title, xlabel, ylabel, resample=False,
                      interpolate=False, window_len=False, reset_index=False):
@@ -196,20 +228,7 @@ def plot_timeseries_(df, columns, users, title, xlabel, ylabel, resample=False,
             
             df_sel = df[df['user'] == u][c]
             
-            if resample:
-                df_sel = df_sel.resample(resample).mean()
-            
-            if interpolate:
-                df_sel = df_sel.interpolate(method='spline',order=2)
-            
-            if window_len:
-                df_sel = df_sel.rolling(window_len, win_type='gaussian').mean(std=2)
-                
-            if reset_index:
-                df_sel = df_sel.reset_index(drop=True)
-            
-            # drop nans
-            df_sel.dropna(axis=0, how='any', inplace=True)
+            df_sel = resample_data_(df_sel, resample, interpolate, window_len, reset_index)
                         
             fig.add_trace(go.Scatter(x=df_sel.index, 
                                      y=df_sel.values,
@@ -224,7 +243,7 @@ def plot_timeseries_(df, columns, users, title, xlabel, ylabel, resample=False,
                       yaxis_title=ylabel,
                       width=1200,
                       height=600,)
-    fig.show()
+    return fig
 
 
 

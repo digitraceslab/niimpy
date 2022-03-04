@@ -1,4 +1,4 @@
-
+#use this paper for ideas: https://jinbo-bi.uconn.edu/wp-content/uploads/sites/2638/2018/12/Chase2016.pdf
 #Ambient Noise
 def ambient_noise(noise, subject, begin=None, end=None):
     """ Returns a Dataframe with 5 possible computations regarding the noise
