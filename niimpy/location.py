@@ -173,13 +173,10 @@ def get_speeds_totaldist(lats, lons, times):
     ----------
     lats : array-like
         Array of latitudes
-
     lons : array-like
         Array of longitudes
-
     times : array-like
         Array of times associted with bins
-
 
     Returns
     ------
@@ -331,8 +328,8 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
 
     Returns
     -------
-    (time_home, max_dist_home) : tuple
-        `time_home`: number of times the person has been near the home
+    (n_home, max_dist_home) : tuple
+        `n_home`: number of bins the person has been near the home
         `max_dist_home`: maximum distance that the person has been from home
     """
     if any(np.isnan(latlon_home)):
@@ -349,31 +346,34 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def extract_distance_features(location,
-                              bin_width=10.0,
-                              compute_speeds=False,
+def extract_distance_features(lats,
+                              lons,
+                              users,
+                              groups,
+                              times,
+                              speeds=None,
                               speed_threshold=0.277,
                               column_prefix=None):
     """Calculates features realted distance and speed
 
     Parameters
     ----------
-    location : pd.DataFrame
-        Dataframe of locations indexed by time. These columns have to exist
-        in the dataframe: `user`, `double_latitude`, `double_longitude`.
-
-    bin_width : float
-        Lenght of bins in minutes
-
-    compute_speeds : bool
-        If true, computes speeds by dividing distance between each two
-        consequitive bins by their time difference. Otherwise, use column
-        `speed` instead. Default is False.
-
+    lats : array
+        Latitudes
+    lons : array
+        Longitudes
+    users : array
+        Users
+    groups : array
+        Groups to which users belong
+    times : array
+        Times when the coordinate is recorded
+    speeds : array, optional
+        Speeds of the users. If `None`, it computes speeds by dividing
+        distance between each two consequitive bins by their time difference.
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
         `static` and the rest are `moving`.
-
     column_prefix : str
         Add a prefix to all column names.
 
@@ -398,11 +398,9 @@ def extract_distance_features(location,
 
         # Home realted featuers
         latlon_home = find_home(lats, lons, times)
-        time_home, max_dist_home = compute_nbin_maxdist_home(lats, lons, latlon_home)
-        time_home *= bin_width
 
         speeds, total_dist = get_speeds_totaldist(lats, lons, times)
-        if compute_speeds == False:
+        if 'double_speed' in df:
             speeds = df['double_speed']
 
         speed_average = np.nanmean(speeds)
@@ -427,18 +425,20 @@ def extract_distance_features(location,
         stay_times = counter.values()
         stay_times = np.sort(list(stay_times))[::-1]
 
-        time_static = bin_width * sum(static_bins)
-        time_moving = bin_width * sum(~static_bins)
-        time_rare = bin_width * counter[-1]
+        n_static = sum(static_bins)
+        n_moving = sum(~static_bins)
+        n_rare = counter[-1]
+        n_home, max_dist_home = compute_nbin_maxdist_home(
+            lats_static, lons_static, latlon_home
+        )
 
         n_transitions = sum(np.diff(clusters) != 0)
 
-        stay_top1 = stay_times[0] * bin_width if len(stay_times) > 0 else 0
-        stay_top2 = stay_times[1] * bin_width if len(stay_times) > 1 else 0
-        stay_top3 = stay_times[2] * bin_width if len(stay_times) > 2 else 0
-        stay_top4 = stay_times[3] * bin_width if len(stay_times) > 3 else 0
-        stay_top5 = stay_times[4] * bin_width if len(stay_times) > 4 else 0
-
+        n_top1 = stay_times[0] if len(stay_times) > 0 else 0
+        n_top2 = stay_times[1] if len(stay_times) > 1 else 0
+        n_top3 = stay_times[2] if len(stay_times) > 2 else 0
+        n_top4 = stay_times[3] if len(stay_times) > 3 else 0
+        n_top5 = stay_times[4] if len(stay_times) > 4 else 0
 
         row = pd.DataFrame({
             'dist_total': [total_dist],
@@ -447,22 +447,31 @@ def extract_distance_features(location,
             'speed_variance': [speed_variance],
             'speed_max': [speed_max],
             'n_sps': [n_unique_sps],
-            'time_static': [time_static],
-            'time_moving': [time_moving],
-            'time_rare': [time_rare],
-            'time_home': [time_home],
+            'n_static': [n_static],
+            'n_moving': [n_moving],
+            'n_rare': [n_rare],
+            'n_home': [n_home],
             'max_dist_home': [max_dist_home],
             'n_transitions': [n_transitions],
-            'stay_top1': [stay_top1],
-            'stay_top2': [stay_top2],
-            'stay_top3': [stay_top3],
-            'stay_top4': [stay_top4],
-            'stay_top5': [stay_top5],
+            'n_top1': [n_top1],
+            'n_top2': [n_top2],
+            'n_top3': [n_top3],
+            'n_top4': [n_top4],
+            'n_top5': [n_top5],
             'entropy': [entropy],
             'normalized_entropy': [normalized_entropy],
         })
         return row
 
+    location = pd.DataFrame({
+        'double_latitude': lats,
+        'double_longitude': lons,
+        'user': users,
+        'group': groups},
+        index=times
+    )
+    if speeds is not None:
+        location['double_speed'] = speeds
     location = location.sort_index()
     grouped = location.groupby('user')
     var = grouped.var()
