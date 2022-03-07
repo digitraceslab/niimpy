@@ -35,9 +35,9 @@ class ALL:
 #    selectors.append('{0} < time'.format(x))
 #    return ' AND time<'
 
-def open(db):
+def open(db, tz=None):
     """Open a database and return a Data1 object"""
-    return Data1(db)
+    return Data1(db, tz=tz)
 
 
 # Online variance calculation
@@ -72,7 +72,7 @@ class sqlite3_stdev:
 
 
 class Data1(object):
-    def __init__(self, db):
+    def __init__(self, db, tz=None):
         """Open the database.
 
         Don't do anything yet, but stores the open connection object on
@@ -90,6 +90,7 @@ class Data1(object):
             #print("Future niimpy versions will improve this.", file=sys.stderr)
             #print("({0})".format(util.SQLITE3_EXTENSIONS_FILENAME), file=sys.stderr)
         self._singleuser = self._is_single_user()
+        self._tz = tz
 
     def _is_single_user(self):
         """Detect if this is a single-user database
@@ -336,7 +337,7 @@ class Data1(object):
                         """.format(table=table,
                                    **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                         self.conn, params={'user':user, 'interval_width':interval_width})
-        util.df_normalize(df, old_tz=util.SYSTEM_TZ)
+        util.df_normalize(df, old_tz=util.SYSTEM_TZ, tz=self._tz)
         return df
 
 
@@ -363,7 +364,7 @@ class Data1(object):
                          """.format(table=table, column_selector=column_selector,
                                    **self._sql(user=user, limit=limit, offset=offset, start=start, end=end)),
                          self.conn, params={'user':user})
-        util.df_normalize(df, old_tz=util.SYSTEM_TZ)
+        util.df_normalize(df, old_tz=util.SYSTEM_TZ, tz=self._tz)
         return df
 
 
@@ -382,7 +383,7 @@ class Data1(object):
             # Single user data:
             return util.to_datetime(df['time'])
         else:
-            util.df_normalize(df)
+            util.df_normalize(df, tz=self._tz)
             return df
 
     def raw(self, table, user, limit=None, offset=None, start=None, end=None):
@@ -399,7 +400,7 @@ class Data1(object):
                                    ),
                         self.conn, params={'user':user})
         if 'time' in df:
-            util.df_normalize(df)
+            util.df_normalize(df, tz=self._tz)
         return df
 
     def get_survey_score(self, table, user, survey, limit=None, start=None, end=None):

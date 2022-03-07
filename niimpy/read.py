@@ -2,9 +2,11 @@
 
 """
 
+import pandas as pd
+import warnings
+
 from . import database
 from . import util
-import pandas as pd
 
 def _read_preprocess(df, add_group=None):
     """Standard preprocessing arguments when reading.
@@ -43,7 +45,7 @@ def _read_preprocess(df, add_group=None):
     return df
 
 
-def read_sqlite(filename, table, add_group=None, user=database.ALL, limit=None, offset=None, start=None, end=None):
+def read_sqlite(filename, table, add_group=None, user=database.ALL, limit=None, offset=None, start=None, end=None, tz=None):
     """Read DataFrame from sqlite3 database
 
     This will read data from a sqlite3 file, taking sensor data in a
@@ -78,7 +80,10 @@ def read_sqlite(filename, table, add_group=None, user=database.ALL, limit=None, 
     end : int or float or str or datetime.datetime, optional
         Same meaning as 'start', but for end time
     """
-    db = database.Data1(filename)
+    if tz is None:
+        warnings.warn(DeprecationWarning("From now on, you should explicitely specify timezone with e.g. tz='Europe/Helsinki'"), stacklevel=2)
+
+    db = database.Data1(filename, tz=tz)
     df = db.raw(table, user, limit=limit, offset=offset, start=start, end=end)
     df = _read_preprocess(df, add_group=add_group)
     return df
@@ -135,7 +140,8 @@ def _get_dataframe(df_or_database, table, user=None):
 
 
 
-def read_csv(filename, read_csv_options={}, add_group=None):
+def read_csv(filename, read_csv_options={}, add_group=None,
+             tz=None):
     """Read DataFrame from csv file
 
     This will read data from a csv file and then process the result with
@@ -156,15 +162,18 @@ def read_csv(filename, read_csv_options={}, add_group=None):
         If given, add a 'group' column with all values set to this.
 
     """
+    if tz is None:
+        warnings.warn(DeprecationWarning("From now on, you should explicitely specify timezone with e.g. tz='Europe/Helsinki'"), stacklevel=2)
+
     df = pd.read_csv(filename, **read_csv_options)
 
     # df_normalize converts sets the index to time values and does other time
     # conversions.  Inplace.
-    util.df_normalize(df)
+    util.df_normalize(df, tz=tz)
     df = _read_preprocess(df, add_group=add_group)
     return df
 
-def read_csv_string(string):
+def read_csv_string(string, tz=None):
     """Parse a string containing CSV and return dataframe
 
     This should not be used for serious reading of CSV from disk, but
@@ -186,10 +195,15 @@ def read_csv_string(string):
     -------
     df: pandas.DataFrame
     """
+    if tz is None:
+        warnings.warn(DeprecationWarning("From now on, you should explicitely specify timezone with e.g. tz='Europe/Helsinki'"), stacklevel=2)
     import io
-    df = read_csv(io.StringIO(string), read_csv_options={
-        'comment': '#',
-        })
+    df = read_csv(io.StringIO(string),
+                  tz=tz,
+                  read_csv_options={
+                      'comment': '#',
+                      },
+                 )
     if 'datetime' in df.columns:
         del df['datetime']
     return df

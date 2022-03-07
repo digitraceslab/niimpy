@@ -8,6 +8,7 @@ import niimpy
 from . import read
 from . import sampledata
 
+TZ = 'Europe/Helsinki'
 
 @pytest.mark.parametrize("datafile",
                          ['DATA_CSV',
@@ -19,7 +20,7 @@ from . import sampledata
 def test_sampledata_csv(datafile):
     """Test existence of reading of CSV sampledata"""
     filename = getattr(sampledata, datafile)
-    data = niimpy.read_csv(filename)
+    data = niimpy.read_csv(filename, tz=TZ)
     assert isinstance(data, pd.DataFrame)
     # The index should be set to the times
     assert isinstance(data.index, pd.DatetimeIndex)

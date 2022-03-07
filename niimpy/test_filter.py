@@ -5,6 +5,7 @@ from pandas import Series
 
 import niimpy
 
+TZ = 'Europe/Helsinki'
 csv = io.StringIO(
 """\
 user,time,value
@@ -18,7 +19,7 @@ b,90002,5
     )
 
 def test_filter_dataframe():
-    df = niimpy.read_csv(csv)
+    df = niimpy.read_csv(csv, tz=TZ)
     assert len(niimpy.filter_dataframe(df)) == 6
 
     # User limits
