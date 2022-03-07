@@ -317,6 +317,38 @@ def number_of_significant_places(lats, lons, times):
     return np.nanmedian(sps)
 
 
+def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
+    """Computes number of bins in home and maximum distance to home
+
+    Parameters
+    ----------
+    lats : pd.DataFrame
+        Latitudes
+    lons : pd.DataFrame
+        Longitudes
+    latlon_home : array
+        A tuple (lat, lon) showing the coordinate of home
+
+    Returns
+    -------
+    (time_home, max_dist_home) : tuple
+        `time_home`: number of times the person has been near the home
+        `max_dist_home`: maximum distance that the person has been from home
+    """
+    if any(np.isnan(latlon_home)):
+        time_home = np.nan
+        max_dist_home = np.nan
+    else:
+        home_idx = []
+        max_dist_home = 0
+        for latlon in zip(lats, lons):
+            dist_home = geodesic(latlon, latlon_home).meters
+            home_idx.append(dist_home <= home_radius)
+            max_dist_home = max(max_dist_home, dist_home)
+        time_home = sum(home_idx)
+    return time_home, max_dist_home
+
+
 def extract_distance_features(location,
                               bin_width=10.0,
                               compute_speeds=False,
@@ -364,18 +396,10 @@ def extract_distance_features(location,
         lons = df['double_longitude']
         times = df.index
 
-        lat_home, lon_home = find_home(lats, lons, times)
-        if any(np.isnan([lat_home, lon_home])):
-            time_home = np.nan
-            max_dist_home = np.nan
-        else:
-            home_idx = []
-            max_dist_home = 0
-            for lat, lon in zip(lats, lons):
-                dist_home = geodesic((lat, lon), (lat_home, lon_home)).meters
-                home_idx.append(dist_home <= 10)
-                max_dist_home = max(max_dist_home, dist_home)
-            time_home = sum(home_idx) * bin_width
+        # Home realted featuers
+        latlon_home = find_home(lats, lons, times)
+        time_home, max_dist_home = compute_nbin_maxdist_home(lats, lons, latlon_home)
+        time_home *= bin_width
 
         speeds, total_dist = get_speeds_totaldist(lats, lons, times)
         if compute_speeds == False:
