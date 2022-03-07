@@ -319,6 +319,5 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     sub_df1 = sub_df1.drop(groups, axis=1, errors='ignore')
     sub_df2 = sub_df2.drop(groups, axis=1, errors='ignore')
     final_df = sub_df1.join(sub_df2)
-    final_df = final_df.reset_index(0)
 
     return final_df
