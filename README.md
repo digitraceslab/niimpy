@@ -79,9 +79,18 @@ the core analysis with your own code.
 All of the functions for reading, preprocessing, and feature extraction for location data is in [`location.py`](niimpy/location.py). Currently implemented features are:
 
 - `dist_total`: total distance a person traveled in meter.
+- `variance`, `log_variance`: variance is defined as sum of variance in latitudes and longitudes.
+- `speed_average`, `speed_variance`, and `speed_max`: statistics of speed (m/s). Speed, if not given, can be calculated by dividing the distance between two consequitive bins by their time difference.
 - `n_bins`: number of location bins that a user recorded in dataset.
-- `variance`, `variance_log`: variance is defined as sum of variance in latitudes and longitudes.
-- `speed_average`, `speed_variance`, and `speed_max`: statistics of speed (m/s). Speed is calculated by dividing the distance between two consequitive bins by their time difference.
+- `n_static`: number of static points. Static points are defined as bins whose speed is lower than a threshold.
+- `n_moving`: number of moving points. Equivalent to `n_bins - n_static`.
+- `n_home`: number of static bins which are close to the person's home. Home is defined the place most visited during nights. More formally, all the locations recorded during 12 Am and 6 AM are clusterd and the center of largest cluster is assumed to be home.
+- `max_dist_home`: maximum distance from home.
+- `n_sps`: number of significant places. All of the static bins are clusterd using DBSCAN algorithm. Each cluster represents a Signicant Place (SP) for a user.
+- `n_rare`: number of rarely visited (referred as outliers in DBSCAN).
+- `n_transitions`: number of transitions between significant places.
+- `n_top1`, `n_top2`, `n_top3`, `n_top4`, `n_top5`: number of bins in the top `N` cluster. In other words, `n_top1` shows the number of times the person has visited the most freqently visited place.
+- `entropy`, `normalized_entropy`: entropy of time spent in clusters. Normalized entropy is the entropy divided by the number of clusters.
 
 Usage:
 
@@ -94,8 +103,8 @@ CONTROL_PATH = "PATH/TO/CONTROL/DATA"
 PATIENT_PATH = "PATH/TO/PATIENT/DATA"
 
 # Read data of control and patients from database
-location_control = niimpy.read_sqlite(CONTROL_PATH, table='AwareLocation', add_group='control')
-location_patient = niimpy.read_sqlite(PATIENT_PATH, table='AwareLocation', add_group='patient')
+location_control = niimpy.read_sqlite(CONTROL_PATH, table='AwareLocation', add_group='control', tz='Europe/Helsinki')
+location_patient = niimpy.read_sqlite(PATIENT_PATH, table='AwareLocation', add_group='patient', tz='Europe/Helsinki')
 
 # Concatenate the two dataframes to have one dataframe
 location = pd.concat([location_control, location_patient])
@@ -103,20 +112,12 @@ location = pd.concat([location_control, location_patient])
 # Remove low-quality and outlier locations
 location = nilo.filter_location(location)
 
-# Downsample locations (median filter)
-location = nilo.bin_location(location)
+# Downsample locations (median filter). Bin size is 10 minute.
+location = niimpy.util.aggregate(location, freq='10T', method_numerical='median')
+location = location.reset_index(0).dropna()
 
 # Feature extraction
 features = nilo.extract_distance_features(location)
-
-print(features)
-#          dist_total  n_bins  speed_average  speed_variance  speed_max  variance  log_variance    group
-# user
-# 85     99959.675136    5263       0.497366        1.892349  23.004898  0.853436     -0.158485  control
-# 5     100019.148930   17861       0.483166        1.290904  47.028144  0.608272     -0.497133  patient
-# 59    100006.797611     997       0.396358        6.030756  14.855043  1.689068      0.524177  control
-# 98    100008.024927    1167       0.424071        2.824386  39.441805  7.838034      2.058988  patient
-# 94     99986.313269    2679       0.408712        1.841893  49.513352  1.148495      0.138452  patient
 ```
 
 ## Documentation
