@@ -99,73 +99,6 @@ def filter_location(location,
     return location
 
 
-def bin_location(location,
-                 bin_width=10,
-                 aggregation='median',
-                 columns_to_aggregate=None):
-    """Downsample location data and aggregate points in bins
-
-    Parameters
-    ----------
-
-    location : pd.DataFrame
-        DataFrame of locations. Index should be timestamp of samples.
-        `user` has to exist in columns.
-
-    bin_width : int
-        Length of bin in minutes. Default is 10 minutes.
-
-    aggregation : str
-        Specifies how datapoints in a bin should be aggregated. Options:
-        'median', 'mean'.
-
-    columns_to_aggregate : list of str
-        Specifies which columns to aggregate according to `aggregation`
-        parameter. For other columns, the first value is picked for the
-        aggregated bin. Default is ['double_latitude', 'double_longitude']
-
-    Returns
-    -------
-    location : pd.DataFrame
-        Binned location. This dataframe is indexed by rounded times.
-    """
-    if columns_to_aggregate is None:
-        columns_to_aggregate = ['double_latitude', 'double_longitude']
-
-    freq = '{}T'.format(bin_width)
-    location['time'] = location.index
-    location['time'] = location['time'].apply(
-        lambda x: x.floor(freq=freq, ambiguous=False)
-    )
-
-    original_columns = location.columns
-    columns_others = location.columns.drop(columns_to_aggregate)
-    columns_to_aggregate.extend(['user', 'time'])
-
-    location_to_aggregate = location[columns_to_aggregate]
-    location_others = location[columns_others]
-
-    grouped = location_to_aggregate.groupby(['user', 'time'])
-    if aggregation == 'median':
-        location_to_aggregate = grouped.median()
-    elif aggregation == 'mean':
-        location_to_aggregate = grouped.mean()
-    location_to_aggregate = location_to_aggregate. \
-        reset_index(level=[0, 1]). \
-        set_index('time')
-
-    location_others = location_others. \
-        groupby(['user', 'time']). \
-        first(). \
-        reset_index(level=[0, 1]). \
-        set_index('time'). \
-        drop('user', axis=1)
-
-    location = pd.concat([location_to_aggregate, location_others], axis=1)
-    location = location[original_columns.drop('time')]
-    return location
-
-
 def get_speeds_totaldist(lats, lons, times):
     """Computes speed of bins with dividing distance by their time difference
 
@@ -346,14 +279,14 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def extract_distance_features(lats,
-                              lons,
-                              users,
-                              groups,
-                              times,
-                              speeds=None,
-                              speed_threshold=0.277,
-                              column_prefix=None):
+def extract_features(lats,
+                     lons,
+                     users,
+                     groups,
+                     times,
+                     speeds=None,
+                     speed_threshold=0.277,
+                     column_prefix=None):
     """Calculates features realted distance and speed
 
     Parameters
