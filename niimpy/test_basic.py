@@ -9,27 +9,27 @@ import niimpy
 
 DATA = niimpy.sampledata.DATA
 
-os.environ['TZ'] = 'Europe/Helsinki'
+TZ = os.environ['TZ'] = 'Europe/Helsinki'
 time.tzset()
 
 def test_connect():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     data.users()
 
 def test_users():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     data.users()
 
 def test_tables():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     print(data.tables())
 
 def test_user_table_counts():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     print(data.user_table_counts())
 
 def test_username_validatation_singleuser():
-    data = niimpy.open(niimpy.sampledata.DATA)
+    data = niimpy.open(niimpy.sampledata.DATA, tz=TZ)
     with pytest.raises(ValueError):
         data.validate_username('some_name')
     # Should return the proper value
@@ -37,7 +37,7 @@ def test_username_validatation_singleuser():
     assert data.validate_username(None) == niimpy.ALL
 
 def test_username_validatation_multiuser():
-    data = niimpy.open(niimpy.sampledata.MULTIUSER)
+    data = niimpy.open(niimpy.sampledata.MULTIUSER, tz=TZ)
     with pytest.raises(ValueError):   # None not allowed for multiuser
         data.validate_username(None)
     with pytest.raises(ValueError):   # Not a string
@@ -48,14 +48,14 @@ def test_username_validatation_multiuser():
     assert data.validate_username(niimpy.ALL) == niimpy.ALL
 
 def test_firstlast():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     print(data.first('AwareScreen', user=niimpy.ALL))
     print(data.first('AwareScreen', user=niimpy.ALL))
     print(data.count('AwareScreen', user=niimpy.ALL))
     print(data.exists('AwareScreen', user=niimpy.ALL))
 
 def test_start_end():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     print(data.count('AwareScreen', user=niimpy.ALL))
     assert data.count('AwareScreen', user=niimpy.ALL)['count'][0] == 1156
     # Beyond the end range - sholud be zero
@@ -68,7 +68,7 @@ def test_start_end():
     assert data.count('AwareScreen', user=niimpy.ALL, start=1531256400, end=1531342800)['count'][0] == 163
 
 def test_occurrence_db():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     occs = data.occurrence('AwareScreen', user=niimpy.ALL)
     data.occurrence('AwareScreen', user=niimpy.ALL, limit=100)
     data.occurrence('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
@@ -83,7 +83,7 @@ def test_occurrence_db():
     assert occs['day']['2018-07-10 12:00:00'] == '2018-07-10'
 
 def test_util_occurrence():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     timestamps = data.timestamps('AwareScreen', niimpy.ALL)
     occs = niimpy.util.occurrence(timestamps)
     assert occs['occurrence']['2018-07-10 00:00:00'] == 1
@@ -92,7 +92,7 @@ def test_util_occurrence():
     assert occs['day']['2018-07-10 12:00:00'] == '2018-07-10'
 
 def test_hourly():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     data.hourly('AwareScreen', user=niimpy.ALL)
 
     data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status")
@@ -105,7 +105,7 @@ def test_hourly():
     data.hourly('AwareScreen', user=niimpy.ALL, columns="screen_status")
 
 def test_raw():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     data.raw('AwareScreen', user=niimpy.ALL)
     data.raw('AwareScreen', user=niimpy.ALL, limit=100)
     data.raw('AwareScreen', user=niimpy.ALL, limit=100, offset=10)
@@ -120,7 +120,7 @@ def test_raw():
 
 
 def test_filled_bins():
-    data = niimpy.open(DATA)
+    data = niimpy.open(DATA, tz=TZ)
     timestamps = data.raw("AwareScreen", None).index
     gb2 = niimpy.util.occurrence(timestamps)
     gb2.loc['2018-07-10 00:00:00']['occurrence'] == 1
@@ -158,13 +158,13 @@ def test_to_datetime():
 
 def test_df_normalize():
     df = pd.DataFrame({'time': [0, 3600, 7200], 'x': [2, 3, 5]})
-    niimpy.util.df_normalize(df)
+    niimpy.util.df_normalize(df, tz=TZ)
     assert df['x']['1970-01-01 03:00:00'] == 3
     assert df['datetime'][1].hour == 3
 
     df = pd.DataFrame({'day': (['2018-01-01']*3), 'hour':[2, 3, 4], 'x': [2, 3, 5]})
     print(df)
-    niimpy.util.df_normalize(df)
+    niimpy.util.df_normalize(df, tz=TZ)
     print(df)
     assert df['x']['2018-01-01 03:00:00'] == 3
     assert df.index[1].hour == 3

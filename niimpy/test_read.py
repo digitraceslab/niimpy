@@ -5,6 +5,7 @@ import niimpy
 from . import read
 from . import sampledata
 
+TZ = 'Europe/Helsinki'
 
 def test_read_preprocess_add_group():
     """Test of add_group= option"""
@@ -16,6 +17,6 @@ def test_read_preprocess_add_group():
 
 def test_read_preprocess_add_group_csv():
     """Test of add_group= option"""
-    data = niimpy.read_csv(sampledata.DATA_CSV, add_group='group1')
+    data = niimpy.read_csv(sampledata.DATA_CSV, add_group='group1', tz=TZ)
     assert 'group' in data
     assert data['group'][0] == 'group1'

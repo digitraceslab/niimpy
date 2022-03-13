@@ -2,6 +2,7 @@ import collections
 
 import pandas as pd
 import numpy as np
+import scipy.stats
 from sklearn.cluster import DBSCAN
 
 from geopy.distance import geodesic
@@ -98,73 +99,6 @@ def filter_location(location,
     return location
 
 
-def bin_location(location,
-                 bin_width=10,
-                 aggregation='median',
-                 columns_to_aggregate=None):
-    """Downsample location data and aggregate points in bins
-
-    Parameters
-    ----------
-
-    location : pd.DataFrame
-        DataFrame of locations. Index should be timestamp of samples.
-        `user` has to exist in columns.
-
-    bin_width : int
-        Length of bin in minutes. Default is 10 minutes.
-
-    aggregation : str
-        Specifies how datapoints in a bin should be aggregated. Options:
-        'median', 'mean'.
-
-    columns_to_aggregate : list of str
-        Specifies which columns to aggregate according to `aggregation`
-        parameter. For other columns, the first value is picked for the
-        aggregated bin. Default is ['double_latitude', 'double_longitude']
-
-    Returns
-    -------
-    location : pd.DataFrame
-        Binned location. This dataframe is indexed by rounded times.
-    """
-    if columns_to_aggregate is None:
-        columns_to_aggregate = ['double_latitude', 'double_longitude']
-
-    freq = '{}T'.format(bin_width)
-    location['time'] = location.index
-    location['time'] = location['time'].apply(
-        lambda x: x.floor(freq=freq, ambiguous=False)
-    )
-
-    original_columns = location.columns
-    columns_others = location.columns.drop(columns_to_aggregate)
-    columns_to_aggregate.extend(['user', 'time'])
-
-    location_to_aggregate = location[columns_to_aggregate]
-    location_others = location[columns_others]
-
-    grouped = location_to_aggregate.groupby(['user', 'time'])
-    if aggregation == 'median':
-        location_to_aggregate = grouped.median()
-    elif aggregation == 'mean':
-        location_to_aggregate = grouped.mean()
-    location_to_aggregate = location_to_aggregate. \
-        reset_index(level=[0, 1]). \
-        set_index('time')
-
-    location_others = location_others. \
-        groupby(['user', 'time']). \
-        first(). \
-        reset_index(level=[0, 1]). \
-        set_index('time'). \
-        drop('user', axis=1)
-
-    location = pd.concat([location_to_aggregate, location_others], axis=1)
-    location = location[original_columns.drop('time')]
-    return location
-
-
 def get_speeds_totaldist(lats, lons, times):
     """Computes speed of bins with dividing distance by their time difference
 
@@ -172,13 +106,10 @@ def get_speeds_totaldist(lats, lons, times):
     ----------
     lats : array-like
         Array of latitudes
-
     lons : array-like
         Array of longitudes
-
     times : array-like
         Array of times associted with bins
-
 
     Returns
     ------
@@ -228,9 +159,7 @@ def find_home(lats, lons, times):
 
     lats_night = lats[idx_night]
     lons_night = lons[idx_night]
-    dists_matrix = distance_matrix(lats_night, lons_night)
-    dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
-    clusters = dbscan.fit_predict(dists_matrix)
+    clusters = cluster_locations(lats_night, lons_night)
     counter = collections.Counter(clusters)
     home_cluster = counter.most_common()[0][0]
 
@@ -243,31 +172,141 @@ def find_home(lats, lons, times):
     return lat_home, lon_home
 
 
-def extract_distance_features(location,
-                              bin_width=10.0,
-                              compute_speeds=False,
-                              speed_threshold=0.277,
-                              column_prefix=None):
+def cluster_locations(lats, lons, min_samples=5, eps=200):
+    """Performs clustering on the locations
+
+    Parameters
+    ----------
+    lats : pd.DataFrame
+        Latitudes
+    lons : pd.DataFrame
+        Longitudes
+    mins_samples : int
+        Minimum number of samples to form a cluster. Default is 5.
+    eps : float
+        Epsilone parameter in DBSCAN. The maximum distance between
+        two neighbour samples. Default is 200.
+
+    Returns
+    -------
+    clusters : array
+        Array of clusters. -1 indicates outlier.
+    """
+    dists_matrix = distance_matrix(lats, lons)
+    dbscan = DBSCAN(min_samples=min_samples, eps=eps, metric='precomputed')
+    clusters = dbscan.fit_predict(dists_matrix)
+    return clusters
+
+
+def number_of_significant_places(lats, lons, times):
+    """Computes number of significant places
+
+    Number of significant plcaes is computed by first clustering
+    the locations in each month and then taking the median of the
+    number of clusters in each month.
+
+    It is assumed that `lats` and `lons` are the coordinates of
+    static points.
+
+    Parameters
+    ----------
+    lats : pd.DataFrame
+        Latitudes
+    lons : pd.DataFrame
+        Longitudes
+    times : array
+        Array of times
+
+    Returns
+    """
+    sps = []
+    numper_of_places = []
+    months = pd.date_range(min(times), max(times), freq='M')
+    months = list(months)
+    if len(months) == 0:
+        return np.nan
+    last_month = months[-1] + pd.Timedelta(weeks=4)
+    months += [last_month]
+    for i in range(len(months) - 1):
+        start = months[i]
+        end = months[i + 1]
+        idx = (times >= start) & (times <= end)
+        if sum(idx) < 2:
+            continue
+
+        lats_month = lats[idx]
+        lons_month = lons[idx]
+
+        clusters = cluster_locations(lats_month, lons_month)
+        number_of_sps = len(set(clusters))
+        if -1 in clusters:
+            number_of_sps -= 1
+        numper_of_places.append(sum(idx))
+        sps.append(number_of_sps)
+
+    return np.nanmedian(sps)
+
+
+def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
+    """Computes number of bins in home and maximum distance to home
+
+    Parameters
+    ----------
+    lats : pd.DataFrame
+        Latitudes
+    lons : pd.DataFrame
+        Longitudes
+    latlon_home : array
+        A tuple (lat, lon) showing the coordinate of home
+
+    Returns
+    -------
+    (n_home, max_dist_home) : tuple
+        `n_home`: number of bins the person has been near the home
+        `max_dist_home`: maximum distance that the person has been from home
+    """
+    if any(np.isnan(latlon_home)):
+        time_home = np.nan
+        max_dist_home = np.nan
+    else:
+        home_idx = []
+        max_dist_home = 0
+        for latlon in zip(lats, lons):
+            dist_home = geodesic(latlon, latlon_home).meters
+            home_idx.append(dist_home <= home_radius)
+            max_dist_home = max(max_dist_home, dist_home)
+        time_home = sum(home_idx)
+    return time_home, max_dist_home
+
+
+def extract_features(lats,
+                     lons,
+                     users,
+                     groups,
+                     times,
+                     speeds=None,
+                     speed_threshold=0.277,
+                     column_prefix=None):
     """Calculates features realted distance and speed
 
     Parameters
     ----------
-    location : pd.DataFrame
-        Dataframe of locations indexed by time. These columns have to exist
-        in the dataframe: `user`, `double_latitude`, `double_longitude`.
-
-    bin_width : float
-        Lenght of bins in minutes
-
-    compute_speeds : bool
-        If true, computes speeds by dividing distance between each two
-        consequitive bins by their time difference. Otherwise, use column
-        `speed` instead. Default is False.
-
+    lats : array
+        Latitudes
+    lons : array
+        Longitudes
+    users : array
+        Users
+    groups : array
+        Groups to which users belong
+    times : array
+        Times when the coordinate is recorded
+    speeds : array, optional
+        Speeds of the users. If `None`, it computes speeds by dividing
+        distance between each two consequitive bins by their time difference.
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
         `static` and the rest are `moving`.
-
     column_prefix : str
         Add a prefix to all column names.
 
@@ -290,22 +329,11 @@ def extract_distance_features(location,
         lons = df['double_longitude']
         times = df.index
 
-        lat_home, lon_home = find_home(lats, lons, times)
-        if any(np.isnan([lat_home, lon_home])):
-            time_home = np.nan
-            max_dist_home = np.nan
-        else:
-            home_idx = []
-            max_dist_home = 0
-            print(lat_home, lon_home)
-            for lat, lon in zip(lats, lons):
-                dist_home = geodesic((lat, lon), (lat_home, lon_home)).meters
-                home_idx.append(dist_home <= 10)
-                max_dist_home = max(max_dist_home, dist_home)
-            time_home = sum(home_idx) * bin_width
+        # Home realted featuers
+        latlon_home = find_home(lats, lons, times)
 
         speeds, total_dist = get_speeds_totaldist(lats, lons, times)
-        if compute_speeds == False:
+        if 'double_speed' in df:
             speeds = df['double_speed']
 
         speed_average = np.nanmean(speeds)
@@ -315,30 +343,35 @@ def extract_distance_features(location,
         static_bins = speeds < speed_threshold
         lats_static = lats[static_bins]
         lons_static = lons[static_bins]
-        dists_matrix = distance_matrix(lats_static, lons_static)
+        times_static = times[static_bins]
+        clusters = cluster_locations(lats_static, lons_static)
 
-        dbscan = DBSCAN(min_samples=5, eps=20, metric='precomputed')
-        clusters = dbscan.fit_predict(dists_matrix)
+        # n_unique_sps = len(set(non_rare_clusters))
+        n_unique_sps = number_of_significant_places(lats_static,
+                                                    lons_static,
+                                                    times_static)
         non_rare_clusters = clusters[clusters != -1]
-        n_unique_sps = len(set(non_rare_clusters))
+        entropy = scipy.stats.entropy(non_rare_clusters)
+        normalized_entropy = entropy / np.log(len(set(non_rare_clusters)))
 
         counter = collections.Counter(clusters)
         stay_times = counter.values()
         stay_times = np.sort(list(stay_times))[::-1]
 
-        time_static = bin_width * sum(static_bins)
-        time_moving = bin_width * sum(~static_bins)
-        time_rare = bin_width * counter[-1]
+        n_static = sum(static_bins)
+        n_moving = sum(~static_bins)
+        n_rare = counter[-1]
+        n_home, max_dist_home = compute_nbin_maxdist_home(
+            lats_static, lons_static, latlon_home
+        )
 
         n_transitions = sum(np.diff(clusters) != 0)
 
-        stay_top1 = stay_times[0] * bin_width if len(stay_times) > 0 else 0
-        stay_top2 = stay_times[1] * bin_width if len(stay_times) > 1 else 0
-        stay_top3 = stay_times[2] * bin_width if len(stay_times) > 2 else 0
-        stay_top4 = stay_times[3] * bin_width if len(stay_times) > 3 else 0
-        stay_top5 = stay_times[4] * bin_width if len(stay_times) > 4 else 0
-
-
+        n_top1 = stay_times[0] if len(stay_times) > 0 else 0
+        n_top2 = stay_times[1] if len(stay_times) > 1 else 0
+        n_top3 = stay_times[2] if len(stay_times) > 2 else 0
+        n_top4 = stay_times[3] if len(stay_times) > 3 else 0
+        n_top5 = stay_times[4] if len(stay_times) > 4 else 0
 
         row = pd.DataFrame({
             'dist_total': [total_dist],
@@ -347,23 +380,32 @@ def extract_distance_features(location,
             'speed_variance': [speed_variance],
             'speed_max': [speed_max],
             'n_sps': [n_unique_sps],
-            'time_static': [time_static],
-            'time_moving': [time_moving],
-            'time_rare': [time_rare],
-            'time_home': [time_home],
+            'n_static': [n_static],
+            'n_moving': [n_moving],
+            'n_rare': [n_rare],
+            'n_home': [n_home],
             'max_dist_home': [max_dist_home],
             'n_transitions': [n_transitions],
-            'stay_top1': [stay_top1],
-            'stay_top2': [stay_top2],
-            'stay_top3': [stay_top3],
-            'stay_top4': [stay_top4],
-            'stay_top5': [stay_top5],
+            'n_top1': [n_top1],
+            'n_top2': [n_top2],
+            'n_top3': [n_top3],
+            'n_top4': [n_top4],
+            'n_top5': [n_top5],
+            'entropy': [entropy],
+            'normalized_entropy': [normalized_entropy],
         })
         return row
 
+    location = pd.DataFrame({
+        'double_latitude': lats,
+        'double_longitude': lons,
+        'user': users,
+        'group': groups},
+        index=times
+    )
+    if speeds is not None:
+        location['double_speed'] = speeds
     location = location.sort_index()
-
-    features = pd.DataFrame(index=location.user.unique())
     grouped = location.groupby('user')
     var = grouped.var()
 
