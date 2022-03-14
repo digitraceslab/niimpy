@@ -278,7 +278,7 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
         Resampling method for numerical columns. Possible values:
         'sum', 'mean', 'median'. Default value is 'mean'.
     method_categorical : str
-        Resampling method for categorical columns. Possible values: 'first', 'mode'.
+        Resampling method for categorical columns. Possible values: 'first', 'mode', 'last'.
     groups : list
         Columns used for groupby operation.
 
@@ -295,9 +295,9 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
         'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
     if method_numerical == 'sum':
         sub_df1 = groupby.resample(freq).sum()
-    elif  method_numerical == 'mean':
+    elif method_numerical == 'mean':
         sub_df1 = groupby.resample(freq).mean()
-    elif  method_numerical == 'median':
+    elif method_numerical == 'median':
         sub_df1 = groupby.resample(freq).median()
     else:
         print("Can't recognize sampling method")
@@ -309,9 +309,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     cat_cols = list(set(cat_cols))
 
     groupby = df[cat_cols].groupby(groups)
-    assert method_categorical in ['first', 'mode']
+    assert method_categorical in ['first', 'mode', 'last']
     if method_categorical == 'first':
         sub_df2 = groupby.resample(freq).first()
+    elif method_categorical == 'last':
+        sub_df2 = groupby.resample(freq).last()
     elif method_categorical == 'mode':
         sub_df2 = groupby.resample(freq).agg(lambda x: tuple(stats.mode(x)[0]))
 
