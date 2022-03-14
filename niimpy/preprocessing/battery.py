@@ -6,6 +6,8 @@ from . import preprocess
 
 def shutdown_info(battery_status):
     """ Returns a DataFrame with the timestamps of when the phone has shutdown.
+    This includes both events, when the phone has shut down and when the phone 
+    has been rebooted. 
 
     Parameters
     ----------
@@ -21,5 +23,4 @@ def shutdown_info(battery_status):
         battery_status = pd.to_numeric(battery_status) #convert to numeric in case it is not
     
     shutdown = battery_status[battery_status.between(-3, 0, inclusive=False)]
-    shutdown = shutdown.replace([-1,-2],0)
     return shutdown
