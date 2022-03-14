@@ -1,8 +1,8 @@
 # Aalto-specific niimpy functions
 
-from .database import ALL
+from niimpy.reading.database import ALL
 
-from . import survey
+from niimpy.preprocessing import survey
 
 import pandas as pd
 PHQ9_ANSWER_MAP = {

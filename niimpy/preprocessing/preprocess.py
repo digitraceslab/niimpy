@@ -13,10 +13,10 @@ import seaborn as sns
 import time
 import datetime
 import pytz
-import niimpy.aalto
+import niimpy.preprocessing.aalto
 
 # backwards compatibility aliases
-from .screen import screen_off, screen_duration
+from niimpy.preprocessing.screen import screen_off, screen_duration
 
 # Above this point is function that should *stay* in preprocess.py
 # Below this is functions that may or may not be moved.

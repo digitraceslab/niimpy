@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-import niimpy.survey
+import niimpy.preprocessing.survey
 
 df1 = pd.DataFrame(
         {"time": ['2019-01-01']*3 + ['2019-01-02']*3 + ['2019-01-03']*3,

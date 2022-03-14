@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 import niimpy
-from . import read
-from . import preprocess
-from .battery import shutdown_info
+from niimpy.reading import read
+from niimpy.preprocessing import preprocess
+from niimpy.preprocessing.battery import shutdown_info
 
 def screen_off(screen, subject=None, begin=None, end=None, battery=None):
     """Return times of only screen offs.

@@ -21,7 +21,7 @@ import sys
 import dateutil.parser
 import pandas as pd
 
-from . import util
+from niimpy.preprocessing import util
 
 class ALL:
     """Sentinel value for all users"""
