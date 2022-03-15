@@ -16,7 +16,7 @@ def test_sum_survey_scores():
     df = df1.copy()
     print(df)
 
-    results = niimpy.survey.sum_survey_scores(df, 'S1')
+    results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
     print(results)
 
     assert results.loc['2019-01-01']['score'] == 3
@@ -36,7 +36,7 @@ def test_sum_survey_scores_indexonly():
     df.index.name = None
     print(df)
 
-    results = niimpy.survey.sum_survey_scores(df, 'S1')
+    results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
     print(results)
 
     assert results.loc['2019-01-01']['score'] == 3

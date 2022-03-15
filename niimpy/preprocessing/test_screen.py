@@ -46,7 +46,7 @@ time,battery_level,battery_status
 """, tz=TZ)
 
 def test_screen_off(screen1, battery1):
-    off = niimpy.preprocess.screen_off(screen1, battery=battery1)
+    off = niimpy.preprocessing.preprocess.screen_off(screen1, battery=battery1)
     print(off)
     #import pdb ; pdb.set_trace()
     assert pd.Timestamp(60,  unit='s', tz=TZ) in off.index

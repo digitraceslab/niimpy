@@ -104,8 +104,8 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     count: Dataframe
 
     """
-    screen  = niimpy.read._get_dataframe(screen, table='AwareScreen', user=subject)
-    screen  = niimpy.filter_dataframe(screen, begin=begin, end=end)
+    screen  = niimpy.reading.read._get_dataframe(screen, table='AwareScreen', user=subject)
+    screen  = niimpy.preprocessing.filter.filter_dataframe(screen, begin=begin, end=end)
 
     # Drop duplicates based on index
     screen = screen.groupby(screen.index).first()

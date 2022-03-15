@@ -240,8 +240,8 @@ def shutdown_info(database,subject,begin=None,end=None):
     shutdown: Dataframe
 
     """
-    bat = niimpy.read._get_dataframe(database, table='AwareBattery', user=subject)
-    bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
+    bat = niimpy.reading.read._get_dataframe(database, table='AwareBattery', user=subject)
+    bat = niimpy.preprocessing.filter_dataframe(bat, begin=begin, end=end)
 
     if 'datetime' in bat.columns:
         bat = bat[['battery_status', 'datetime']]
