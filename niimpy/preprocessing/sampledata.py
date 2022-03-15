@@ -4,12 +4,18 @@ Sample data of different types
 
 import os
 
+'''
 path = os.getcwd()
+print(path)
 parent = os.path.abspath(os.path.join(path, os.pardir))
+print(parent)
+'''
 
-#_dirname = os.path.join(os.path.dirname(__file__), 'sampledata'
-_dirname = os.path.join(parent,'sampledata')
+_dirname = os.path.join(os.path.dirname(__file__),'..', 'sampledata')
 
+#_dirname = os.path.join(parent,'sampledata')
+
+                         
 # A simple single-user dataset, containing a little bit of Aware
 # screen data.
 DATA = os.path.join(_dirname, 'singleuser.sqlite3')
