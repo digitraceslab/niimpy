@@ -4,7 +4,8 @@ Sample data of different types
 
 import os
 
-_dirname = os.path.join(os.path.dirname(__file__), 'sampledata')
+#_dirname = os.path.join(os.path.dirname(__file__), 'sampledata')
+_dirname = os.path.join(os.pardir, 'sampledata')
 
 # A simple single-user dataset, containing a little bit of Aware
 # screen data.
