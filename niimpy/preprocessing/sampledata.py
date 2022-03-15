@@ -4,8 +4,14 @@ Sample data of different types
 
 import os
 
+path = os.getcwd()
+parent = os.path.join(path, os.pardir)
+  
+# prints parent directory
+#print("\nParent Directory:", os.path.abspath(parent))
+
 #_dirname = os.path.join(os.path.dirname(__file__), 'sampledata')
-_dirname = os.path.join(os.pardir, 'sampledata')
+_dirname = os.path.join(parent, 'sampledata')
 
 # A simple single-user dataset, containing a little bit of Aware
 # screen data.
