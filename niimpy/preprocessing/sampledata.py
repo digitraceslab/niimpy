@@ -11,7 +11,7 @@ parent = os.path.join(path, os.pardir)
 #print("\nParent Directory:", os.path.abspath(parent))
 
 #_dirname = os.path.join(os.path.dirname(__file__), 'sampledata')
-_dirname = os.path.join(os.path.abspath(parent, 'sampledata')
+_dirname = os.path.join(os.path.abspath(parent, 'sampledata'))
 
 # A simple single-user dataset, containing a little bit of Aware
 # screen data.
