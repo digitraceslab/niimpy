@@ -24,7 +24,7 @@ def test_sum_survey_scores():
     assert np.isnan(results.loc['2019-01-03']['score'])
 
     df['user'] = 'some_user'
-    results = niimpy.survey.sum_survey_scores(df, 'S1')
+    results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
     print(results)
     results = results.loc['some_user']
     assert results.loc['2019-01-01']['score'] == 3
