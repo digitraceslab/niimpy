@@ -2,8 +2,8 @@ import pytest
 import plotly
 import numpy as np
 import datetime
-from niimpy.EDA import setup_dataframe
-from niimpy.EDA import EDA_punchcard
+from niimpy.exploration import setup_dataframe
+from niimpy.exploration import EDA_punchcard
 
 def test_punchcard_one_user():
     df = setup_dataframe.create_dataframe()
