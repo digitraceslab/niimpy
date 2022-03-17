@@ -1,32 +1,104 @@
-import numpy as np
-import pandas as pd
+################################################################################
+# This is the main file for preprocessing smartphone sensor data               #
+#                                                                              #
+# Contributors: Anna Hakala & Ana Triana                                       #
+################################################################################
 
 import niimpy
-from . import preprocess
+import numpy as np
+import pandas as pd
+from pandas import Series
+import matplotlib.pyplot as plt
+import seaborn as sns
+import time
+import datetime
+import pytz
+import niimpy.preprocessing.aalto
 
-def get_battery_data(battery, batterylevel_column='battery_level',
-                     user=None, start=None, end=None):
-    """ Returns a DataFrame with battery data for a user.
+# backwards compatibility aliases
+from niimpy.preprocessing.screen import screen_off, screen_duration
+
+# Above this point is function that should *stay* in preprocess.py
+# Below this is functions that may or may not be moved.
+
+# Deprecated function
+def get_subjects(database):
+    """ Returns a list of the subjects in the database
+
+        Parameters
+        ----------
+        database: database
+
+    """
+    # TODO: deprecate, user should do ['user'].unique() on dataframe themselves
+    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
+
+    questions = database.raw(table='AwareHyksConverter', user=niimpy.ALL)
+    subjects=list(questions.user.unique())
+    return subjects
+
+def get_seconds(time_delta):
+    """ Converts the timedelta to seconds
+
+
+    NOTE: This is a helper function
+
     Parameters
     ----------
-    battery: DataFrame with battery data
-    user: string, optional
-    start: datetime, optional
-    end: datetime, optional
+    time_delta: Timedelta
+
     """
-    battery = niimpy.filter_dataframe(battery, begin=start, end=end, user=user)
-    battery[batterylevel_column] = pd.to_numeric(battery[batterylevel_column])
 
-    battery = battery.drop_duplicates(subset=['datetime','user','device'],keep='last')
-    battery = battery.drop(['user','device','time','datetime'],axis=1)
-    return battery
+    return time_delta.dt.seconds
 
 
-def battery_occurrences(battery_data, battery_status=False,
-                        days=0, hours=6, minutes=0, seconds=0, milli=0, micro=0, nano=0,
-                        user=None, start=None, end=None):
+#Location
+def location_data(database,subject,begin=None,end=None):
+    """ Reads the readily, preprocessed location data from the right database.
+    The data already contains the aggregation of the GPS data (more info here:
+    https://github.com/digitraceslab/koota-server/blob/master/kdata/converter.py).
+
+    Parameters
+    ----------
+    database: Niimpy database
+    user: string
+    begin: datetime, optional
+    end: datetime, optional
+
+
+    Returns
+    -------
+    location: Dataframe
+    """
+
+    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
+    assert isinstance(subject, str),"user not given in string format"
+
+    location = database.raw(table='AwareLocationDay', user=subject)
+    location = location.drop(['device','user'],axis=1)
+    location=location.drop_duplicates(subset=['day'],keep='first')
+    location['day']=pd.to_datetime(location['day'], format='%Y-%m-%d')
+    location=location.set_index('day')
+    location.index = pd.to_datetime(location.index).tz_localize('Europe/Helsinki')
+
+    if(begin!=None):
+        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
+    else:
+        begin = location.index[0]
+    if(end!= None):
+        assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
+    else:
+        end = location.index[-1]
+
+    location=location.loc[begin:end]
+    return location
+
+#Screen
+# TODO: check if this is a duplications of the one in batter.py
+def battery_occurrences(battery_data, user=None, start=None, end=None, battery_status = False, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the amount of battery data points found between a given interval and steps.
     The default interval is 6 hours.
+
     Parameters
     ----------
     battery_data: Dataframe
@@ -80,11 +152,12 @@ def battery_occurrences(battery_data, battery_status=False,
             delta = start + td
     return occurrences
 
-
+# TODO: check if this is a duplications of the one in batter.py
 def battery_gaps(data, min_duration_between = None):
     '''Returns a DataFrame including all battery data and showing the delta between
     consecutive battery timestamps. The minimum size of the considered deltas can be decided
     with the min_duration_between parameter.
+
     Parameters
     ----------
     data: dataframe with date index
@@ -101,9 +174,10 @@ def battery_gaps(data, min_duration_between = None):
 
     return gaps
 
-
+# TODO: check if this is a duplications of the one in batter.py
 def battery_charge_discharge(data):
     '''Returns a DataFrame including all battery data and showing the charge/discharge between each timestamp.
+
     Parameters
     ----------
     data: dataframe with date index
@@ -120,9 +194,11 @@ def battery_charge_discharge(data):
 
     return charge
 
+# TODO: check if this is a duplications of the one in batter.py
 def find_real_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the gaps found both in the battery data and the other data.
     The default interval is 6 hours.
+
     Parameters
     ----------
     battery_data: Dataframe
@@ -154,9 +230,11 @@ def find_real_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=
 
     return gaps
 
+# TODO: check if this is a duplications of the one in batter.py
 def find_non_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the gaps found only in the other data.
     The default interval is 6 hours.
+
     Parameters
     ----------
     battery_data: Dataframe
@@ -164,6 +242,7 @@ def find_non_battery_gaps(battery_data,other_data,start=None, end=None, days= 0,
                 The data you want to compare with
     start: datetime, optional
     end: datetime, optional
+
     """
     assert isinstance(battery_data, pd.core.frame.DataFrame), "battery_data is not a pandas DataFrame"
     assert isinstance(other_data, pd.core.frame.DataFrame), "other_data is not a pandas DataFrame"
@@ -187,9 +266,11 @@ def find_non_battery_gaps(battery_data,other_data,start=None, end=None, days= 0,
 
     return gaps
 
+# TODO: check if this is a duplications of the one in batter.py
 def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hours=6, minutes=0, seconds=0,milli=0, micro=0, nano=0):
     """ Returns a dataframe showing the gaps found only in the battery data.
     The default interval is 6 hours.
+
     Parameters
     ----------
     battery_data: Dataframe
@@ -219,35 +300,3 @@ def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hou
     gaps = pd.concat([battery[mask],other[mask]['occurrences']],axis=1, sort=False)
 
     return gaps
-
-def shutdown_info(database,subject,begin=None,end=None):
-    """ Returns a DataFrame with the timestamps of when the phone has shutdown.
-
-
-    NOTE: This is a helper function created originally to preprocess the application
-    info data
-
-    Parameters
-    ----------
-    database: Niimpy database
-    user: string
-    begin: datetime, optional
-    end: datetime, optional
-
-
-    Returns
-    -------
-    shutdown: Dataframe
-
-    """
-    bat = niimpy.read._get_dataframe(database, table='AwareBattery', user=subject)
-    bat = niimpy.filter_dataframe(bat, begin=begin, end=end)
-
-    if 'datetime' in bat.columns:
-        bat = bat[['battery_status', 'datetime']]
-    else:
-        bat = bat[['battery_status']]
-    bat=bat.loc[begin:end]
-    bat['battery_status']=pd.to_numeric(bat['battery_status'])
-    shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
-    return shutdown

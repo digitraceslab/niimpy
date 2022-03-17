@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import niimpy
-from niimpy.util import TZ
+from niimpy.preprocessing.util import TZ
 
 df11 = pd.DataFrame(
         {"user": ['wAzQNrdKZZax']*3 + ['Afxzi7oI0yyp']*3 + ['lb983ODxEFUD']*3,
@@ -23,7 +23,7 @@ df11 = df11.set_index('datetime', drop=False)
 
 def test_get_battery_data():
     df=df11.copy()
-    battery = niimpy.battery.get_battery_data(df)
+    battery = niimpy.preprocessing.battery.get_battery_data(df)
     assert battery.loc[Timestamp('2019-01-17 09:20:14.049999872+02:00'), 'battery_level'] == 96
     assert battery.loc[Timestamp('2019-01-17 09:21:26.036000+02:00'), 'battery_health'] == '2'
     assert battery.loc[Timestamp('2019-01-17 09:48:59.438999808+02:00'), 'battery_status'] == '2'
@@ -32,14 +32,14 @@ def test_get_battery_data():
 
 def test_battery_occurrences():
     df=df11.copy()
-    occurances = niimpy.battery.battery_occurrences(df, hours=0, minutes=10)
+    occurances = niimpy.preprocessing.battery.battery_occurrences(df, hours=0, minutes=10)
     assert occurances.loc[Timestamp('2019-01-17 09:20:14.049999872+02:00'), 'occurrences'] == 2
     assert occurances.loc[Timestamp('2019-01-17 09:40:14.049999872+02:00'), 'occurrences'] == 1
 
 
 def test_battery_gaps():
     df=df11.copy()
-    gaps = niimpy.battery.battery_gaps(df)
+    gaps = niimpy.preprocessing.battery.battery_gaps(df)
     assert gaps.delta.dtype == 'timedelta64[ns]'
     assert gaps.tvalue.dtype == 'datetime64[ns, pytz.FixedOffset(120)]'
     assert gaps.loc[Timestamp('2019-01-17 09:22:02.060000+02:00'), 'delta'] == pd.Timedelta('0 days 00:00:36.024000')
@@ -47,7 +47,7 @@ def test_battery_gaps():
 
 def test_battery_charge_discharge():
     df=df11.copy()
-    chdisch = niimpy.battery.battery_charge_discharge(df)
+    chdisch = niimpy.preprocessing.battery.battery_charge_discharge(df)
     assert chdisch.tdelta.dtype == 'timedelta64[ns]'
     assert chdisch.tvalue.dtype == 'datetime64[ns, pytz.FixedOffset(120)]'
     assert chdisch.loc[Timestamp('2019-01-17 09:48:59.438999808+02:00'), 'bdelta'] == -1

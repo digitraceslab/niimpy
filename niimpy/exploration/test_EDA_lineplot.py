@@ -5,8 +5,8 @@ Created on Tue Nov  2 13:57:00 2021
 """
 import pytest
 import plotly
-from niimpy.EDA import setup_dataframe 
-from niimpy.EDA import EDA_lineplot
+from niimpy.exploration import setup_dataframe 
+from niimpy.exploration import EDA_lineplot
 
 def test_timeplot_single_ts():
     df = setup_dataframe.create_dataframe()
