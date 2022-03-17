@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import niimpy
-from . import preprocess
+from niimpy.preprocessing import preprocess
 
 def get_battery_data(battery, batterylevel_column='battery_level',
                      user=None, start=None, end=None):
@@ -220,8 +220,10 @@ def find_battery_gaps(battery_data,other_data,start=None, end=None, days= 0, hou
 
     return gaps
 
-def shutdown_info(database,subject,begin=None,end=None):
+def shutdown_info(battery_status):
     """ Returns a DataFrame with the timestamps of when the phone has shutdown.
+    This includes both events, when the phone has shut down and when the phone 
+    has been rebooted.
 
 
     NOTE: This is a helper function created originally to preprocess the application
@@ -229,25 +231,16 @@ def shutdown_info(database,subject,begin=None,end=None):
 
     Parameters
     ----------
-    database: Niimpy database
-    user: string
-    begin: datetime, optional
-    end: datetime, optional
+    battery_status: pandas series of the battery status 
 
 
     Returns
     -------
-    shutdown: Dataframe
+    shutdown: pandas series
 
     """
-    bat = niimpy.reading.read._get_dataframe(database, table='AwareBattery', user=subject)
-    bat = niimpy.preprocessing.filter.filter_dataframe(bat, begin=begin, end=end)
-
-    if 'datetime' in bat.columns:
-        bat = bat[['battery_status', 'datetime']]
-    else:
-        bat = bat[['battery_status']]
-    bat=bat.loc[begin:end]
-    bat['battery_status']=pd.to_numeric(bat['battery_status'])
-    shutdown = bat[bat['battery_status'].between(-3, 0, inclusive=False)]
+    if not battery_status.str.isnumeric().all():
+        battery_status = pd.to_numeric(battery_status) #convert to numeric in case it is not
+    
+    shutdown = battery_status[battery_status.between(-3, 0, inclusive=False)]
     return shutdown
