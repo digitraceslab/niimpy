@@ -264,7 +264,7 @@ def _create_missing_idx(nrows, ncols, density, random_state=None):
     i = (ind - j * nrows).astype(int)
     return i.tolist(), j.tolist()
 
-def aggregate(df, freq, method_numerical='mean', method_categorical='first', groups=['user']):
+def aggregate(df, freq, method_numerical='mean', method_categorical='first', groups=['user'], **resample_kwargs):
     """ Grouping and resampling the data. This function performs separated resampling
     for different types of columns: numerical and categorical.
 
@@ -281,6 +281,8 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
         Resampling method for categorical columns. Possible values: 'first', 'mode', 'last'.
     groups : list
         Columns used for groupby operation.
+    resample_kwargs : dict
+        keywords to pass pandas resampling function
 
     Returns
     -------
@@ -294,11 +296,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     assert method_numerical in ['mean', 'sum', 'median'], \
         'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
     if method_numerical == 'sum':
-        sub_df1 = groupby.resample(freq).sum()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).sum()
     elif method_numerical == 'mean':
-        sub_df1 = groupby.resample(freq).mean()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).mean()
     elif method_numerical == 'median':
-        sub_df1 = groupby.resample(freq).median()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).median()
     else:
         print("Can't recognize sampling method")
 
@@ -311,11 +313,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     groupby = df[cat_cols].groupby(groups)
     assert method_categorical in ['first', 'mode', 'last']
     if method_categorical == 'first':
-        sub_df2 = groupby.resample(freq).first()
+        sub_df2 = groupby.resample(freq, **resample_kwargs).first()
     elif method_categorical == 'last':
-        sub_df2 = groupby.resample(freq).last()
+        sub_df2 = groupby.resample(freq, **resample_kwargs).last()
     elif method_categorical == 'mode':
-        sub_df2 = groupby.resample(freq).agg(lambda x: tuple(stats.mode(x)[0]))
+        sub_df2 = groupby.resample(freq, **resample_kwargs).agg(lambda x: tuple(stats.mode(x)[0]))
 
     #Merge sub_df1 and sub_df2
     sub_df1 = sub_df1.drop(groups, axis=1, errors='ignore')
