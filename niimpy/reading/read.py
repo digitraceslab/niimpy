@@ -5,8 +5,8 @@
 import pandas as pd
 import warnings
 
-from . import database
-from . import util
+from niimpy.reading import database
+from niimpy.preprocessing import util
 
 def _read_preprocess(df, add_group=None):
     """Standard preprocessing arguments when reading.

@@ -10,7 +10,7 @@ import niimpy
 DATA = niimpy.sampledata.DATA
 
 TZ = os.environ['TZ'] = 'Europe/Helsinki'
-time.tzset()
+time.tzset() #
 
 def test_connect():
     data = niimpy.open(DATA, tz=TZ)

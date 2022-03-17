@@ -2,8 +2,8 @@ import pandas as pd
 import numpy as np
 
 import niimpy
-from . import read
-from . import sampledata
+from niimpy.reading import read
+from niimpy.preprocessing import sampledata
 
 TZ = 'Europe/Helsinki'
 

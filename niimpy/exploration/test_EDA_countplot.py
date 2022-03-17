@@ -4,8 +4,8 @@ import pandas as pd
 import numpy as np
 import plotly
 
-from niimpy.EDA import setup_dataframe
-from niimpy.EDA import EDA_countplot
+from niimpy.exploration import setup_dataframe
+from niimpy.exploration import EDA_countplot
 
 def test_get_counts():
     df = setup_dataframe.create_dataframe()

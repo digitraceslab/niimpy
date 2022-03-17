@@ -5,12 +5,12 @@ from pandas import Timestamp
 import pytest
 
 import niimpy
-from niimpy.util import TZ
+from niimpy.preprocessing.util import TZ
 
 
 def test_screen_duration():
-    screen  = niimpy.read_csv(niimpy.sampledata.TEST_SCREEN_1, tz=TZ)
-    battery = niimpy.read_csv(niimpy.sampledata.TEST_BATTERY_1, tz=TZ)
+    screen  = niimpy.reading.read.read_csv(niimpy.sampledata.TEST_SCREEN_1, tz=TZ)
+    battery = niimpy.reading.read.read_csv(niimpy.sampledata.TEST_BATTERY_1, tz=TZ)
     duration, count = niimpy.preprocess.screen_duration(screen, battery=battery)
     print('duration:')
     print(duration)
@@ -27,7 +27,7 @@ def test_screen_duration():
 
 @pytest.fixture
 def screen1():
-    return niimpy.read_csv_string("""\
+    return niimpy.reading.read.read_csv_string("""\
 time,screen_status
 0,1
 60,0
@@ -40,13 +40,13 @@ time,screen_status
 
 @pytest.fixture
 def battery1():
-    return niimpy.read_csv_string("""\
+    return niimpy.reading.read.read_csv_string("""\
 time,battery_level,battery_status
 1800,,-1
 """, tz=TZ)
 
 def test_screen_off(screen1, battery1):
-    off = niimpy.preprocess.screen_off(screen1, battery=battery1)
+    off = niimpy.preprocessing.preprocess.screen_off(screen1, battery=battery1)
     print(off)
     #import pdb ; pdb.set_trace()
     assert pd.Timestamp(60,  unit='s', tz=TZ) in off.index
