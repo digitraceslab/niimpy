@@ -62,8 +62,8 @@ def timeplot(df, users, columns, title, xlabel, ylabel, resample=False,
     
     if users == 'Group':
         fig = plot_averages_(df,
-                       columns[0],
-                       by)
+                             columns[0],
+                             by)
 
     else:
         fig = plot_timeseries_(df, 
@@ -117,9 +117,8 @@ def plot_averages_(df, column, by='hour'):
     # GROUP AVERAGES BY HOUR
     if by == 'hour':
         averages = calculate_averages_(df,column,by)
-
         fig = px.line(averages,
-                      x='level_0',
+                      x='timestamp',
                       y=column,
                       color="group",)
 
@@ -137,7 +136,7 @@ def plot_averages_(df, column, by='hour'):
         averages = calculate_averages_(df,column,by)
 
         fig = px.line(averages,
-                      x='level_0',
+                      x='timestamp',
                       y=column,
                       color="group",)
 
