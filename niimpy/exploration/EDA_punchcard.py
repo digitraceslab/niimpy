@@ -166,6 +166,10 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
         # one colums
         if len(columns) == 1:
             df_sel = df[df['user'] == user_list[0]][[columns[0]]].resample(resample).agg(agg_func)
+            
+            if normalize:
+                df_sel[columns] = (df_sel[columns] - df_sel[columns].min()) / (df_sel[columns].max() - df_sel[columns].min())
+                
             fp = pd.pivot_table(df_sel, index=df_sel.index.month, values = columns[0], columns=df_sel.index.day)
             fig = punchcard_(fp,title,n_xticks=31, xtitle='Day',ytitle='Month')
             
@@ -183,6 +187,10 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
     else:
         date_index = get_timerange_(df,resample)
         df_comb = combine_dataframe_(df,user_list,columns,resample,date_index,agg_func)
+        
+        if normalize:
+            df_comb =(df_comb-df_comb.min())/(df_comb.max()-df_comb.min())
+                
         if timerange:
             fig = punchcard_(df_comb.loc[timerange[0]:timerange[1]].transpose(),title,n_xticks=None, xtitle='Date',ytitle='User')
         else:

@@ -110,7 +110,7 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
     #df[y] = df[y].astype(np.float64)
         
     if binning is not False:
-        df['bin'] = calculate_bins(df,binning)
+        df['bin'] = calculate_bins(df,binning).values
         fig = px.box(df,
                      x = "bin", 
                      y = y,
