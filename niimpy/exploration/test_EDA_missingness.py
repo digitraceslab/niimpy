@@ -1,7 +1,6 @@
 import pytest
-import niimpy 
-from niimpy.EDA import setup_dataframe 
-from niimpy.EDA import EDA_missingness
+from niimpy.exploration import setup_dataframe 
+from niimpy.exploration import EDA_missingness
 
 class TestEDAMissingness(object):
     

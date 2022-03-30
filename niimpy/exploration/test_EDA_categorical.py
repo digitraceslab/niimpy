@@ -11,8 +11,8 @@ import pandas as pd
 import numpy as np
 import plotly
 
-from niimpy.EDA import setup_dataframe
-from niimpy.EDA import EDA_categorical
+from niimpy.exploration import setup_dataframe
+from niimpy.exploration import EDA_categorical
 
 def test_get_xticks():
     dictionary = {0 : 10, 1 : 20, 2 : 30}

@@ -1,6 +1,6 @@
 import niimpy
-from . import read
-from . import sampledata
+from niimpy.reading import read
+from niimpy.preprocessing import sampledata
 
 TZ = 'Europe/Helsinki'
 

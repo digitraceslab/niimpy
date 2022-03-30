@@ -2,9 +2,9 @@ import numpy as np
 import pandas as pd
 
 import niimpy
-from . import read
-from . import preprocess
-from .battery import shutdown_info
+from niimpy.reading import read
+from niimpy.preprocessing import preprocess
+from niimpy.preprocessing.battery import shutdown_info
 
 def screen_off(screen, subject=None, begin=None, end=None, battery=None):
     """Return times of only screen offs.
@@ -104,8 +104,8 @@ def screen_duration(screen,subject=None,begin=None,end=None,battery=None):
     count: Dataframe
 
     """
-    screen  = niimpy.read._get_dataframe(screen, table='AwareScreen', user=subject)
-    screen  = niimpy.filter_dataframe(screen, begin=begin, end=end)
+    screen  = niimpy.reading.read._get_dataframe(screen, table='AwareScreen', user=subject)
+    screen  = niimpy.preprocessing.filter.filter_dataframe(screen, begin=begin, end=end)
 
     # Drop duplicates based on index
     screen = screen.groupby(screen.index).first()

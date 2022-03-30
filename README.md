@@ -117,7 +117,14 @@ location = niimpy.util.aggregate(location, freq='10T', method_numerical='median'
 location = location.reset_index(0).dropna()
 
 # Feature extraction
-features = nilo.extract_distance_features(location)
+features = nilo.extract_features(
+  lats=location['double_latitude'],
+  lons=location['double_longitude'],
+  users=location['user'],
+  groups=location['group'],
+  times=location.index,
+  speeds=location['double_speed']
+)
 ```
 
 ## Documentation
