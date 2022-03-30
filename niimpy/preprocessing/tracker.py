@@ -5,18 +5,45 @@ import sklearn as sckit
 from sklearn import preprocessing
 from scipy.stats import wasserstein_distance
 
-def kl_divergence(p, q):
-    # Add tiny values to avoid division by zeros
-    p += 1e-9
-    q += 1e-9
-    return sum(p[i] * log2(p[i]/q[i]) for i in range(len(p)))
+def daily_step_distribution(steps_df):
 
-def js_divergence(p, q):
-    m = 0.5 * (p + q)
-    return 0.5 * kl_divergence(p, m) + 0.5 * kl_divergence(q, m)
+    """Return distribution of steps within each day.
 
-def earth_mover_distance(p, q):
-    return wasserstein_distance(p, q)
+    Parameters
+    ----------
+    steps_df : Pandas Dataframe
+        Dataframe containing the hourly step count of an individual.
+        
+    Returns
+    -------
+    df: pandas DataFrame
+        A dataframe containing the distribution of step count per day.
+    """
+
+    # Combine date and time to acquire  timestamp 
+    df = steps_df.copy()
+    df['time'] = pd.to_datetime(df['date'] + ":" + df['time'], format='%Y-%m-%d:%H:%M:%S.%f')
+
+    # Dummy columns for hour, month, day for easier operations later on
+    df['hour'] = df.level_0.dt.hour
+    df['month'] = df.level_0.dt.month
+    df['day'] = df.level_0.dt.day
+
+    df = steps_df.df(columns={"subject_id": "user"}) # rename column, to be niimpy-compatible
+
+    # Remove duplicates
+    df = df.drop_duplicates(subset=['user', 'date', 'time'], keep='last')
+
+    # Convert the absolute values into distribution. This can be understood as the portion of steps the users took during each hour
+    df['daily_sum'] = df.groupby(by=['day', 'month', 'user'])['steps'].transform('sum') # stores sum of daily step
+
+    # Divide hourly steps by daily sum to get the distribution
+    df['daily_distribution'] = df['steps'] / df['daily_sum'] 
+
+    # Set timestamp index
+    df = df.set_index("time")
+
+    return df
 
 def self_refeference_distance_df(df, window=1, method='wass', bins=None):
     """Calculate the distance of distribution between one day and individual-average.
@@ -157,3 +184,18 @@ def between_day_distance_df(df, window=1, method='js', bins=None):
     final_df = final_df.reset_index()
     final_df = final_df.rename(columns={"level_0": "month", "level_1": "year"}, errors="raise")
     return final_df
+
+
+# Helper functions
+def kl_divergence(p, q):
+    # Add tiny values to avoid division by zeros
+    p += 1e-9
+    q += 1e-9
+    return sum(p[i] * log2(p[i]/q[i]) for i in range(len(p)))
+
+def js_divergence(p, q):
+    m = 0.5 * (p + q)
+    return 0.5 * kl_divergence(p, m) + 0.5 * kl_divergence(q, m)
+
+def earth_mover_distance(p, q):
+    return wasserstein_distance(p, q)
