@@ -115,10 +115,18 @@ def punchcard_(df,title,n_xticks,xtitle,ytitle):
                           xaxis_nticks=n_xticks,
                           xaxis_title=xtitle,
                           yaxis_title=ytitle)
+        
+        
     else:
         fig.update_layout(title=title,
                           xaxis_title=xtitle,
                           yaxis_title=ytitle)
+        
+    fig.update_yaxes(tickson="labels")
+    fig.update_yaxes(type='category')
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=False)
+    
     return fig
 
 def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot", resample = 'D', normalize = False, agg_func = np.mean, timerange = False):
