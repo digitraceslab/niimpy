@@ -12,25 +12,104 @@ import plotly.figure_factory as ff
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from scipy.spatial.distance import squareform
 
+def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq='H'):
+    ''' Display bar chart visualization of the nullity of the given DataFrame.
+    
+    Parameters
+    ----------
+    df: pandas Dataframe
+        Dataframe to plot
+    columns: list, optional
+        Columns from input dataframe to investigate missingness. If none is given, uses all columns.
+    title: str
+        Figure's title
+    xaxis_title: str, optional
+        x_axis's label
+    yaxis_title: str, optional
+        y_axis's label
+    sampling_freq: str, optional
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'H', 'T'
+
+    Returns
+    -------
+    fig: Plotly figure.
+    '''
+    
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    
+    if columns == None:
+        columns = df.columns
+       
+    resampled_df = df.resample(sampling_freq).count()
+    
+    if sampling_freq == 'H':
+        resampled_df = resampled_df.groupby([resampled_df.index.hour]).sum()
+        fig = px.bar(resampled_df)
+        
+        # Define xticks
+        # Define xticks
+        tickvals = list(range(0, 24))
+        ticktexs = []
+        for tick in tickvals:
+            ticktexs.append("{:02d}:00:00".format(tick))
+            
+        fig.update_layout(
+            xaxis = dict(
+                tickangle= 90,
+                tickmode = 'array',
+                tickvals = tickvals,
+                ticktext = ticktexs,
+                dtick = 5
+            )
+        )
+        
+
+    elif sampling_freq == 'T':
+        resampled_df = resampled_df.groupby([resampled_df.index.minute]).sum()
+            
+        fig = px.bar(resampled_df)
+        
+        # Define xticks
+        tickvals = list(range(0, 60))
+        ticktexs = []
+        for tick in tickvals:
+            ticktexs.append("{:02d}:00".format(tick))
+            
+        fig.update_layout(
+            xaxis = dict(
+                tickmode = 'array',
+                tickvals = tickvals,
+                ticktext = ticktexs,
+                dtick = 5
+            )
+        )
+        
+    fig.update_layout(title=title, xaxis_title=xaxis_title, yaxis_title=yaxis_title, showlegend=False)
+    
+    return fig
+
 def bar(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq=None, sampling_method='mean'):
     ''' Display bar chart visualization of the nullity of the given DataFrame.
     
-    :param df: pandas Dataframe
+    Parameters
+    ----------
+    df: pandas Dataframe
         Dataframe to plot
-    :param columns: list, optional
+    columns: list, optional
         Columns from input dataframe to investigate missingness. If none is given, uses all columns.
-    :param title: str
+    title: str
         Figure's title
-    :param xaxis_title: str, optional
+    xaxis_title: str, optional
         x_axis's label
-    :param yaxis_title: str, optional
+    yaxis_title: str, optional
         y_axis's label
-    :param sampling_freq: str, optional
-        Frequency to resample the data. Requires the dataframe to have datetime-like index. 
-    :param sampling_method: str, optional
+    sampling_freq: str, optional
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'H', 'T'
+    sampling_method: str, optional
         Resampling method. Possible values: 'sum', 'mean'. Default value is 'mean'.
-    Return:
-        fig: Plotly figure.
+    Returns
+    -------
+    fig: Plotly figure.
     '''
     
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
@@ -69,19 +148,25 @@ def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title
     ''' Return matrix visualization of the nullity of data.
     For now, this function assumes that the data frame is datetime indexed.
     
-    :param df: DataFrame to plot
-    
-    :param xaxis_title: str, optional
+    Parameters
+    ----------
+    df: pandas Dataframe
+        Dataframe to plot
+    columns: list, optional
+        Columns from input dataframe to investigate missingness. If none is given, uses all columns.
+    title: str
+        Figure's title
+    xaxis_title: str, optional
         x_axis's label
-    :param yaxis_title: str, optional
+    yaxis_title: str, optional
         y_axis's label
-    :param sampling_freq: str, optional
-        Frequency to resample the data. Requires the dataframe to have datetime-like index. 
-    :param sampling_method: str, optional
+    sampling_freq: str, optional
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'H', 'T'
+    sampling_method: str, optional
         Resampling method. Possible values: 'sum', 'mean'. Default value is 'mean'.
-
-    Return:
-        fig: Plotly figure.
+    Returns
+    -------
+    fig: Plotly figure.
     '''
 
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
@@ -109,9 +194,17 @@ def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title
 def heatmap(df, height=800, width=800):
     ''' Return 'plotly' heatmap visualization of the nullity correlation of the Dataframe.
     
-    :param df: DataFrame to plot
-    
-    :return: Plotly figure
+     Parameters
+    ----------
+    df: pandas Dataframe
+        Dataframe to plot
+    width: int:
+        Figure's width
+    height: int:
+        Figure's height
+    Returns
+    -------
+    fig: Plotly figure.
     '''
     
     # Remove completely filled or completely empty variables.
