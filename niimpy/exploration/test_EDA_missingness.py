@@ -16,7 +16,7 @@ class TestEDAMissingness(object):
     
         """
          
-        df = setup_dataframe.create_missing_dataframe()
+        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
@@ -37,7 +37,7 @@ class TestEDAMissingness(object):
 
         """
         
-        df = setup_dataframe.create_missing_dataframe()
+        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
 
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
@@ -58,7 +58,7 @@ class TestEDAMissingness(object):
 
         """
         
-        df = niimpy.util.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
+        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
 
         fig = EDA_missingness.bar_count(df, sampling_freq='H')
         
