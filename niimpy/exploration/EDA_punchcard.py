@@ -108,7 +108,7 @@ def punchcard_(df,title,n_xticks,xtitle,ytitle):
     assert isinstance(xtitle,str), "xtitle is not a string."
     assert isinstance(ytitle,str), "ytitle is not a string."
         
-    fig = px.imshow(df,aspect='auto')
+    fig = px.imshow(df,aspect='auto',labels={'x':xtitle,'y':ytitle,'color':'Value'})
     
     if n_xticks:
         fig.update_layout(title=title,
@@ -189,7 +189,7 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
             if normalize:
                 df_sel[columns] = (df_sel[columns] - df_sel[columns].min()) / (df_sel[columns].max() - df_sel[columns].min())
             
-            fig = punchcard_(df_sel,title,n_xticks=None, xtitle='Date',ytitle='Columns')
+            fig = punchcard_(df_sel,title,n_xticks=None, xtitle='Column',ytitle='Date')
 
     # multiple users, one column
     else:
