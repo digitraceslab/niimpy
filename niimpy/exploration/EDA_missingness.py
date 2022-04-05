@@ -142,8 +142,8 @@ def bar(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title 
     
     fig.update_layout(title=title, xaxis_title=xaxis_title, yaxis_title=yaxis_title, showlegend=False)
     return fig
-        
-    
+
+
 def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq=None, sampling_method='mean'):
     ''' Return matrix visualization of the nullity of data.
     For now, this function assumes that the data frame is datetime indexed.
@@ -187,11 +187,12 @@ def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title
     fig = px.imshow(bool_mask, color_continuous_scale='gray')
         
     # Update layout
-    fig.update_layout(title=title, coloraxis_showscale=False, height=height)
+    fig.update_layout(title=title, xaxis_title = xaxis_title, yaxis_title = yaxis_title,
+                      coloraxis_showscale=False, height=height)
 
     return fig
 
-def heatmap(df, height=800, width=800):
+def heatmap(df, height=800, width=800, title='', xaxis_title='', yaxis_title=''):
     ''' Return 'plotly' heatmap visualization of the nullity correlation of the Dataframe.
     
      Parameters
@@ -260,7 +261,10 @@ def heatmap(df, height=800, width=800):
     fig.update_layout({'width':width, 
                        'height':height,
                        'showlegend':False, 
-                       'hovermode': 'closest'})
+                       'hovermode': 'closest',
+                       'title':title, 
+                       'xaxis_title':xaxis_title, 
+                       'yaxis_title':yaxis_title})
     # Edit xaxis
     fig.update_layout(xaxis={'domain': [.15, 1],
                               'mirror': False,
