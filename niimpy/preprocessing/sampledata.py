@@ -38,6 +38,6 @@ BATTERY_MONTH = os.path.join(_dirname, 'AwareBattery_1month.csv.gz')
 
 
 # Data for tests
-
+TEST_STEP_SUMMARY = os.path.join(_dirname, 'step_summary.csv')
 TEST_SCREEN_1 = os.path.join(_dirname, 'test_screen_1.csv')
 TEST_BATTERY_1 = os.path.join(_dirname, 'test_battery_1.csv')
