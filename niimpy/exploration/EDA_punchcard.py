@@ -108,17 +108,25 @@ def punchcard_(df,title,n_xticks,xtitle,ytitle):
     assert isinstance(xtitle,str), "xtitle is not a string."
     assert isinstance(ytitle,str), "ytitle is not a string."
         
-    fig = px.imshow(df,aspect='auto')
+    fig = px.imshow(df,aspect='auto',labels={'x':xtitle,'y':ytitle,'color':'Value'})
     
     if n_xticks:
         fig.update_layout(title=title,
                           xaxis_nticks=n_xticks,
                           xaxis_title=xtitle,
                           yaxis_title=ytitle)
+        
+        
     else:
         fig.update_layout(title=title,
                           xaxis_title=xtitle,
                           yaxis_title=ytitle)
+        
+    fig.update_yaxes(tickson="labels")
+    fig.update_yaxes(type='category')
+    fig.update_xaxes(showgrid=False)
+    fig.update_yaxes(showgrid=False)
+    
     return fig
 
 def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot", resample = 'D', normalize = False, agg_func = np.mean, timerange = False):
@@ -166,6 +174,10 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
         # one colums
         if len(columns) == 1:
             df_sel = df[df['user'] == user_list[0]][[columns[0]]].resample(resample).agg(agg_func)
+            
+            if normalize:
+                df_sel[columns] = (df_sel[columns] - df_sel[columns].min()) / (df_sel[columns].max() - df_sel[columns].min())
+                
             fp = pd.pivot_table(df_sel, index=df_sel.index.month, values = columns[0], columns=df_sel.index.day)
             fig = punchcard_(fp,title,n_xticks=31, xtitle='Day',ytitle='Month')
             
@@ -177,12 +189,16 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
             if normalize:
                 df_sel[columns] = (df_sel[columns] - df_sel[columns].min()) / (df_sel[columns].max() - df_sel[columns].min())
             
-            fig = punchcard_(df_sel,title,n_xticks=None, xtitle='Date',ytitle='Columns')
+            fig = punchcard_(df_sel,title,n_xticks=None, xtitle='Column',ytitle='Date')
 
     # multiple users, one column
     else:
         date_index = get_timerange_(df,resample)
         df_comb = combine_dataframe_(df,user_list,columns,resample,date_index,agg_func)
+        
+        if normalize:
+            df_comb =(df_comb-df_comb.min())/(df_comb.max()-df_comb.min())
+                
         if timerange:
             fig = punchcard_(df_comb.loc[timerange[0]:timerange[1]].transpose(),title,n_xticks=None, xtitle='Date',ytitle='User')
         else:
