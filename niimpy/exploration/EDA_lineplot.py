@@ -62,20 +62,20 @@ def timeplot(df, users, columns, title, xlabel, ylabel, resample=False,
     
     if users == 'Group':
         fig = plot_averages_(df,
-                       columns[0],
-                       by)
+                             columns[0],
+                             by)
 
     else:
         fig = plot_timeseries_(df, 
-                         columns,
-                         users,
-                         title,
-                         xlabel,
-                         ylabel,
-                         resample,
-                         interpolate,
-                         window,
-                         reset_index)
+                               columns,
+                               users,
+                               title,
+                               xlabel,
+                               ylabel,
+                               resample,
+                               interpolate,
+                               window,
+                               reset_index)
     return fig
 
 def calculate_averages_(df,column, by):
@@ -117,13 +117,12 @@ def plot_averages_(df, column, by='hour'):
     # GROUP AVERAGES BY HOUR
     if by == 'hour':
         averages = calculate_averages_(df,column,by)
-
         fig = px.line(averages,
-                      x='level_0',
+                      x='timestamp',
                       y=column,
                       color="group",)
 
-        fig.update_traces(mode='markers+lines')
+        #fig.update_traces(mode='markers+lines')
 
         fig.update_layout(title="{} hourly averages".format(column),
                           xaxis_title="Hour",
@@ -137,11 +136,11 @@ def plot_averages_(df, column, by='hour'):
         averages = calculate_averages_(df,column,by)
 
         fig = px.line(averages,
-                      x='level_0',
+                      x='timestamp',
                       y=column,
                       color="group",)
 
-        fig.update_traces(mode='markers+lines')
+        #fig.update_traces(mode='markers+lines')
 
         fig.update_layout(title="{} weekday averages".format(column),
                           xaxis_title="Weekday",
@@ -233,10 +232,9 @@ def plot_timeseries_(df, columns, users, title, xlabel, ylabel, resample=False,
             fig.add_trace(go.Scatter(x=df_sel.index, 
                                      y=df_sel.values,
                                      name= u + ' / ' + c,
-                                     showlegend=True)
-                         )
+                                     showlegend=True))
     
-    fig.update_traces(mode='markers+lines')
+    #fig.update_traces(mode='markers+lines')
 
     fig.update_layout(title=title,
                       xaxis_title=xlabel,

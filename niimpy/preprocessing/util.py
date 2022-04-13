@@ -159,112 +159,8 @@ def occurrence(series, bin_width=720, grouping_width=3600):
     gb2.index = gb2.loc[:, ['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
     return gb2
 
-def create_timeindex_dataframe(nrows, ncols, random_state=None, freq=None):
-    """Create a datetime index Pandas dataframe 
-    
-    Parameters
-    ----------
-    nrows : int
-        Number of rows
-    ncols : int
-        Number of columns
-    random_state: float, optional
-        Random seed. If not given, default to 33.
-    freq: string, optional:
-        Sampling frequency.
-    Returns
-    -------
-    df : pandas.DataFrame
-        Pandas dataframe containing sample data with random missing rows.    
-    """
-    
-    # Create a nrows x ncols matrix
-    data = np.random.uniform(100, size=(nrows, ncols))
-    df = pd.DataFrame(data)
-    
-    if freq is None:
-        freq='h'
-    idx = _makeDatetimeIndex(nrows, freq=freq)
-    df = df.set_index(idx)
-    
-    return df
 
-
-def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_type=None, freq=None):
-    """Create a Pandas dataframe with random missingness.
-    
-    Parameters
-    ----------
-    nrows : int
-        Number of rows
-    ncols : int
-        Number of columns
-    density: float
-        Amount of available data
-    random_state: float, optional
-        Random seed. If not given, default to 33.
-    index_type: float, optional
-        Accepts the following values: "dt" for timestamp, "int" for integer.
-    freq: string, optional:
-        Sampling frequency. This option is only available is index_type is "dt". 
-        
-    Returns
-    -------
-    df : pandas.DataFrame
-        Pandas dataframe containing sample data with random missing rows.    
-    """
-    
-    # Create a nrows x ncols matrix
-    data = np.random.uniform(100, size=(nrows, ncols))
-    df = pd.DataFrame(data)
-    
-    if index_type:
-        if index_type == "dt":
-            if freq is None:
-                freq='h'
-            idx = _makeDatetimeIndex(nrows, freq=freq)
-            df = df.set_index(idx)
-        elif index_type == "int":
-            return
-        else: 
-            raise ValueError("Can't recognize index_type. Try the following values: 'dt', 'int'.")
-            
-    i_idx, j_idx = _create_missing_idx(nrows, ncols, density, random_state)
-    df.values[i_idx, j_idx] = None
-    return df
-
-def _makeDatetimeIndex(k=10, freq='B', name=None):
-    dt = datetime(2022, 1, 1)
-    dr = pd.bdate_range(dt, periods=k, freq=freq, name=name)
-    return pd.DatetimeIndex(dr, name=name)
-
-def _create_missing_idx(nrows, ncols, density, random_state=None):
-    if random_state is None:
-        random_state = np.random
-    else:
-        random_state = np.random.RandomState(random_state)
-
-    # below is cribbed from scipy.sparse
-    size = int(np.round((1 - density) * nrows * ncols))
-    # generate a few more to ensure unique values
-    min_rows = 5
-    fac = 1.02
-    extra_size = min(size + min_rows, fac * size)
-
-    def _gen_unique_rand(rng, _extra_size):
-        ind = rng.rand(int(_extra_size))
-        return np.unique(np.floor(ind * nrows * ncols))[:size]
-
-    ind = _gen_unique_rand(random_state, extra_size)
-    while ind.size < size:
-        extra_size *= 1.05
-        ind = _gen_unique_rand(random_state, extra_size)
-
-    j = np.floor(ind * 1. / nrows).astype(int)
-    i = (ind - j * nrows).astype(int)
-    return i.tolist(), j.tolist()
-
-def aggregate(df, freq, method_numerical='mean', method_categorical='first', groups=['user']):
+def aggregate(df, freq, method_numerical='mean', method_categorical='first', groups=['user'], **resample_kwargs):
     """ Grouping and resampling the data. This function performs separated resampling
     for different types of columns: numerical and categorical.
 
@@ -278,9 +174,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
         Resampling method for numerical columns. Possible values:
         'sum', 'mean', 'median'. Default value is 'mean'.
     method_categorical : str
-        Resampling method for categorical columns. Possible values: 'first', 'mode'.
+        Resampling method for categorical columns. Possible values: 'first', 'mode', 'last'.
     groups : list
         Columns used for groupby operation.
+    resample_kwargs : dict
+        keywords to pass pandas resampling function
 
     Returns
     -------
@@ -294,11 +192,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     assert method_numerical in ['mean', 'sum', 'median'], \
         'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
     if method_numerical == 'sum':
-        sub_df1 = groupby.resample(freq).sum()
-    elif  method_numerical == 'mean':
-        sub_df1 = groupby.resample(freq).mean()
-    elif  method_numerical == 'median':
-        sub_df1 = groupby.resample(freq).median()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).sum()
+    elif method_numerical == 'mean':
+        sub_df1 = groupby.resample(freq, **resample_kwargs).mean()
+    elif method_numerical == 'median':
+        sub_df1 = groupby.resample(freq, **resample_kwargs).median()
     else:
         print("Can't recognize sampling method")
 
@@ -309,11 +207,13 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     cat_cols = list(set(cat_cols))
 
     groupby = df[cat_cols].groupby(groups)
-    assert method_categorical in ['first', 'mode']
+    assert method_categorical in ['first', 'mode', 'last']
     if method_categorical == 'first':
-        sub_df2 = groupby.resample(freq).first()
+        sub_df2 = groupby.resample(freq, **resample_kwargs).first()
+    elif method_categorical == 'last':
+        sub_df2 = groupby.resample(freq, **resample_kwargs).last()
     elif method_categorical == 'mode':
-        sub_df2 = groupby.resample(freq).agg(lambda x: tuple(stats.mode(x)[0]))
+        sub_df2 = groupby.resample(freq, **resample_kwargs).agg(lambda x: tuple(stats.mode(x)[0]))
 
     #Merge sub_df1 and sub_df2
     sub_df1 = sub_df1.drop(groups, axis=1, errors='ignore')
