@@ -1,72 +1,137 @@
 #use this paper for ideas: https://jinbo-bi.uconn.edu/wp-content/uploads/sites/2638/2018/12/Chase2016.pdf
 #Ambient Noise
-def ambient_noise(noise, subject, begin=None, end=None):
-    """ Returns a Dataframe with 5 possible computations regarding the noise
-    ambient plug-in: average decibels, average frequency, number of times when
-    there was noise in the day, number of times when there was a loud noise in
-    the day (>70dB), and number of times when the noise matched the speech noise
-    level and frequency (65Hz < freq < 255Hz and dB>50 )
 
+def extract_features_audio(silent, db, frequency, subject, features=None):
+    assert isinstance(silent, pd.Series), "silent is not a pandas series"
+    assert isinstance(db, pd.Series), "db is not a pandas series"
+    assert isinstance(frequency, pd.Series), "frequency is not a pandas series"
+    
+    if features == None:
+        features = ["audio_count_silent", "audio_count_speech", "audio_count_loud", "audio_min_freq",
+                    "audio_max_freq", "audio_mean_freq", "audio_median_freq", "audio_std_freq",
+                    "audio_min_db", "audio_max_db", "audio_mean_db", "audio_median_db", "audio_std_db"]
+    feat_dict = {features[i]:features[i] for i in range(0,len(features))}
+    
+    df = pd.concat([silent.rename("silent"), db.rename("db"), frequency.rename("freq"), subject.rename("user")], axis=1)
+    users = list(pd.unique(df.user))
+    
+    for feature in features:
+        for user in users:
+            df_u = df[df["user"]==user]
+            df_u["silent"] = pd.to_numeric(df_u["silent"])
+            
+            func_to_call = feat_dict[feature]
+            result = func_to_call(df_u,)
+            
+            if feature=="audio_count_silent":
+                acs = audio_count_silent(df_u, agg, offset)
+            
+            
+def audio_count_silent(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["silent"].resample(agg, offset=offset).sum()
+        result = result.to_frame()
+    return result
 
+def audio_count_speech(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        df_s = df_u[df_u['freq'].between(65, 255)]
+        df_s = df_s[df_s.silent==0] #check if there was a conversation. 0 is not silent, 1 is silent
+        df_s.loc[:,"silent"] = 1
+        result = df_s["silent"].resample(agg, offset=offset).sum()
+        result = result.to_frame()
+    return result
 
-    NOTE: This function aggregates data by day.
+def audio_count_loud(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        df_s = df_u[df_u.db>70] #check if environment was noisy
+        df_s.loc[:,"silent"] = 1
+        result = df_s["silent"].resample(agg, offset=offset).sum()
+        result = result.to_frame()
+    return result
 
-    Parameters
-    ----------
-    noise: DataFrame with subject data (or database for backwards compatibility)
-    subject: string, optional (backwards compatibility only, in the future do filtering before).
-    begin: datetime, optional
-    end: datetime, optional
+def audio_min_freq(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["freq"].resample(agg, offset=offset).min()
+        result = result.to_frame()
+    return result
 
+def audio_max_freq(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["freq"].resample(agg, offset=offset).max()
+        result = result.to_frame()
+    return result
 
-    Returns
-    -------
-    avg_noise: Dataframe
+def audio_mean_freq(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["freq"].resample(agg, offset=offset).mean()
+        result = result.to_frame()
+    return result
 
-    """
-    # TODO: move to niimpy.noise
-    # TODO: add arguments for frequency/decibels/silence columns
-    # Backwards compatibilty if a database was passed
-    if isinstance(noise, niimpy.database.Data1):
-        noise = noise.raw(table='AwareAmbientNoise', user=subject)
-    # Maintain backwards compatibility in the case subject was passed and
-    # questions was *not* a dataframe.
-    elif isinstance(subject, string):
-        noise = noise[noise['user'] == subject]
+def audio_median_freq(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["freq"].resample(agg, offset=offset).median()
+        result = result.to_frame()
+    return result
 
-    # Shrink the dataframe down to only what we need
-    noise = noise[['double_frequency', 'is_silent', 'double_decibels', 'datetime']]
+def audio_std_freq(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["freq"].resample(agg, offset=offset).std()
+        result = result.to_frame()
+    return result
 
-    # Extract the data range (In the future should be done before this function
-    # is called.)
-    if begin is not None or end is not None:
-        noise = date_range(noise, begin, end)
+def audio_min_db(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["db"].resample(agg, offset=offset).min()
+        result = result.to_frame()
+    return result
 
-    noise['is_silent']=pd.to_numeric(noise['is_silent'])
+def audio_max_db(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["db"].resample(agg, offset=offset).max()
+        result = result.to_frame()
+    return result
 
-    loud = noise[noise.double_decibels>70] #check if environment was noisy
-    speech = noise[noise['double_frequency'].between(65, 255)]
-    speech = speech[speech.is_silent==0] #check if there was a conversation
-    silent=noise[noise.is_silent==0] #This is more what moments there are noise in the environment.
-    avg_noise=noise.resample('D', on='datetime').mean() #average noise
-    avg_noise=avg_noise.drop(['is_silent'],axis=1)
+def audio_mean_db(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["db"].resample(agg, offset=offset).mean()
+        result = result.to_frame()
+    return result
 
-    if not silent.empty:
-        silent=silent.resample('D', on='datetime').count()
-        silent = silent.drop(['double_decibels','double_frequency','datetime'],axis=1)
-        silent=silent.rename(columns={'is_silent':'noise'})
-        avg_noise = avg_noise.merge(silent, how='outer', left_index=True, right_index=True)
+def audio_median_db(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["db"].resample(agg, offset=offset).median()
+        result = result.to_frame()
+    return result
 
-    if not loud.empty:
-        loud=loud.resample('D', on='datetime').count()
-        loud = loud.drop(['double_decibels','double_frequency','datetime'],axis=1)
-        loud=loud.rename(columns={'is_silent':'loud'})
-        avg_noise = avg_noise.merge(loud, how='outer', left_index=True, right_index=True)
-
-    if not speech.empty:
-        speech=speech.resample('D', on='datetime').count()
-        speech = speech.drop(['double_decibels','double_frequency','datetime'],axis=1)
-        speech=speech.rename(columns={'is_silent':'speech'})
-        avg_noise = avg_noise.merge(speech, how='outer', left_index=True, right_index=True)
-
-    return avg_noise
+def audio_std_db(df_u, agg, offset=None):
+    assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    
+    if len(df_u)>0:
+        result = df_u["db"].resample(agg, offset=offset).std()
+        result = result.to_frame()
+    return result
