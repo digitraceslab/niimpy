@@ -1,7 +1,7 @@
-niimpy.util module
+niimpy.demo module
 ==================
 
-.. automodule:: niimpy.util
+.. automodule:: niimpy.demo
    :members:
    :undoc-members:
    :show-inheritance:
