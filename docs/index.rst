@@ -37,8 +37,6 @@ provides many high-level functions for various types of data.
 
    schema
    architecture
-   database
-
    api/modules
 
 

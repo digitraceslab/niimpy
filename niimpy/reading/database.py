@@ -1,6 +1,40 @@
-"""Read data from sqlite3 databases
+"""Read data from sqlite3 databases.
+
+**Direct use of this module is mostly deprecated.**
+
+Read data from sqlite3 databases, both into pandas.DataFrame:s (Database.raw(),
+among other functions), and Database objects.  The Database object does not
+immediately load data, but provides some methods to load data on demand later,
+possibly doing various filtering and preprocessing already at the loading
+stage.  This can save memory and processing time, but is much more complex.
+
+This module is mostly out-of-use now: read.read_sqlite is used instead, which
+wraps the .raw() method and reads all data into memory.
+
+Database format
+---------------
+
+When reading data, a table name must be specified (which allows multiple
+datasets to be put in one file).  Table column names map to dataframe column
+names, with various standard processing (for example the 'time' column being
+converted to the index)
 
 
+Quick usage
+-----------
+
+db = database.open(FILE_NAME, tz=TZ)
+df = db.raw(TABLE_NAME, user=database.ALL)
+
+Recommend usage:
+
+df = niimpy.read_sqlite(FILE_NAME, TABLE_NAME, tz=TZ)
+
+See also
+--------
+
+niimpy.reading.read_*: currently recommended functions to access all types of
+data, including databases.
 
 """
 #
@@ -45,6 +79,9 @@ def open(db, tz=None):
 class sqlite3_stdev:
     """Sqlite sample standard deviation function in pure Python.
 
+    With `conn.create_aggregate("stdev", 1, sqlite3_stdev)`, this adds a
+    stdev function to sqlite.
+
     Edge cases:
 
     - Empty list = nan (different than C function, which is zero)
@@ -72,6 +109,10 @@ class sqlite3_stdev:
 
 
 class Data1(object):
+    """Database wrapper for niimpy data.
+
+    This opens a database and provides methods to do common operations.
+    """
     def __init__(self, db, tz=None):
         """Open the database.
 
@@ -387,6 +428,11 @@ class Data1(object):
             return df
 
     def raw(self, table, user, limit=None, offset=None, start=None, end=None):
+        """Read all data in a table and return it as a DataFrame.
+
+        This reads all data (subject to several possible filters) and
+        returns it as a DataFrame.
+        """
         df = pd.read_sql("""SELECT
                                 *
                             FROM "{table}"
