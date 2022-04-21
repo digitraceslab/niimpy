@@ -68,8 +68,8 @@ def test_timeplot_two_users_and_columns():
     df = setup_dataframe.create_dataframe()
     
     fig = EDA_lineplot.timeplot(df,
-                                users='Group',
-                                columns=['col_1'],
+                                users=['user_1','user_2'],
+                                columns=['col_1','col_2'],
                                 title='Test title',
                                 xlabel='Xlabel',
                                 ylabel='Ylabel',
@@ -84,6 +84,7 @@ def test_timeplot_two_users_and_columns():
 
 def test_group_averages():
     df = setup_dataframe.create_dataframe()
+    #df = df.rename_axis('timestamp')
     
     fig = EDA_lineplot.timeplot(df,
                                 users='Group',
