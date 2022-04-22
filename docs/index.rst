@@ -6,7 +6,7 @@
 Niimpy: behavioral data analysis
 ================================
 
-Niimpy is a Python package for analyzing behavioral data.  It uses
+Niimpy is a Python package for analyzing and quantifying behavioral data.  It uses
 pandas to read data from disk, perform basic manipulations, and
 provides many high-level functions for various types of data.
 
