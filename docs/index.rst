@@ -15,37 +15,49 @@ provides many high-level functions for various types of data.
    :caption: Basics
 
    introduction
+   installation
+   architecture
    input-formats
-   pandas-background
-   basic-transformations
-   preprocessing
+   schema
+   basic-transformations 
+   preprocessing 
    summary-statistics
-   see-also
+   how-to-cite
+   see-also 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Quick Start
+   
+   quick-start
+
+.. toctree::
+   :maxdepth: 2
+   :caption: API
+   
+   api/modules
+   
+   
+.. toctree::
+   :maxdepth: 2
+   :caption: User guide
+   
+   data-streams
+   reading
+   Exploration
+   preprocessing
+   analysis
+   database
 
 
 .. toctree::
    :maxdepth: 1
-   :caption: Data stream analysis
-
-   survey
-   screen
-
-
-.. toctree::
-   :maxdepth: 2
-   :caption: Reference
-
-   schema
-   architecture
-   database
-
-   api/modules
-
-
-.. toctree::
-   :caption: Development
-
+   :caption: Community
+   
+   about-us
+   community-rules
    adding-features
+   partners
 
 
 .. toctree::
@@ -54,6 +66,8 @@ provides many high-level functions for various types of data.
 
    data-sources
    aware
+   
+
 
 
 Indices and tables
