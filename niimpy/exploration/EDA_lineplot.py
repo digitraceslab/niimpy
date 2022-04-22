@@ -118,7 +118,7 @@ def plot_averages_(df, column, by='hour'):
     if by == 'hour':
         averages = calculate_averages_(df,column,by)
         fig = px.line(averages,
-                      x='timestamp',
+                      x=averages.index,
                       y=column,
                       color="group",)
 
@@ -136,7 +136,7 @@ def plot_averages_(df, column, by='hour'):
         averages = calculate_averages_(df,column,by)
 
         fig = px.line(averages,
-                      x='timestamp',
+                      x=averages.index,
                       y=column,
                       color="group",)
 
