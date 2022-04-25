@@ -80,6 +80,23 @@ def timeplot(df, users, columns, title, xlabel, ylabel, resample=False,
 
 def calculate_averages_(df,column, by):
     """calculate group averages by given timerange
+    
+    Parameters
+    ----------
+    df : Pandas Dataframe
+        Dataframe containing the data
+    column : str
+        Columns to plot.
+    by : str, optional
+        Indicator for group level averaging. The default is False.
+        If 'hour', hourly averages per group are presented.
+        If 'weekday', daily averages per gruop are presented.
+
+    Returns
+    -------
+    averages : Pandas Dataframe
+        Dataframe containing group, hourly or weekday averages, and corresponding timestamp. 
+    
     """
     
     if by == 'hour':
@@ -88,6 +105,8 @@ def calculate_averages_(df,column, by):
         averages = df[[column, 'group']].groupby([df.index.weekday, 'group']).mean().reset_index()
     else:
         averages = 0
+    
+    averages.index = averages.iloc[:, 0]
     
     return averages
 
