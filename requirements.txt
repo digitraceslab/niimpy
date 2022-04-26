@@ -6,6 +6,4 @@ seaborn
 plotly
 coverage
 sklearn
-sphinx
-ipykernel
-nbsphinx
+
