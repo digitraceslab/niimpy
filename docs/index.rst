@@ -44,7 +44,7 @@ provides many high-level functions for various types of data.
    
    data-streams
    reading
-   demo_notebooks/exploration/Exploration
+   Exploration
    preprocessing
    analysis
    database
