@@ -98,7 +98,7 @@ def df_normalize(df, tz=None, old_tz=None):
     to pandas.TimeStamp:s.  Modifies the data frame inplace.
     """
     if tz is None:
-        warnings.warn(DeprecationWarning("From now on, you should explicitely specify timezone with e.g. tz='Europe/Helsinki'"), stacklevel=2)
+        warnings.warn(DeprecationWarning("From now on, you should explicitely specify timezone with e.g. tz='Europe/Helsinki'.  Specify as part of the reading function."))
         tz = TZ
     if 'time' in df:
         df.index = to_datetime(df['time'])
