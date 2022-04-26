@@ -35,7 +35,6 @@ extensions = ['sphinx.ext.autodoc',
     'myst_nb',
     'sphinx.ext.mathjax',
     'numpydoc',
-    'nbsphinx',
     ]
 
 jupyter_execute_notebooks = "off"
