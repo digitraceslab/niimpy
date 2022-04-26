@@ -6,3 +6,5 @@ pytest
 sphinx_rtd_theme
 sphinx
 -r requirements.txt
+ipykernel
+nbsphinx
