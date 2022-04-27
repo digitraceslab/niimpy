@@ -17,6 +17,9 @@ jobs:
       - name: install deps
         run: |
           pip install -r requirements-dev.txt
+      - name: install pandoc
+        run: |
+          sudo apt-get install pandoc
       #- name: setup extension
       - name: sphinx
         run: |
