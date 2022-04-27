@@ -5,6 +5,5 @@ pytest
 sphinx_rtd_theme
 sphinx
 nbsphinx
-pandoc
 -r requirements.txt
 
