@@ -6,7 +6,7 @@
 Niimpy: behavioral data analysis
 ================================
 
-Niimpy is a Python package for analyzing behavioral data.  It uses
+Niimpy is a Python package for analyzing and quantifying behavioral data.  It uses
 pandas to read data from disk, perform basic manipulations, and
 provides many high-level functions for various types of data.
 
@@ -15,35 +15,49 @@ provides many high-level functions for various types of data.
    :caption: Basics
 
    introduction
+   installation
+   architecture
    input-formats
-   pandas-background
-   basic-transformations
-   preprocessing
+   schema
+   basic-transformations 
+   preprocessing 
    summary-statistics
-   see-also
-
+   how-to-cite
+   see-also 
 
 .. toctree::
    :maxdepth: 1
-   :caption: Data stream analysis
-
-   survey
-   screen
-
+   :caption: Quick Start
+   
+   quick-start
 
 .. toctree::
    :maxdepth: 2
-   :caption: Reference
+   :caption: API
 
-   schema
-   architecture
    api/modules
 
 
 .. toctree::
-   :caption: Development
+   :maxdepth: 2
+   :caption: User guide
+   
+   data-streams
+   reading
+   demo_notebooks/Exploration
+   preprocessing
+   analysis
+   database
 
+
+.. toctree::
+   :maxdepth: 1
+   :caption: Community
+   
+   about-us
+   community-rules
    adding-features
+   partners
 
 
 .. toctree::
@@ -52,6 +66,8 @@ provides many high-level functions for various types of data.
 
    data-sources
    aware
+   
+
 
 
 Indices and tables
