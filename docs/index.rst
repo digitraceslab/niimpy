@@ -19,9 +19,7 @@ provides many high-level functions for various types of data.
    architecture
    input-formats
    schema
-   basic-transformations 
-   preprocessing 
-   summary-statistics
+   
    How-to-cite
    see-also 
 
@@ -48,6 +46,9 @@ provides many high-level functions for various types of data.
    preprocessing
    analysis
    database
+   basic-transformations 
+   preprocessing 
+   summary-statistics
 
 
 .. toctree::

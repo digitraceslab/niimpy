@@ -1,5 +1,9 @@
-Architecture
-============
+Architecture and workflow
+=========================
+
+Some intro ...
+
+Add workflow schematics ...
 
 .. list-table:: Niimpy architecture
    :widths: 25 25 50
