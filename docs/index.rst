@@ -22,7 +22,7 @@ provides many high-level functions for various types of data.
    basic-transformations 
    preprocessing 
    summary-statistics
-   how-to-cite
+   How-to-cite
    see-also 
 
 .. toctree::
@@ -55,9 +55,9 @@ provides many high-level functions for various types of data.
    :caption: Community
    
    about-us
-   community-rules
+   Community-rules
    adding-features
-   partners
+   Partners
 
 
 .. toctree::
@@ -66,6 +66,7 @@ provides many high-level functions for various types of data.
 
    data-sources
    aware
+   survey
    
 
 
