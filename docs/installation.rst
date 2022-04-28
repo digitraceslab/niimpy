@@ -3,7 +3,7 @@ Installation
 
 Niimpy is a normal Python package to install. It is not currently available on PyPi, so you can install it manually:
 
-.. code-block:: linux
+.. code-block:: bash
     
     pip install https://github.com/digitraceslab/niimpy/archive/master.zip
     
