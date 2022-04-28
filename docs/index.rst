@@ -11,7 +11,7 @@ pandas to read data from disk, perform basic manipulations, and
 provides many high-level functions for various types of data.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Basics
 
    introduction
@@ -32,14 +32,14 @@ provides many high-level functions for various types of data.
    quick-start
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: API
    
    api/modules
    
    
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: User guide
    
    data-streams
