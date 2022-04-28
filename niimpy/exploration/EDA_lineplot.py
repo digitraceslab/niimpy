@@ -89,6 +89,7 @@ def calculate_averages_(df,column, by):
     else:
         averages = 0
     
+    averages.set_index(averages.columns[0],inplace=True)
     return averages
 
 def plot_averages_(df, column, by='hour'):
