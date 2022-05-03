@@ -37,18 +37,10 @@ provides many high-level functions for various types of data.
    
    
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
    :caption: User guide
    
-   data-streams
-   reading
-   demo_notebooks/Exploration
-   preprocessing
-   analysis
-   database
-   basic-transformations 
-   preprocessing 
-   summary-statistics
+   user-guide
 
 
 .. toctree::
