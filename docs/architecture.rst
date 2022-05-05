@@ -1,31 +1,16 @@
 Architecture and workflow
 =========================
 
-Some intro ...
+Niimpy toolbox functionality is organized into four layers: 1) Data Reading, 2) Data Preprocessing, 3) Data Exploration, and 4) Data Analysis. Each layer in implemented as a module. 
 
-Add workflow schematics ...
-
-.. list-table:: Niimpy architecture
-   :widths: 25 25 50
-   :header-rows: 1
-
-   * - Layer
-     - Purpose
-   * - Data reading
-     - Read data from the on-disk formats
-   * - Data preprocessing
-     - Prepare data for analysis
-   * - Exploration
-     - Initial analysis, explorative data analysis
-   * - Analysis
-     - Data analysis
+Following table presents the layer properties.
      
 +-----------------------+-------------------------------------------------+
 |         Layer         |                    Purpose                      | 
 +=======================+=================================================+
-|      Data Reading     |  Read data from the on-disk formats             | 
+|        Reading        |  Read data from the on-disk formats             | 
 +-----------------------+-------------------------------------------------+
-|   Data preprocessing  |  Prepare data for analysis                      |
+|     Preprocessing     |  Prepare data for analysis                      |
 +-----------------------+-------------------------------------------------+
 |      Exploration      |  Initial analysis, explorative data analysis    |
 +-----------------------+-------------------------------------------------+
@@ -75,3 +60,19 @@ based on them.
 These are often in modules specific to the type of analysis.
 
 These are in ``niimpy.analysis``.
+
+Workflow
+--------
+
+Typical behavioral data analysis workflow consists of following steps:
+
+* Data reading -> Preprocessing -> Explorations -> Analysis
+
+Other possible workflows:
+
+* Data reading -> Exploration -> Preprocessing -> Analysis
+* Data reading -> Exploration -> Preprocessing -> Exploration -> Analysis
+
+.. image:: images/Flowchart.jpg
+  :width: 996
+  :alt: Niimpy toolbox flowchart
