@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 from os.path import join, dirname
 
 with open("README.md", "r") as fh:
@@ -22,7 +22,8 @@ setup(name='niimpy',
       author='Richard Darst',
       author_email='rkd@zgib.net',
       url='https://github.com/digitraceslab/niimpy',
-      packages=['niimpy'],
+      #packages=['niimpy', 'niimpy.preprocessing', 'niimpy.reading'],
+      packages=find_packages(where='.'),
       package_data={'niimpy': ['sampledata/*.sqlite3', 'sampledata/*.csv']},
       include_package_data=True,
       python_requires=">=3.6",

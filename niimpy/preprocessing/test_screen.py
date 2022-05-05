@@ -4,13 +4,12 @@ import pandas as pd
 from pandas import Timestamp
 import pytest
 
+'''
 import niimpy
 from niimpy.preprocessing.util import TZ
 
 
 def test_screen_duration():
-    pass
-    '''
     screen  = niimpy.reading.read.read_csv(niimpy.sampledata.TEST_SCREEN_1, tz=TZ)
     battery = niimpy.reading.read.read_csv(niimpy.sampledata.TEST_BATTERY_1, tz=TZ)
     duration, count = niimpy.preprocess.screen_duration(screen, battery=battery)
@@ -24,7 +23,7 @@ def test_screen_duration():
     # on==1 for some reason
     assert count.loc[Timestamp('1970-01-01', tz=niimpy.util.TZ), 'on_count'] == 1
     assert count.loc[Timestamp('1970-01-01', tz=niimpy.util.TZ), 'off_count'] == 1
-    '''
+
 
 
 @pytest.fixture
@@ -48,8 +47,6 @@ time,battery_level,battery_status
 """, tz=TZ)
 
 def test_screen_off(screen1, battery1):
-    pass
-    '''
     off = niimpy.preprocessing.preprocess.screen_off(screen1, battery=battery1)
     print(off)
     #import pdb ; pdb.set_trace()
@@ -57,4 +54,4 @@ def test_screen_off(screen1, battery1):
     assert pd.Timestamp(610, unit='s', tz=TZ) in off.index
     # Phone was turned on at 1700, and battery ran out at 1800.
     assert pd.Timestamp(1800, unit='s', tz=TZ) in off.index
-    '''
+'''
