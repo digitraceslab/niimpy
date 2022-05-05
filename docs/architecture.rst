@@ -1,9 +1,14 @@
 Architecture and workflow
 =========================
 
-Niimpy toolbox functionality is organized into four layers: 1) Data Reading, 2) Data Preprocessing, 3) Data Exploration, and 4) Data Analysis. Each layer in implemented as a module. 
+Niimpy toolbox functionality is organized into four layers:
 
-Following table presents the layer properties.
+1. Data Reading 
+2. Data Preprocessing
+3. Data Exploration 
+4. Data Analysis. 
+
+Each layer in implemented as a module. Following table presents the layer properties.
      
 +-----------------------+-------------------------------------------------+
 |         Layer         |                    Purpose                      | 
@@ -73,6 +78,8 @@ Other possible workflows:
 * Data reading -> Exploration -> Preprocessing -> Analysis
 * Data reading -> Exploration -> Preprocessing -> Exploration -> Analysis
 
+Niimpy workflow diagram 
+
 .. image:: images/Flowchart.jpg
-  :width: 996
+  :width: 800
   :alt: Niimpy toolbox flowchart
