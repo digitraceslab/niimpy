@@ -1,4 +1,4 @@
-time,double_latitude,double_longitude,speed,user
+time,double_latitude,double_longitude,double_speed,user
 1364357009,43.7066671,-72.2890974,0.0,gps_u01
 1364358209,43.706637,-72.2890664,0.0,gps_u01
 1364359405,43.70667831,-72.28901794,0.25,gps_u01
