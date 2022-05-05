@@ -1,0 +1,31 @@
+import os
+
+import numpy as np
+import pandas as pd
+
+from geopy.distance import distance
+
+import niimpy
+import niimpy.preprocessing.location as nilo
+
+# read sample data
+data = niimpy.read_csv(niimpy.sampledata.LOCATION_FILE, tz='et')
+
+def test_distance_matrix():
+    
+    lats = [60.186914007399274, 60.167290738174195, 61.49603247041282]
+    lons = [24.82159342608858, 24.941127948645796, 23.75945568751852]
+    
+    true_dist_matrix = np.zeros((len(lats), len(lats)))
+    for i in range(len(lats)):
+        for j in range(len(lats)):
+            dist = distance((lats[i], lons[i]), (lats[j], lons[j])).meters
+            true_dist_matrix[i, j] = dist
+    computed_dist_matrix = nilo.distance_matrix(lats, lons)
+
+    non_diag_mask = 1 - np.eye(len(lats))
+    non_diag_mask = non_diag_mask.astype(bool)
+    absolute_error = np.abs(computed_dist_matrix - true_dist_matrix)
+    error_percentage = absolute_error[non_diag_mask] / true_dist_matrix[non_diag_mask]
+    
+    assert (error_percentage < 0.01).all() # error percentage must be below 1%
