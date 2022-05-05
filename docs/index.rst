@@ -11,7 +11,7 @@ pandas to read data from disk, perform basic manipulations, and
 provides many high-level functions for various types of data.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: Basics
 
    introduction
@@ -19,10 +19,7 @@ provides many high-level functions for various types of data.
    architecture
    input-formats
    schema
-   basic-transformations 
-   preprocessing 
-   summary-statistics
-   how-to-cite
+   How-to-cite
    see-also 
 
 .. toctree::
@@ -32,7 +29,7 @@ provides many high-level functions for various types of data.
    quick-start
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
    :caption: API
    
    api/modules
@@ -42,12 +39,7 @@ provides many high-level functions for various types of data.
    :maxdepth: 2
    :caption: User guide
    
-   data-streams
-   reading
-   demo_notebooks/Exploration
-   preprocessing
-   analysis
-   database
+   user-guide
 
 
 .. toctree::
@@ -55,9 +47,9 @@ provides many high-level functions for various types of data.
    :caption: Community
    
    about-us
-   community-rules
+   Community-rules
    adding-features
-   partners
+   Partners
 
 
 .. toctree::
@@ -66,6 +58,7 @@ provides many high-level functions for various types of data.
 
    data-sources
    aware
+   survey
    
 
 
