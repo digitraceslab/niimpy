@@ -6,3 +6,5 @@ seaborn
 plotly
 scikit-learn
 coverage
+sklearn
+

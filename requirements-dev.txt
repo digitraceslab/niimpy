@@ -1,9 +1,10 @@
 -e .
-myst-nb
 nbdime
 numpydoc
 pytest
 sphinx_rtd_theme
 sphinx
+nbsphinx
 geopy
 -r requirements.txt
+

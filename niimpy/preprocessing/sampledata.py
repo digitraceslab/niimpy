@@ -11,11 +11,13 @@ parent = os.path.abspath(os.path.join(path, os.pardir))
 print(parent)
 '''
 
-_dirname = os.path.join(os.path.dirname(__file__),'..', 'sampledata')
+SAMPLEDATA_DIR = os.path.join(os.path.dirname(__file__),'..', 'sampledata')
+_dirname = SAMPLEDATA_DIR
+
 
 #_dirname = os.path.join(parent,'sampledata')
 
-                         
+
 # A simple single-user dataset, containing a little bit of Aware
 # screen data.
 DATA = os.path.join(_dirname, 'singleuser.sqlite3')
@@ -38,7 +40,7 @@ BATTERY_MONTH = os.path.join(_dirname, 'AwareBattery_1month.csv.gz')
 
 
 # Data for tests
-
+TEST_STEP_SUMMARY = os.path.join(_dirname, 'step_summary.csv')
 TEST_SCREEN_1 = os.path.join(_dirname, 'test_screen_1.csv')
 TEST_BATTERY_1 = os.path.join(_dirname, 'test_battery_1.csv')
 LOCATION_FILE = os.path.join(_dirname, 'gps.csv')

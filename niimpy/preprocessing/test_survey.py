@@ -11,13 +11,10 @@ df1 = pd.DataFrame(
 df1['time'] = pd.to_datetime(df1['time'])
 df1 = df1.set_index('time')
 
-
 def test_sum_survey_scores():
     df = df1.copy()
-    print(df)
 
     results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
-    print(results)
 
     assert results.loc['2019-01-01']['score'] == 3
     assert results.loc['2019-01-02']['score'] == 12
@@ -34,10 +31,8 @@ def test_sum_survey_scores():
 def test_sum_survey_scores_indexonly():
     df = df1.copy()
     df.index.name = None
-    print(df)
 
     results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
-    print(results)
 
     assert results.loc['2019-01-01']['score'] == 3
     assert results.loc['2019-01-02']['score'] == 12

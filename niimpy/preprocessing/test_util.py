@@ -3,6 +3,7 @@ import pytest
 import pandas as pd
 import numpy as np
 import niimpy
+from niimpy.exploration import setup_dataframe 
 
 DATA = niimpy.sampledata.DATA
 
@@ -41,13 +42,10 @@ def test_install_extensions_notpresent(capsys):
 # TODO: add test for util.aggregate
 def test_aggregate_correct_frequency():
     
-    df = niimpy.util.create_timeindex_dataframe(nrows=120, ncols=6, freq='T')
+    df = setup_dataframe.create_timeindex_dataframe(nrows=120, ncols=6, freq='T')
     df['user'] = 1234
     res_df = niimpy.util.aggregate(df, method_categorical='mode', freq='H')
     
     m = pd.MultiIndex.from_tuples([(1234, pd.Timestamp('2022-01-01 00:00:00')),
                                    (1234, pd.Timestamp('2022-01-01 01:00:00'))], names=["user", None])
     np.testing.assert_array_equal(res_df.index , m)
-
-def test_aggregate_categorical_columns():
-    pass
