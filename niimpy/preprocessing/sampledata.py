@@ -41,3 +41,4 @@ BATTERY_MONTH = os.path.join(_dirname, 'AwareBattery_1month.csv.gz')
 
 TEST_SCREEN_1 = os.path.join(_dirname, 'test_screen_1.csv')
 TEST_BATTERY_1 = os.path.join(_dirname, 'test_battery_1.csv')
+LOCATION_FILE = os.path.join(_dirname, 'gps.csv')
