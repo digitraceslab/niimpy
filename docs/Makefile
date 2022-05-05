@@ -27,4 +27,4 @@ help:
 # run as part of doc build process)
 apidoc:
 	rm api/niimpy.*
-	sphinx-apidoc --force -e -H "niimpy API docs" -o api/ ../niimpy/ '../niimpy/test_*'
+	sphinx-apidoc --force -e -H "niimpy API docs" -o api/ ../niimpy/ '../niimpy*/test_*'
