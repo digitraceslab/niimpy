@@ -45,7 +45,7 @@ def test_location_features():
     
     assert ((features['n_sps'] > 0) & (features['n_sps'] < 100)).all(), "Number of SPs not reasonable"
     
-    features_u1 = features[features.user == 'gps_u00']
+    features_u1 = features.loc['gps_u00']
     assert features_u1['n_sps'] == 19.0
     assert features_u1['n_static'] == 4080.0
     assert features_u1['n_moving'] == 151.0
