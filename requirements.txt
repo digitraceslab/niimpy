@@ -4,6 +4,7 @@ pandas
 matplotlib
 seaborn
 plotly
+scikit-learn
 coverage
 sklearn
 
