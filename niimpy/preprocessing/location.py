@@ -280,7 +280,8 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
 
 
 def location_significant_place_features(df, **kwargs):
-
+    """Calculates features related to Significant Places"""
+    
     assert 'speed_threshold' in kwargs
     speed_threshold = kwargs['speed_threshold']
 
@@ -353,7 +354,8 @@ def location_significant_place_features(df, **kwargs):
     return features
 
 def location_distance_features(df, **kwargs):
-
+    """Calculates features related to distance and speed"""
+    
     def compute_features(df):
         """Compute features for a single user"""
         df = df.sort_index()  # sort based on time
@@ -398,7 +400,7 @@ def extract_features_location(df,
                               speed_threshold=0.277,
                               column_prefix=None,
                               feature_functions=None):
-    """Calculates features realted distance and speed
+    """Calculates location feautres
 
     Parameters
     ----------
@@ -412,6 +414,11 @@ def extract_features_location(df,
         `static` and the rest are `moving`.
     column_prefix : str
         Add a prefix to all column names.
+    feature_functions : list of functions that compute features
+        Default is None. If None, all the available functions are used.
+        Those functions are in the list `location.ALL_FEATURE_FUNCTIONS`.
+        You can implement your own function and use instead or append it
+        to the mentioned list.
 
     Returns
     -------
