@@ -42,6 +42,7 @@ provides many high-level functions for various types of data.
    data-streams
    reading
    demo_notebooks/Exploration
+   demo_notebooks/location
    preprocessing
    analysis
    database
