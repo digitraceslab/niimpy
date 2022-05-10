@@ -6,5 +6,5 @@ sphinx_rtd_theme
 sphinx
 nbsphinx
 geopy
+ipykernel
 -r requirements.txt
-
