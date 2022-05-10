@@ -39,7 +39,6 @@ provides many high-level functions for various types of data.
    :maxdepth: 1
    :caption: User guide
    
-   data-streams
    reading
    demo_notebooks/Exploration
    demo_notebooks/location
@@ -47,8 +46,7 @@ provides many high-level functions for various types of data.
    analysis
    database
    basic-transformations 
-   preprocessing 
-   summary-statistics
+
 
 
 .. toctree::
