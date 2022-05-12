@@ -1,13 +1,13 @@
 import pytest
 from niimpy.exploration import setup_dataframe 
-from niimpy.exploration import EDA_missingness
+from niimpy.exploration.eda import missingness
 
 class TestEDAMissingness(object):
     
         
-    def test_EDA_bar(self):
+    def test_bar(self):
         """
-        Test EDA_missingness.bar function. The test fails when arguments:
+        Test missingness.bar function. The test fails when arguments:
             - data is not a pandas dataframe
     
         Returns
@@ -20,15 +20,15 @@ class TestEDAMissingness(object):
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
-            EDA_missingness.bar(df.to_numpy())
+            missingness.bar(df.to_numpy())
             
         expected_error_msg = "df is not a pandas dataframe."
         # Check if the raised ValueError contains the correct message
         assert exc_info.match(expected_error_msg)
         
-    def test_EDA_matrix(self):
+    def test_matrix(self):
         """
-        Test EDA_missingness.matrix function. The test fails when arguments:
+        Test missingness.matrix function. The test fails when arguments:
             - data is not a pandas dataframe
 
         Returns
@@ -41,15 +41,15 @@ class TestEDAMissingness(object):
 
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
-            EDA_missingness.matrix(df.to_numpy())
+            missingness.matrix(df.to_numpy())
         expected_error_msg = "df is not a pandas dataframe."
         
         # Check if the raised ValueError contains the correct message
         assert exc_info.match(expected_error_msg)
             
-    def test_EDA_bar_count_correct_ticks(self):
+    def test_bar_count_correct_ticks(self):
         """
-        Test EDA_missingness.bar_count function. The test fails when arguments:
+        Test missingness.bar_count function. The test fails when arguments:
             - xticks is not defined correctly
 
         Returns
@@ -60,7 +60,7 @@ class TestEDAMissingness(object):
         
         df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
 
-        fig = EDA_missingness.bar_count(df, sampling_freq='H')
+        fig = missingness.bar_count(df, sampling_freq='H')
         
         ticktext = ("00:00:00", "01:00:00", "02:00:00", "03:00:00",
                      "04:00:00", "05:00:00", "06:00:00", "07:00:00",

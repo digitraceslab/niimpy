@@ -5,12 +5,12 @@ import numpy as np
 import plotly
 
 from niimpy.exploration import setup_dataframe
-from niimpy.exploration import EDA_countplot
+from niimpy.exploration.eda import countplot
 
 def test_get_counts():
     df = setup_dataframe.create_dataframe()
-    group_counts = EDA_countplot.get_counts(df,'group')
-    user_counts = EDA_countplot.get_counts(df,'user')
+    group_counts = countplot.get_counts(df,'group')
+    user_counts = countplot.get_counts(df,'user')
     assert (group_counts['values'].values == np.array([3,3,3])).all()
     assert (user_counts['values'].values == np.ones(9)).all()
     
@@ -20,12 +20,12 @@ def test_calculate_bins():
        '2018-01-01 03:00', '2018-01-01 04:00', '2018-01-01 05:00',
        '2018-01-01 06:00', '2018-01-01 07:00', '2018-01-01 08:00'])
     df = setup_dataframe.create_dataframe()
-    bins = EDA_countplot.calculate_bins(df,'H').values
+    bins = countplot.calculate_bins(df,'H').values
     assert (bins == target).all()
     
-def test_EDA_countplot_count():
+def test_countplot_count():
     df = setup_dataframe.create_dataframe()
-    fig = EDA_countplot.EDA_countplot(df, 
+    fig = countplot.countplot(df, 
                                       fig_title = 'Battery event counts by group', 
                                       plot_type = 'count', 
                                       points = 'all',
@@ -36,9 +36,9 @@ def test_EDA_countplot_count():
 
     assert (type(fig) == plotly.graph_objs._figure.Figure)
 
-def test_EDA_countplot_value():
+def test_countplot_value():
     df = setup_dataframe.create_dataframe()
-    fig = EDA_countplot.EDA_countplot(df, 
+    fig = countplot.countplot(df, 
                                 fig_title = 'Test_title', 
                                 plot_type = 'value', 
                                 points = 'all',
@@ -49,9 +49,9 @@ def test_EDA_countplot_value():
     
     assert (type(fig) == plotly.graph_objs._figure.Figure)
     
-def test_EDA_countplot_subject():
+def test_countplot_subject():
     df = setup_dataframe.create_dataframe()
-    fig = EDA_countplot.EDA_countplot(df, 
+    fig = countplot.countplot(df, 
                                       fig_title = 'Test_title', 
                                       plot_type = 'count', 
                                       points = 'all',

@@ -6,12 +6,12 @@ Created on Tue Nov  2 13:57:00 2021
 import pytest
 import plotly
 from niimpy.exploration import setup_dataframe 
-from niimpy.exploration import EDA_lineplot
+from niimpy.exploration.eda import lineplot
 
 def test_timeplot_single_ts():
     df = setup_dataframe.create_dataframe()
     
-    fig = EDA_lineplot.timeplot(df,
+    fig = lineplot.timeplot(df,
                                 users=['user_1'],
                                 columns=['col_1'],
                                 title='Test title',
@@ -29,7 +29,7 @@ def test_timeplot_single_ts():
 def test_timeplot_two_ts():
     df = setup_dataframe.create_dataframe()
     
-    fig = EDA_lineplot.timeplot(df,
+    fig = lineplot.timeplot(df,
                                 users=['user_1','user_2'],
                                 columns=['col_1'],
                                 title='Test title',
@@ -48,7 +48,7 @@ def test_timeplot_two_ts():
 def test_timeplot_two_users():
     df = setup_dataframe.create_dataframe()
     
-    fig = EDA_lineplot.timeplot(df,
+    fig = lineplot.timeplot(df,
                                 users=['user_1','user_2'],
                                 columns=['col_1'],
                                 title='Test title',
@@ -67,7 +67,7 @@ def test_timeplot_two_users():
 def test_timeplot_two_users_and_columns():
     df = setup_dataframe.create_dataframe()
     
-    fig = EDA_lineplot.timeplot(df,
+    fig = lineplot.timeplot(df,
                                 users=['user_1','user_2'],
                                 columns=['col_1','col_2'],
                                 title='Test title',
@@ -86,7 +86,7 @@ def test_group_averages():
     df = setup_dataframe.create_dataframe()
     #df = df.rename_axis('timestamp')
     
-    fig = EDA_lineplot.timeplot(df,
+    fig = lineplot.timeplot(df,
                                 users='Group',
                                 columns=['col_1'],
                                 title='Test title',
