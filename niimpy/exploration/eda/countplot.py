@@ -217,7 +217,7 @@ def countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggregatio
                        
             n_events = get_counts(df,aggregation)
                       
-            fig = EDA_boxplot_(n_events,
+            fig = boxplot_(n_events,
                                fig_title,
                                points,
                                y = 'values',
@@ -230,7 +230,7 @@ def countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggregatio
                        
             n_events = get_counts(df,aggregation)
             
-            fig = EDA_barplot_(n_events, 
+            fig = barplot_(n_events, 
                                fig_title, 
                                xlabel="User",
                                ylabel="Count")
@@ -241,7 +241,7 @@ def countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggregatio
     # Plot values
     elif plot_type == 'value':
         if aggregation == 'group':
-            fig = EDA_boxplot_(df,
+            fig = boxplot_(df,
                                fig_title,
                                points,
                                y=column,
