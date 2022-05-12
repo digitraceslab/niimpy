@@ -6,8 +6,9 @@ import time
 import pytest
 
 import niimpy
+from niimpy.config import config
 
-DATA = niimpy.sampledata.DATA
+DATA = config.SQLITE_SINGLEUSER_PATH
 
 TZ = os.environ['TZ'] = 'Europe/Helsinki'
 time.tzset() #

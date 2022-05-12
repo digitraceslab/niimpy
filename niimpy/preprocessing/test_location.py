@@ -7,9 +7,10 @@ from geopy.distance import distance
 
 import niimpy
 import niimpy.preprocessing.location as nilo
+from niimpy.config import config
 
 # read sample data
-data = niimpy.read_csv(niimpy.sampledata.LOCATION_FILE, tz='et')
+data = niimpy.read_csv(config.GPS_PATH, tz='et')
 
 def test_distance_matrix():
     
