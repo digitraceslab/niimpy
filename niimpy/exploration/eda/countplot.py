@@ -68,7 +68,7 @@ def calculate_bins(df,binning):
     
 
 
-def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group", ylabel="Count",binning=False):
+def boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group", ylabel="Count",binning=False):
     """Plot a boxplot
     
     Parameters
@@ -131,7 +131,7 @@ def EDA_boxplot_(df, fig_title, points = 'outliers', y = 'values', xlabel="Group
     
     return fig
 
-def EDA_barplot_(df, fig_title, xlabel, ylabel):
+def barplot_(df, fig_title, xlabel, ylabel):
     """Plot a barplot showing counts for each subjects
     
     A dataframe must have columns named 'user', containing the user id's,
@@ -171,7 +171,7 @@ def EDA_barplot_(df, fig_title, xlabel, ylabel):
     
     return fig 
 
-def EDA_countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggregation = 'group', user = None, column=None, binning=False):
+def countplot(df, fig_title, plot_type = 'count', points = 'outliers',aggregation = 'group', user = None, column=None, binning=False):
     """Create boxplot comparing groups or individual users.
     
     Parameters
