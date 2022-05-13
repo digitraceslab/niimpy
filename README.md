@@ -1,9 +1,7 @@
 # Niimpy
 
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
-[![Documentation Status](https://readthedocs.org/projects/tscfat/badge/?version=latest)](https://tscfat.readthedocs.io/en/latest/)
-[![Build Status](https://travis-ci.org/kevchn/travis-ci-pytest.svg?branch=master)](https://travis-ci.org/kevchn/travis-ci-pytest)
-[![codecov](https://codecov.io/gh/ArgonSilicon/tscfat/branch/master/graph/badge.svg?token=6OG1W7LQPM)](https://codecov.io/gh/ArgonSilicon/tscfat)
+[![Documentation Status](https://readthedocs.org/projects/niimpy/badge/?version=latest)](https://niimpy.readthedocs.io/en/latest/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 `niimpy` is a Python package for managing individual-level data.  The
