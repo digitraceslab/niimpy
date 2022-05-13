@@ -1,7 +1,7 @@
 # Niimpy
 
 ![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
-![Github CI](https://github.com/digitraceslab/niimpy/tree/master/.github/workflows/install.yml/badge.svg)
+![Github CI](https://github.com/digitraceslab/niimpy/tree/master/.github/workflows/badge.svg)
 [![Documentation Status](https://readthedocs.org/projects/niimpy/badge/?version=latest)](https://niimpy.readthedocs.io/en/latest/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
