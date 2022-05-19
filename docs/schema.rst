@@ -104,9 +104,3 @@ above.
 
 
 
-Sensors
--------
-
-Listed here for convenience.
-
-(none listed yet)

@@ -279,51 +279,15 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def extract_features(lats,
-                     lons,
-                     users,
-                     groups,
-                     times,
-                     speeds=None,
-                     speed_threshold=0.277,
-                     column_prefix=None):
-    """Calculates features realted distance and speed
+def location_significant_place_features(df, **kwargs):
+    """Calculates features related to Significant Places"""
+    
+    assert 'speed_threshold' in kwargs
+    speed_threshold = kwargs['speed_threshold']
 
-    Parameters
-    ----------
-    lats : array
-        Latitudes
-    lons : array
-        Longitudes
-    users : array
-        Users
-    groups : array
-        Groups to which users belong
-    times : array
-        Times when the coordinate is recorded
-    speeds : array, optional
-        Speeds of the users. If `None`, it computes speeds by dividing
-        distance between each two consequitive bins by their time difference.
-    speed_threshold : float
-        Bins whose speed is lower than `speed_threshold` are considred
-        `static` and the rest are `moving`.
-    column_prefix : str
-        Add a prefix to all column names.
-
-    Returns
-    -------
-    features : pd.DataFrame
-        Dataframe of computed features where the index is users and columns
-        are the the features. Featerus
-            - `dist_total`: total distance traveled
-            - `n_bins`: number of bins with which other features are calculated
-            - `speed_average`: average speed
-            - `speed_variance`: variance in speed
-    """
-    def compute_distance_features(df):
+    def compute_features(df):
         """Compute features for a single user"""
         df = df.sort_index()  # sort based on time
-        n_bins = df.shape[0]
 
         lats = df['double_latitude']
         lons = df['double_longitude']
@@ -332,13 +296,10 @@ def extract_features(lats,
         # Home realted featuers
         latlon_home = find_home(lats, lons, times)
 
-        speeds, total_dist = get_speeds_totaldist(lats, lons, times)
         if 'double_speed' in df:
             speeds = df['double_speed']
-
-        speed_average = np.nanmean(speeds)
-        speed_variance = np.nanvar(speeds)
-        speed_max = np.nanmax(speeds)
+        else:
+            speeds, _ = get_speeds_totaldist(lats, lons, times)
 
         static_bins = speeds < speed_threshold
         lats_static = lats[static_bins]
@@ -346,11 +307,8 @@ def extract_features(lats,
         times_static = times[static_bins]
         clusters = cluster_locations(lats_static, lons_static)
 
-        # n_unique_sps = len(set(non_rare_clusters))
-        n_unique_sps = number_of_significant_places(lats_static,
-                                                    lons_static,
-                                                    times_static)
         non_rare_clusters = clusters[clusters != -1]
+        n_unique_sps = len(set(non_rare_clusters))
         entropy = scipy.stats.entropy(non_rare_clusters)
         normalized_entropy = entropy / np.log(len(set(non_rare_clusters)))
 
@@ -374,11 +332,6 @@ def extract_features(lats,
         n_top5 = stay_times[4] if len(stay_times) > 4 else 0
 
         row = pd.DataFrame({
-            'dist_total': [total_dist],
-            'n_bins': [n_bins],
-            'speed_average': [speed_average],
-            'speed_variance': [speed_variance],
-            'speed_max': [speed_max],
             'n_sps': [n_unique_sps],
             'n_static': [n_static],
             'n_moving': [n_moving],
@@ -396,31 +349,106 @@ def extract_features(lats,
         })
         return row
 
-    location = pd.DataFrame({
-        'double_latitude': lats,
-        'double_longitude': lons,
-        'user': users,
-        'group': groups},
-        index=times
-    )
-    if speeds is not None:
-        location['double_speed'] = speeds
-    location = location.sort_index()
-    grouped = location.groupby('user')
-    var = grouped.var()
-
-    features = grouped.apply(compute_distance_features)
+    features = df.groupby('user').apply(compute_features)
     features = features.reset_index(level=[1], drop=True)
-    features['variance'] = var['double_latitude'] + var['double_longitude']
-    features['log_variance'] = np.log(features['variance'])
+    return features
+
+def location_distance_features(df, **kwargs):
+    """Calculates features related to distance and speed"""
+    
+    def compute_features(df):
+        """Compute features for a single user"""
+        df = df.sort_index()  # sort based on time
+        n_bins = df.shape[0]
+
+        lats = df['double_latitude']
+        lons = df['double_longitude']
+        times = df.index
+
+        speeds, total_dist = get_speeds_totaldist(lats, lons, times)
+        if 'double_speed' in df:
+            speeds = df['double_speed']
+
+        speed_average = np.nanmean(speeds)
+        speed_variance = np.nanvar(speeds)
+        speed_max = np.nanmax(speeds)
+
+        variance = np.var(lats) + np.var(lons)
+        log_variance = np.log(variance)
+
+        row = pd.DataFrame({
+            'dist_total': [total_dist],
+            'n_bins': [n_bins],
+            'speed_average': [speed_average],
+            'speed_variance': [speed_variance],
+            'speed_max': [speed_max],
+            'variance': [variance],
+            'log_variance': [log_variance],
+        })
+        return row
+
+    features = df.groupby('user').apply(compute_features)
+    features = features.reset_index(level=[1], drop=True)
+    return features
+
+
+ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
+                            if name.startswith('location_')]
+
+
+def extract_features_location(df,
+                              speed_threshold=0.277,
+                              column_prefix=None,
+                              feature_functions=None):
+    """Calculates location feautres
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        dataframe of location data. It must contain these columns:
+        `double_latitude`, `double_longitude`, `user`, `group`.
+        `double_speed` is optional. If not provided, it will be
+        computed manually.
+    speed_threshold : float
+        Bins whose speed is lower than `speed_threshold` are considred
+        `static` and the rest are `moving`.
+    column_prefix : str
+        Add a prefix to all column names.
+    feature_functions : list of functions that compute features
+        Default is None. If None, all the available functions are used.
+        Those functions are in the list `location.ALL_FEATURE_FUNCTIONS`.
+        You can implement your own function and use instead or append it
+        to the mentioned list.
+
+    Returns
+    -------
+    features : pd.DataFrame
+        Dataframe of computed features where the index is users and columns
+        are the the features. Featerus
+            - `dist_total`: total distance traveled
+            - `n_bins`: number of bins with which other features are calculated
+            - `speed_average`: average speed
+            - `speed_variance`: variance in speed
+    """
+    kwargs = {'speed_threshold': speed_threshold}
+    computed_features = []
+
+    if feature_functions is None:
+        feature_functions = ALL_FEATURE_FUNCTIONS
+
+    for feature_function in feature_functions:
+        computed_feature = feature_function(df, **kwargs)
+        computed_features.append(computed_feature)
+
+    computed_features = pd.concat(computed_features, axis=1)
 
     if column_prefix:
         new_columns = [
-            '{}_{}'.format(column_prefix, col) for col in features.columns
+            '{}_{}'.format(column_prefix, col) for col in computed_features.columns
         ]
-        features.columns = new_columns
+        computed_features.columns = new_columns
 
-    if 'group' in location:
-        features['group'] = location.groupby('user')['group'].first()
+    if 'group' in df:
+        computed_features['group'] = df.groupby('user')['group'].first()
 
-    return features
+    return computed_features

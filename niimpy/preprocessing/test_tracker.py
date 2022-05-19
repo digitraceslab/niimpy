@@ -2,11 +2,11 @@ import numpy as np
 import pandas as pd
 
 import niimpy.preprocessing.tracker as tracker
-from niimpy.preprocessing import sampledata
+from niimpy.config import config
 
 def test_step_summary():
     
-    df = pd.read_csv(sampledata.TEST_STEP_SUMMARY, index_col=0)
+    df = pd.read_csv(config.STEP_SUMMARY_PATH, index_col=0)
     # Converting the index as date
     df.index = pd.to_datetime(df.index)
 

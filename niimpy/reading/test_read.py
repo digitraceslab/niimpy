@@ -3,7 +3,7 @@ import numpy as np
 
 import niimpy
 from niimpy.reading import read
-from niimpy.preprocessing import sampledata
+from niimpy.config import config
 
 TZ = 'Europe/Helsinki'
 
@@ -17,6 +17,6 @@ def test_read_preprocess_add_group():
 
 def test_read_preprocess_add_group_csv():
     """Test of add_group= option"""
-    data = niimpy.read_csv(sampledata.DATA_CSV, add_group='group1', tz=TZ)
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_BATTERY_PATH, add_group='group1', tz=TZ)
     assert 'group' in data
     assert data['group'][0] == 'group1'

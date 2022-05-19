@@ -6,32 +6,44 @@ import pytest
 
 import niimpy
 from niimpy.reading import read
+from niimpy.config import config
 from niimpy.preprocessing import sampledata
 
 TZ = 'Europe/Helsinki'
 
 @pytest.mark.parametrize("datafile",
-                         ['DATA_CSV',
-                          'DATA2_CSV',
-                          'MULTIUSER_AWAREBATTERY_CSV',
-                          'MULTIUSER_AWARESCREEN_CSV',
-                          'SURVEY_PHQ9',
+                         ['MULTIUSER_AWARE_BATTERY_PATH',
+                          'MULTIUSER_AWARE_SCREEN_PATH',
+                          'GPS_PATH',
+                          'SURVEY_PATH'
                           ])
 def test_sampledata_csv(datafile):
     """Test existence of reading of CSV sampledata"""
-    filename = getattr(sampledata, datafile)
+    filename = getattr(config, datafile)
     data = niimpy.read_csv(filename, tz=TZ)
     assert isinstance(data, pd.DataFrame)
     # The index should be set to the times
-    assert isinstance(data.index, pd.DatetimeIndex)
+    #assert isinstance(data.index, pd.DatetimeIndex)
 
 
 @pytest.mark.parametrize("datafile",
-                         ['DATA',
-                          'MULTIUSER',
+                         ['MULTIUSER_AWARE_BATTERY_PATH',
+                          'MULTIUSER_AWARE_SCREEN_PATH',
+                          'GPS_PATH'
+                          ])
+def test_datetime_index_csv(datafile):
+    """Test that those CSV sampledata have datetime index"""
+    filename = getattr(config, datafile)
+    data = niimpy.read_csv(filename, tz=TZ)
+    # The index should be set to the times
+    assert isinstance(data.index, pd.DatetimeIndex)
+    
+@pytest.mark.parametrize("datafile",
+                         ['SQLITE_SINGLEUSER_PATH',
+                          'SQLITE_MULTIUSER_PATH',
                           ])
 def test_sampledata_sqlite(datafile):
     """Test existence and openining (not reading) of sqlite sampledata"""
-    filename = getattr(sampledata, datafile)
+    filename = getattr(config, datafile)
     data = niimpy.open(filename)
     assert isinstance(data, niimpy.Data1)

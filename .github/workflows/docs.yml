@@ -17,16 +17,19 @@ jobs:
       - name: install deps
         run: |
           pip install -r requirements-dev.txt
+      - name: install pandoc
+        run: |
+          sudo apt-get install pandoc
       #- name: setup extension
       - name: sphinx
         run: |
           cd docs
           make clean dirhtml #SPHINXOPTS='-W --keep-going'
-      - name: deploy
-        uses: peaceiris/actions-gh-pages@v3
-        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
-        with:
-          publish_branch: gh-pages
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: docs/_build/dirhtml/
-          force_orphan: true
+      #- name: deploy
+      #  uses: peaceiris/actions-gh-pages@v3
+      #  if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      #  with:
+      #    publish_branch: gh-pages
+      #    github_token: ${{ secrets.GITHUB_TOKEN }}
+      #    publish_dir: docs/_build/dirhtml/
+      #    force_orphan: true

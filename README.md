@@ -1,5 +1,14 @@
 # Niimpy
 
+![maintenance-status](https://img.shields.io/badge/maintenance-actively--developed-brightgreen.svg)
+[![Test](https://github.com/digitraceslab/niimpy/actions/workflows/test.yml/badge.svg)](https://github.com/digitraceslab/niimpy/actions/workflows/test.yml)
+[![Build](https://github.com/digitraceslab/niimpy/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/digitraceslab/niimpy/actions/workflows/pages/pages-build-deployment)
+[![Test installation from source](https://github.com/digitraceslab/niimpy/actions/workflows/install.yml/badge.svg)](https://github.com/digitraceslab/niimpy/actions/workflows/install.yml)
+[![Documentation Status](https://readthedocs.org/projects/niimpy/badge/?version=latest)](https://niimpy.readthedocs.io/en/latest/)
+[![codecov](https://codecov.io/gh/digitraceslab/niimpy/branch/master/graph/badge.svg?token=SEEOOF7A70)](https://codecov.io/gh/digitraceslab/niimpy)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+
+
 `niimpy` is a Python package for managing individual-level data.  The
 best way to describe it is to look at the big picture:
 
