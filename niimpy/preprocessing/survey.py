@@ -92,8 +92,46 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_7' : PSS_ANSWER_MAP,
            'PSS10_8' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP}
-                                 
-def convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
+
+
+def extract_features_survey(df, features=None):
+    """ This function computes and organizes the selected features for survey data.
+
+        The complete list of features that can be calculated are: survey_convert_to_numerical_answer,
+        survey_print_statistic
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            Input data frame
+        features: dict, optional
+            Dictionary keys contain the names of the features to compute.
+            If none is given, all features will be computed.
+
+        Returns
+        -------
+        result: dataframe
+            Resulting dataframe
+        """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+
+    if features is None:
+        features = [key for key in globals().keys() if key.startswith('audio_')]
+        features = {x: {} for x in features}
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        command = f'{feature}(df,feature_functions=feature_arg)'
+        computed_feature = eval(command)
+        computed_features.append(computed_feature)
+
+    result = pd.concat(computed_features, axis=1)
+    return result
+
+def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
     Use answer mapping dictionariess provided by the uses to convert the answers.
     Can convert multiple questions having same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
@@ -151,7 +189,7 @@ def convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=
         
     return result
 
-def print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, group=None):
+def survey_print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, group=None):
     '''
     Return survey statistic. The statistic includes min, max, average and s.d values.
 
@@ -252,7 +290,7 @@ def get_phq9(database,subject):
 
     return phq9
 
-def sum_survey_scores(df, survey_prefix, answer_column='answer', id_column='id'):
+def survey_sum_scores(df, survey_prefix, answer_column='answer', id_column='id'):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
     Input dataframe: has a DateTime index, an answer_column with numeric
@@ -263,11 +301,8 @@ def sum_survey_scores(df, survey_prefix, answer_column='answer', id_column='id')
 
     This assumes that all surveys have a different time.
 
-    survey: The servey prefix in the 'id' column, e.g. 'PHQ9'.  An '_' is appended.
+    survey: The survey prefix in the 'id' column, e.g. 'PHQ9'.  An '_' is appended.
     """
-    # TODO: drop duplicate options
-    # TODO: support caterogization ('categories' option which gets
-    #       added to dataframe and grouped by)
     if survey_prefix is not None:
         answers = df[df[id_column].str.startswith(survey_prefix+'_')]
     else:

@@ -5,8 +5,47 @@ import sklearn as sckit
 from sklearn import preprocessing
 from scipy.stats import wasserstein_distance
 
-def step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
-    """Return the summary
+def extract_features_tracker(df, features=None):
+    """ This function computes and organizes the selected features for tracker data
+        recorded using Polar Ignite.
+
+        The complete list of features that can be calculated are: tracker_step_summary,
+        tracker_daily_step_distribution
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            Input data frame
+        features: dict, optional
+            Dictionary keys contain the names of the features to compute.
+            If none is given, all features will be computed.
+
+        Returns
+        -------
+        result: dataframe
+            Resulting dataframe
+        """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+
+    if features is None:
+        features = [key for key in globals().keys() if key.startswith('audio_')]
+        features = {x: {} for x in features}
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        command = f'{feature}(df,feature_functions=feature_arg)'
+        computed_feature = eval(command)
+        computed_features.append(computed_feature)
+
+    result = pd.concat(computed_features, axis=1)
+    return result
+
+def tracker_step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
+    """Return the summary of step count in a time range. The summary includes the following information
+    of step count per day: mean, mean standard deviation, min, max
 
     Parameters
     ----------
@@ -56,7 +95,7 @@ def step_summary(df, value_col='values', user_id=None, start_date=None, end_date
     
     return summary_df.reset_index()
 
-def daily_step_distribution(steps_df):
+def tracker_daily_step_distribution(steps_df):
 
     """Return distribution of steps within each day.
 
