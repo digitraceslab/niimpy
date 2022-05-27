@@ -1,0 +1,64 @@
+import numpy as np
+import pandas as pd
+
+import niimpy
+from . import read
+from . import preprocess
+from .battery import shutdown_info
+
+def screen_off(screen_status, battery_shutdown=None):
+    """Return timestamps of events where the screen has turned off.
+
+    Returns a DataFrame with the timestamps of when the screen has changed
+    to "OFF" status.
+
+
+    NOTE: This is a helper function created originally to preprocess the application
+    info data.  It differs from raw screen data in that it also considers
+    battery data to find possible missing 'screen off' events caused by running
+    out of battery.
+
+    Parameters
+    ----------
+    screen: dataframe of screen data
+    user: string
+    begin: datetime, optional
+    end: datetime, optional
+    battery: dataframe of battery data
+
+    Returns
+    -------
+    screen: Dataframe
+
+            DataFrame with DatetimeIndex and `screen_status` column.
+            All values are zero and all row indexes are the times of screen off.
+
+
+    """
+    screen_status=pd.to_numeric(screen_status) #convert to numeric in case it is not
+
+    #Include the missing points that are due to shutting down the phone
+    if battery_shutdown is not None:
+        shutdown = shutdown_info(battery_status)
+        shutdown = shutdown.replace([-1,-2],0)
+        
+        if not shutdown.empty:
+            df = pd.concat([screen_status, shutdown], axis=1)
+            df.fillna(0, inplace=True)
+            df.drop(["battery_status"], axis=1, inplace=True)
+        else: 
+            df = screen_status.to_frame()
+
+    #Detect missing data points
+    df['missing']=0
+    df['next']=df['screen_status'].shift(-1)
+    df['dummy']=df['screen_status']-df['next']
+    df['missing'] = np.where(df['dummy']==0, 1, 0) #Check the missing points and label them as 1
+    df['missing'] = df['missing'].shift(1)
+    df.drop(['dummy','next'], axis=1, inplace=True)
+    df.fillna(0, inplace=True)
+   
+    df = df[df.missing == 0] #Discard missing values
+    df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
+    df.drop(["missing"], axis=1, inplace=True)
+    return df
