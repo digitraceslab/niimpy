@@ -1,50 +1,7 @@
 import pandas as pd
-import numpy as np
-import sys
-import sklearn as sckit
-from sklearn import preprocessing
-from scipy.stats import wasserstein_distance
 
 
-def extract_features_tracker(df, features=None):
-    """ This function computes and organizes the selected features for tracker data
-        recorded using Polar Ignite.
-
-        The complete list of features that can be calculated are: tracker_step_summary
-
-        Parameters
-        ----------
-        df: pandas.DataFrame
-            Input data frame
-        features: dict, optional
-            Dictionary keys contain the names of the features to compute.
-            If none is given, all features will be computed.
-
-        Returns
-        -------
-        result: dataframe
-            Resulting dataframe
-        """
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-
-    if features is None:
-        features = [key for key in globals().keys() if key.startswith('tracker_')]
-        features = {x: {} for x in features}
-    else:
-        assert isinstance(features, dict), "Please input the features as a dictionary"
-
-    computed_features = []
-    for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
-        command = f'{feature}(df,feature_functions=feature_arg)'
-        computed_feature = eval(command)
-        computed_features.append(computed_feature)
-
-    result = pd.concat(computed_features, axis=1)
-    return result
-
-
-def tracker_step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
+def step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
     """Return the summary of step count in a time range. The summary includes the following information
     of step count per day: mean, mean standard deviation, min, max
 
@@ -114,14 +71,13 @@ def tracker_daily_step_distribution(steps_df):
 
     # Combine date and time to acquire  timestamp 
     df = steps_df.copy()
+    df = df.rename(columns={"subject_id": "user"})  # rename column, to be niimpy-compatible
     df['time'] = pd.to_datetime(df['date'] + ":" + df['time'], format='%Y-%m-%d:%H:%M:%S.%f')
 
     # Dummy columns for hour, month, day for easier operations later on
-    df['hour'] = df.level_0.dt.hour
-    df['month'] = df.level_0.dt.month
-    df['day'] = df.level_0.dt.day
-
-    df = steps_df(columns={"subject_id": "user"})  # rename column, to be niimpy-compatible
+    df['hour'] = df.index.hour
+    df['month'] = df.index.month
+    df['day'] = df.index.day
 
     # Remove duplicates
     df = df.drop_duplicates(subset=['user', 'date', 'time'], keep='last')
@@ -134,6 +90,54 @@ def tracker_daily_step_distribution(steps_df):
     df['daily_distribution'] = df['steps'] / df['daily_sum']
 
     # Set timestamp index
-    df = df.set_index("time")
+    #df = df.set_index("time")
+    df = df.set_index("user")
 
     return df
+
+ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
+                         if name.startswith('tracker_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+
+def extract_features_tracker(df, features=None):
+    """ This function computes and organizes the selected features for tracker data
+        recorded using Polar Ignite.
+
+        The complete list of features that can be calculated are: tracker_daily_step_distribution
+
+        Parameters
+        ----------
+        df: pandas.DataFrame
+            Input data frame
+        features: dict, optional
+            Dictionary keys contain the names of the features to compute.
+            The value of the keys is the list of parameters that will be passed to the function.
+            If none is given, all features will be computed.
+
+        Returns
+        -------
+        result: dataframe
+            Resulting dataframe
+        """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+
+    computed_features = []
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
+    print(ALL_FEATURE_FUNCTIONS)
+    for feature_function, kwargs in features.items():
+        computed_feature = feature_function(df, **kwargs)
+        computed_features.append(computed_feature)
+
+
+    assert len(computed_features) > 0, "Computed features cannot be empty"
+    if len(computed_features) > 1:
+        computed_features = pd.concat(computed_features, axis=1)
+    else:
+        computed_features = computed_features[0]
+
+    if 'group' in df:
+        computed_features['group'] = df.groupby('user')['group'].first()
+
+    return computed_features
+
