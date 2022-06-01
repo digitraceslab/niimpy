@@ -14,14 +14,14 @@ df1 = df1.set_index('time')
 def test_sum_survey_scores():
     df = df1.copy()
 
-    results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
+    results = niimpy.preprocessing.survey.survey_sum_scores(df, 'S1')
 
     assert results.loc['2019-01-01']['score'] == 3
     assert results.loc['2019-01-02']['score'] == 12
     assert np.isnan(results.loc['2019-01-03']['score'])
 
     df['user'] = 'some_user'
-    results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
+    results = niimpy.preprocessing.survey.survey_sum_scores(df, 'S1')
     print(results)
     results = results.loc['some_user']
     assert results.loc['2019-01-01']['score'] == 3
@@ -32,7 +32,7 @@ def test_sum_survey_scores_indexonly():
     df = df1.copy()
     df.index.name = None
 
-    results = niimpy.preprocessing.survey.sum_survey_scores(df, 'S1')
+    results = niimpy.preprocessing.survey.survey_sum_scores(df, 'S1')
 
     assert results.loc['2019-01-01']['score'] == 3
     assert results.loc['2019-01-02']['score'] == 12
