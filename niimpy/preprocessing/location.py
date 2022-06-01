@@ -388,7 +388,6 @@ def location_distance_features(df):
     features = features.reset_index(level=[1], drop=True)
     return features
 
-
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
                          if name.startswith('location_')]
 ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
