@@ -93,47 +93,9 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_8' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP}
 
-
-def extract_features_survey(df, features=None):
-    """ This function computes and organizes the selected features for survey data.
-
-        The complete list of features that can be calculated are: survey_convert_to_numerical_answer,
-        survey_print_statistic
-
-        Parameters
-        ----------
-        df: pandas.DataFrame
-            Input data frame
-        features: dict, optional
-            Dictionary keys contain the names of the features to compute.
-            If none is given, all features will be computed.
-
-        Returns
-        -------
-        result: dataframe
-            Resulting dataframe
-        """
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-
-    if features is None:
-        features = [key for key in globals().keys() if key.startswith('audio_')]
-        features = {x: {} for x in features}
-    else:
-        assert isinstance(features, dict), "Please input the features as a dictionary"
-
-    computed_features = []
-    for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
-        command = f'{feature}(df,feature_functions=feature_arg)'
-        computed_feature = eval(command)
-        computed_features.append(computed_feature)
-
-    result = pd.concat(computed_features, axis=1)
-    return result
-
 def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
-    Use answer mapping dictionariess provided by the uses to convert the answers.
+    Use answer mapping dictionaries provided by the uses to convert the answers.
     Can convert multiple questions having same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
     at same time if prefix mapping is provided. Function returns original values for the 
     answers that have not been specified for conversion.
@@ -151,7 +113,7 @@ def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_
         Name of the column containing the question id.
         
     id_map : dictionary
-        Dictionary containing answer mappings (value) for each each question_id (key),
+        Dictionary containing answer mappings (value) for each question_id (key),
         or a dictionary containing a map for each question id prefix if use_prefix 
         option is used.
            
@@ -262,33 +224,6 @@ def survey_print_statistic(df, question_id = 'id', answer_col = 'answer', prefix
             res.update(d)
     return res
 
-def get_phq9(database,subject):
-    """ Returns the phq9 scores from the databases per subject
-
-    Parameters
-    ----------
-    database: database
-    user: string
-
-    Returns
-    -------
-    phq9: Dataframe with the phq9 score
-
-    """
-    # TODO: Most of this logic can be moved to sum_survey_cores
-    # Make this function compatible with the logic in this module
-    assert isinstance(database, niimpy.database.Data1),"database not given in Niimpy database format"
-    assert isinstance(subject, str),"user not given in string format"
-
-    phq9 = niimpy.aalto.phq9_raw(database)
-    phq9 = phq9[phq9['user']==subject]
-    phq9 = phq9.drop(['user','source'],axis=1)
-    phq9 = phq9.sort_index()
-    phq9 = phq9.reset_index().drop_duplicates(subset=['index','id'],keep='first').set_index('index')
-    phq9 = phq9.groupby(phq9.index)['answer'].sum()
-    phq9 = phq9.to_frame()
-
-    return phq9
 
 def survey_sum_scores(df, survey_prefix, answer_column='answer', id_column='id'):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
