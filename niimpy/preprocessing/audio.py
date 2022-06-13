@@ -13,7 +13,7 @@ def extract_features_audio(df, features=None):
     
     Parameters
     ----------
-    df_u: pandas.DataFrame
+    df: pandas.DataFrame
         Input data frame
     features: dict, optional
         Dictionary keys contain the names of the features to compute. 
