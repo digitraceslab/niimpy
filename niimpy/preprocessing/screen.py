@@ -4,7 +4,7 @@ import pandas as pd
 import niimpy
 from niimpy.preprocessing import battery as b
 
-def screen_util(df, bat, battery_shutdown=None):
+def screen_util(df, bat, feature_functions=None):
     """ This function is a helper function for all other screen preprocessing.
     The function has the option to merge information from the battery sensors to
     include data when the phone is shut down. The function also detects the missing 
@@ -27,11 +27,15 @@ def screen_util(df, bat, battery_shutdown=None):
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    if not "battery_shutdown" in feature_functions.keys():
+        feature_functions['battery_shutdown'] = None
     
     df["screen_status"]=pd.to_numeric(df["screen_status"]) #convert to numeric in case it is not
 
     #Include the missing points that are due to shutting down the phone
-    if battery_shutdown is not None:
+    if feature_functions['battery_shutdown'] is not None:
         shutdown = b.shutdown_info(bat)
         shutdown = shutdown.replace([-1,-2],0)
         
@@ -58,25 +62,10 @@ def screen_util(df, bat, battery_shutdown=None):
     df = df.droplevel(0)
     return df
 
-def screen_off(df, bat, battery_shutdown=None):
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    
-    df2 = screen_util(df, bat, battery_shutdown=None)
-    df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
-    return df
-
-def screen_count(df, bat, battery_shutdown=None, feature_functions=None):
+def screen_event_classification(df2):
     
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T'
-    
-    df2 = screen_util(df, bat, battery_shutdown=None)
-               
     #Classify the event 
     df2['next'] = df2['screen_status'].shift(-1)
     df2['next'] = df2['screen_status'].astype(int).astype(str)+df2['screen_status'].shift(-1).fillna(0).astype(int).astype(str)   
@@ -97,10 +86,66 @@ def screen_count(df, bat, battery_shutdown=None, feature_functions=None):
     df2 = df2.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
     df2 = df2.droplevel(0)
     df2 = df2.droplevel(0)
+    return df2
+
+def screen_off(df, bat, feature_functions=None):
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    df2 = screen_util(df, bat, feature_functions)
+    df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
+    return df
+
+def screen_count(df, bat, feature_functions=None):
+    
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    if not "rule" in feature_functions.keys():
+        feature_functions['rule'] = '30T'
+    if not "battery_shutdown" in feature_functions.keys():
+        feature_functions['battery_shutdown'] = None
+    
+    df2 = screen_util(df, bat, feature_functions)
+    df2 = screen_event_classification(df2)
     
     if len(df2)>0:
         on = df2.groupby("user")["on"].resample(**feature_functions).sum()
         off = df2.groupby("user")["off"].resample(**feature_functions).sum()
         use = df2.groupby("user")["use"].resample(**feature_functions).sum()
+        result = pd.concat([on, off, use], axis=1)
+    return result
+
+def screen_duration(df, bat, feature_functions=None):
+    
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    if not "rule" in feature_functions.keys():
+        feature_functions['rule'] = '30T'
+    if not "battery_shutdown" in feature_functions.keys():
+        feature_functions['battery_shutdown'] = None
+    
+    df2 = screen_util(df, bat, feature_functions)
+    feature_functions.pop('battery_shutdown', None) #no need for this argumetn anymore
+    df2 = screen_event_classification(df2)           
+    
+    df2['duration']=np.nan
+    df2['duration']=df2['datetime'].diff()
+    df2['duration'] = df2['duration'].shift(-1)
+    
+    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
+    #longer than 10 hours becaus they may be artifacts
+    thr = pd.Timedelta('10 hours')
+    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
+    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
+    
+    if len(df2)>0:
+        on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions).sum()
+        off = df2[df2.off==1].groupby("user")["duration"].resample(**feature_functions).sum()
+        use = df2[df2.use==1].groupby("user")["duration"].resample(**feature_functions).sum()
         result = pd.concat([on, off, use], axis=1)
     return result
