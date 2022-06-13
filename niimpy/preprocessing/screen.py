@@ -149,3 +149,19 @@ def screen_duration(df, bat, feature_functions=None):
         use = df2[df2.use==1].groupby("user")["duration"].resample(**feature_functions).sum()
         result = pd.concat([on, off, use], axis=1)
     return result
+
+def screen_first_unlock(df, bat, feature_functions=None):
+    
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    if not "battery_shutdown" in feature_functions.keys():
+        feature_functions['battery_shutdown'] = None
+    
+    df2 = screen_util(df, bat, feature_functions)
+    df2 = screen_event_classification(df2)
+    
+    result = df2[df2.on==1].groupby("user").resample(rule='1D').min()
+    result.drop(['on','off','na','use'], axis=1, inplace=True)
+    return result
