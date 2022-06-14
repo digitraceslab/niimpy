@@ -279,11 +279,8 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def location_significant_place_features(df, **kwargs):
+def location_significant_place_features(df, speed_threshold=0.277, min_samples=5, eps=200):
     """Calculates features related to Significant Places"""
-    
-    assert 'speed_threshold' in kwargs
-    speed_threshold = kwargs['speed_threshold']
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -353,7 +350,7 @@ def location_significant_place_features(df, **kwargs):
     features = features.reset_index(level=[1], drop=True)
     return features
 
-def location_distance_features(df, **kwargs):
+def location_distance_features(df):
     """Calculates features related to distance and speed"""
     
     def compute_features(df):
@@ -391,14 +388,12 @@ def location_distance_features(df, **kwargs):
     features = features.reset_index(level=[1], drop=True)
     return features
 
-
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
-                            if name.startswith('location_')]
+                         if name.startswith('location_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
 
 
 def extract_features_location(df,
-                              speed_threshold=0.277,
-                              column_prefix=None,
                               feature_functions=None):
     """Calculates location feautres
 
@@ -412,41 +407,29 @@ def extract_features_location(df,
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
         `static` and the rest are `moving`.
-    column_prefix : str
-        Add a prefix to all column names.
-    feature_functions : list of functions that compute features
+    feature_functions : map (dictionary) of functions that compute features.
+        it is a map of map, where the keys to the first map is the name of
+        functions that compute features and the nested map contains the keyword
+        arguments to that function. If there is no arguments use an empty map.
         Default is None. If None, all the available functions are used.
-        Those functions are in the list `location.ALL_FEATURE_FUNCTIONS`.
-        You can implement your own function and use instead or append it
-        to the mentioned list.
+        Those functions are in the dict `location.ALL_FEATURE_FUNCTIONS`.
+        You can implement your own function and use it instead or add it
+        to the mentioned map.
 
     Returns
     -------
     features : pd.DataFrame
         Dataframe of computed features where the index is users and columns
-        are the the features. Featerus
-            - `dist_total`: total distance traveled
-            - `n_bins`: number of bins with which other features are calculated
-            - `speed_average`: average speed
-            - `speed_variance`: variance in speed
+        are the the features.
     """
-    kwargs = {'speed_threshold': speed_threshold}
     computed_features = []
-
     if feature_functions is None:
         feature_functions = ALL_FEATURE_FUNCTIONS
-
-    for feature_function in feature_functions:
+    for feature_function, kwargs in feature_functions.items():
         computed_feature = feature_function(df, **kwargs)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
-
-    if column_prefix:
-        new_columns = [
-            '{}_{}'.format(column_prefix, col) for col in computed_features.columns
-        ]
-        computed_features.columns = new_columns
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
