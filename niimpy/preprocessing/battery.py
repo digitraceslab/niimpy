@@ -4,6 +4,30 @@ import pandas as pd
 import niimpy
 from niimpy.preprocessing import preprocess
 
+def shutdown_info(df):
+    """ Returns a DataFrame with the timestamps of when the phone has shutdown.
+    This includes both events, when the phone has shut down and when the phone 
+    has been rebooted.
+
+
+    NOTE: This is a helper function created originally to preprocess the application
+    info data
+
+    Parameters
+    ----------
+    battery_status: pandas series of the battery status 
+
+
+    Returns
+    -------
+    shutdown: pandas series
+
+    """
+    df["battery_status"] = pd.to_numeric(df["battery_status"]) #convert to numeric in case it is not
+    
+    shutdown = df[df["battery_status"].between(-3, 0, inclusive=False)]
+    return shutdown
+
 
 def get_battery_data(battery, batterylevel_column='battery_level',
                      user=None, start=None, end=None):
