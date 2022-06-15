@@ -270,33 +270,6 @@ def find_battery_gaps(battery_data, other_data, start=None, end=None, days=0, ho
 
     return gaps
 
-
-def shutdown_info(battery_status):
-    """ Returns a DataFrame with the timestamps of when the phone has shutdown.
-    This includes both events, when the phone has shut down and when the phone 
-    has been rebooted.
-
-
-    NOTE: This is a helper function created originally to preprocess the application
-    info data
-
-    Parameters
-    ----------
-    battery_status: pandas series of the battery status 
-
-
-    Returns
-    -------
-    shutdown: pandas series
-
-    """
-    if not battery_status.str.isnumeric().all():
-        battery_status = pd.to_numeric(battery_status)  # convert to numeric in case it is not
-
-    shutdown = battery_status[battery_status.between(-3, 0, inclusive=False)]
-    return shutdown
-
-
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
                          if name.startswith('battery_')]
 ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
