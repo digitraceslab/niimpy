@@ -3,6 +3,7 @@ import pandas as pd
 
 import niimpy
 from niimpy.preprocessing import battery as b
+from niimpy.preprocessing import screen as s
 
 APP_GROUP = {'CrossCycle':'sports',
              'Runtastic':'sports',
@@ -217,84 +218,211 @@ APP_GROUP = {'CrossCycle':'sports',
             'Libby':'leisure',
             'Headspace':'leisure'}
 
-def classify_app(df, answer_col, id_map):
+def classify_app(df, group_map):
+    """ This function is a helper function for other screen preprocessing.
+    The function classifies the screen events into the groups specified by group_map. 
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    group_map: dict
+        Mapping to define the app groups. Keys should be the app name, values are
+        the app groups (e.g. 'my_app':'my_app_group')
+    
+    Returns
+    -------
+    df: dataframe
+        Resulting dataframe
+    """    
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(answer_col, str), "answer_col is not a string."
-    assert isinstance(id_map, dict), "id_map is not a dictionary."
+    assert isinstance(group_map, dict), "group_map is not a dictionary."
     
     df['app_group'] = 'na'
-    for key,value in id_map.items():
+    for key,value in group_map.items():
         df.app_group[df['application_name'] == key]=value
     return df
 
-def app_count(df, bat, feature_functions=None):
+def extract_features_screen(df, group_map=None, features=None):
+    """ This function computes and organizes the selected features for application
+    events that have been recorded using Aware Framework. The function aggregates 
+    the features by user, by app group, by time window. If no time window is 
+    specified, it will automatically aggregate the features in 30 mins non-
+    overlapping windows. If no group_map is provided, a default one will be used. 
+    
+    The complete list of features that can be calculated are: app_count, and 
+    app_duration.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    group_map: dict
+        Mapping to define the app groups. Keys should be the app name, values are
+        the app groups (e.g. 'my_app':'my_app_group')
+    features: dict, optional
+        Dictionary keys contain the names of the features to compute. 
+        If none is given, all features will be computed.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    
+    if features is None:
+        features = [key for key in globals().keys() if key.startswith('app_')]
+        features = {x: {} for x in features}
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+    
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        command = f'{feature}(df,feature_functions=feature_arg)'
+        computed_feature = eval(command)
+        computed_features.append(computed_feature)
+        
+    computed_features = pd.concat(computed_features, axis=1)
+    return computed_features
+
+
+def app_count(df, bat, screen, feature_functions=None):
+    """ This function returns the number of times each app group has been used, 
+    within the specified timeframe. The app groups are defined as a dictionary 
+    within the feature_functions variable. Examples of app groups are social 
+    media, sports, games, etc. If no mapping is given, a default one will be used.
+    If no resampling window is given, the function sets a 30 min default time window. The 
+    function aggregates the duration by user, by app group, by timewindow. 
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    bat: pandas.DataFrame
+        Dataframe with the battery information. If no data is available, an empty 
+        dataframe should be passed.
+    screen: pandas.DataFrame
+        Dataframe with the screen information. If no data is available, an empty 
+        dataframe should be passed.
+    feature_functions: dict, optional
+        The feature functions can be set according to the pandas.DataFrame.resample
+        function.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """    
+    
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(screen, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "battery_shutdown" in feature_functions.keys():
-        feature_functions['battery_shutdown'] = None
+    if not "group_map" in feature_functions.keys():
+        feature_functions['group_map'] = APP_GROUP
     if not "rule" in feature_functions.keys():
         feature_functions['rule'] = '30T'
     
-    
+    df2 = classify_app(df, feature_functions['group_map'])
+    feature_functions.pop('group_map', None) #no need for this argumetn anymore
 
-#Application
-def app_duration(database,subject,begin=None,end=None,app_list_path=None):
-    
-    if(app_list_path==None):
-        app_list_path = '/m/cs/scratch/networks-nima/ana/niima-code/Datastreams/Phone/apps_group.csv'
-
-
-    app = app.drop(columns=['device','user','time','defaults','sound','vibrate'])
-    
-    #Classify the apps into groups
-    app_list=pd.read_csv(app_list_path)
-    app['group']=np.nan
-    for index, row in app.iterrows():
-        group=app_list.isin([row['application_name']]).any()
-        group=group.reset_index()
-        if (not any(group[0])):
-            app.loc[index,'group']=10
-        else:
-            app.loc[index,'group']=group.index[group[0] == True].tolist()[0]
-
-    # TODO: Split those missing data imputation methods to another function
-    #Insert missing data due to phone being shut down
-    shutdown = battery.shutdown_info(database,subject,begin,end)
-    if not shutdown.empty:
-        shutdown['group']=11
-        shutdown['battery_status'] = 'off'
-        app = app.merge(shutdown, how='outer', left_index=True, right_index=True)
-        app['application_name'] = app['application_name'].replace(np.nan, 'off', regex=True)
-        app['group_x'] = app['group_x'].replace(np.nan, 11, regex=True)
-        app = app.drop(['battery_status','group_y'], axis=1)
-        dates=app.datetime_x.combine_first(app.datetime_y)
-        app['datetime']=dates
-        app = app.drop(['datetime_x','datetime_y'], axis=1)
-        app=app.rename(columns={'group_x':'group'})
-
-    #Insert missing data due to the screen being off
-    screen=screen_off(database,subject,begin,end)
+    #Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        app = app.merge(screen, how='outer', left_index=True, right_index=True)
-        app['application_name'] = app['application_name'].replace(np.nan, 'off', regex=True)
-        app['group'] = app['group'].replace(np.nan, 11, regex=True)
-        del app['screen_status']
-        dates=app.datetime_x.combine_first(app.datetime_y)
-        app['datetime']=dates
-        app = app.drop(['datetime_x','datetime_y'], axis=1)
+        screen = s.screen_off(screen, bat, feature_functions)
+        df2 = pd.concat([df2, screen])
+        df2.sort_values(by=["user","device","datetime"], inplace=True)
+        df2["app_group"].fillna('off', inplace=True)
+        df2.drop(['sound', 'screen_status', 'vibrate'], axis=1, inplace=True)
+    
+    if (screen.empty and not bat.empty):
+        shutdown = b.shutdown_info(bat)
+        shutdown = shutdown.replace([-1,-2],'off')
+        df2 = pd.concat([df2, shutdown])
+        df2.sort_values(by=["user","device","datetime"], inplace=True)
+        df2["app_group"].fillna('off', inplace=True)
+        df2.drop(['battery_level', 'battery_status', 'battery_health', 'battery_adaptor'], axis=1, inplace=True)
+    
+    if len(df2)>0:
+        result = df2.groupby(["user","app_group"]).resample(**feature_functions).count()
+        result = result["device"].to_frame()
+        result = result.reset_index()
+        result.rename(columns={"level_2": "datetime", "device": "count"}, inplace=True)
+        result = result.set_index('datetime')
+        
+    return result
 
+def app_duration(df, bat, screen, feature_functions=None):
+    """ This function returns the duration of use of different app groups, within the 
+    specified timeframe. The app groups are defined as a dictionary within the 
+    feature_functions variable. Examples of app groups are social media, sports,
+    games, etc. If no mapping is given, a default one will be used.
+    If no resampling window is given, the function sets a 30 min default time window. The 
+    function aggregates the duration by user, by app group, by timewindow. 
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    bat: pandas.DataFrame
+        Dataframe with the battery information. If no data is available, an empty 
+        dataframe should be passed.
+    screen: pandas.DataFrame
+        Dataframe with the screen information. If no data is available, an empty 
+        dataframe should be passed.
+    feature_functions: dict, optional
+        The feature functions can be set according to the pandas.DataFrame.resample
+        function.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """      
+    
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(screen, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    if not "group_map" in feature_functions.keys():
+        feature_functions['group_map'] = APP_GROUP
+    if not "rule" in feature_functions.keys():
+        feature_functions['rule'] = '30T'
+    
+    df2 = classify_app(df, feature_functions['group_map'])
+    feature_functions.pop('group_map', None) #no need for this argumetn anymore
 
-    #Calculate the app duration per group
-    app['duration']=np.nan
-    app['duration']=app['datetime'].diff()
-    app['duration'] = app['duration'].shift(-1)
-
-    app['datetime'] = app['datetime'].dt.floor('d')
-    duration=pd.pivot_table(app,values='duration',index='datetime', columns='group', aggfunc=np.sum)
-    count=pd.pivot_table(app,values='duration',index='datetime', columns='group', aggfunc='count')
-    duration.columns = duration.columns.map({0.0: 'sports', 1.0: 'games', 2.0: 'communication', 3.0: 'social_media', 4.0: 'news', 5.0: 'travel', 6.0: 'shop', 7.0: 'entretainment', 8.0: 'work_study', 9.0: 'transportation', 10.0: 'other', 11.0: 'off'})
-    count.columns = count.columns.map({0.0: 'sports', 1.0: 'games', 2.0: 'communication', 3.0: 'social_media', 4.0: 'news', 5.0: 'travel', 6.0: 'shop', 7.0: 'entretainment', 8.0: 'work_study', 9.0: 'transportation', 10.0: 'other', 11.0: 'off'})
-    duration = duration.apply(get_seconds,axis=1)
-    return duration, count
+    #Insert missing data due to the screen being off or battery depleated
+    if not screen.empty:
+        screen = s.screen_off(screen, bat, feature_functions)
+        df2 = pd.concat([df2, screen])
+        df2.sort_values(by=["user","device","datetime"], inplace=True)
+        df2["app_group"].fillna('off', inplace=True)
+        df2.drop(['sound', 'screen_status', 'vibrate'], axis=1, inplace=True)
+    
+    if (screen.empty and not bat.empty):
+        shutdown = b.shutdown_info(bat)
+        shutdown = shutdown.replace([-1,-2],'off')
+        df2 = pd.concat([df2, shutdown])
+        df2.sort_values(by=["user","device","datetime"], inplace=True)
+        df2["app_group"].fillna('off', inplace=True)
+        df2.drop(['battery_level', 'battery_status', 'battery_health', 'battery_adaptor'], axis=1, inplace=True)
+    
+    df2['duration']=np.nan
+    df2['duration']=df2['datetime'].diff()
+    df2['duration'] = df2['duration'].shift(-1)
+    #Discard any datapoints whose duration are than 10 hours becaus they may be artifacts
+    thr = pd.Timedelta('10 hours')
+    df2 = df2[~(df2.duration>thr)]
+    df2 = df2[~(df2.duration>thr)]
+    
+    if len(df2)>0:
+        result = df2.groupby(["user","app_group"])["duration"].resample(**feature_functions).sum()
+        result = result.reset_index()
+        result.rename(columns={"level_2": "datetime"}, inplace=True)
+        result = result.set_index('datetime')
+        
+    return result
