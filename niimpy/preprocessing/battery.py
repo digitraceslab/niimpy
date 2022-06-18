@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 
 import niimpy
-from niimpy.preprocessing import preprocess
+
 
 def shutdown_info(df):
     """ Returns a DataFrame with the timestamps of when the phone has shutdown.
