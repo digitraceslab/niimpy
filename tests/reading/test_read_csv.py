@@ -4,7 +4,7 @@ import numpy as np
 import niimpy
 from niimpy.reading import read
 from niimpy.preprocessing import sampledata
-from niimpy.config import config
+from config import config
 
 TZ = 'Europe/Helsinki'
 

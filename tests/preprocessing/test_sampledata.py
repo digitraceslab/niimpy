@@ -3,10 +3,10 @@
 
 import pandas as pd
 import pytest
+from config import config
 
 import niimpy
 from niimpy.reading import read
-from niimpy.config import config
 from niimpy.preprocessing import sampledata
 
 TZ = 'Europe/Helsinki'

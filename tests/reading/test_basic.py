@@ -6,7 +6,7 @@ import time
 import pytest
 
 import niimpy
-from niimpy.config import config
+from config import config
 
 DATA = config.SQLITE_SINGLEUSER_PATH
 

@@ -3,7 +3,7 @@ import pandas as pd
 import math
 
 import niimpy.preprocessing.tracker as tracker
-from niimpy.config import config
+from config import config
 
 
 def test_step_summary():
