@@ -218,7 +218,7 @@ APP_GROUP = {'CrossCycle':'sports',
             'Libby':'leisure',
             'Headspace':'leisure'}
 
-def classify_app(df, group_map):
+def classify_app(df, feature_functions):
     """ This function is a helper function for other screen preprocessing.
     The function classifies the screen events into the groups specified by group_map. 
     
@@ -226,9 +226,12 @@ def classify_app(df, group_map):
     ----------
     df: pandas.DataFrame
         Input data frame
-    group_map: dict
-        Mapping to define the app groups. Keys should be the app name, values are
-        the app groups (e.g. 'my_app':'my_app_group')
+    feature_functions: dict, optional
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. It can
+        contain a dictionary called group_map, which has the mapping to define 
+        the app groups. Keys should be the app name, values are the app groups 
+        (e.g. 'my_app':'my_app_group')
     
     Returns
     -------
@@ -236,14 +239,19 @@ def classify_app(df, group_map):
         Resulting dataframe
     """    
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(group_map, dict), "group_map is not a dictionary."
+    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    
+    if not "app_column_name" in feature_functions.keys():
+        col_name = "application_name"
+    else:
+        col_name = feature_functions["app_column_name"]
     
     df['app_group'] = 'na'
-    for key,value in group_map.items():
-        df.app_group[df['application_name'] == key]=value
+    for key,value in feature_functions["group_map"].items():
+        df.app_group[df[col_name] == key]=value
     return df
 
-def extract_features_screen(df, group_map=None, features=None):
+def extract_features_app(df, group_map=None, features=None):
     """ This function computes and organizes the selected features for application
     events that have been recorded using Aware Framework. The function aggregates 
     the features by user, by app group, by time window. If no time window is 
@@ -307,8 +315,10 @@ def app_count(df, bat, screen, feature_functions=None):
         Dataframe with the screen information. If no data is available, an empty 
         dataframe should be passed.
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -323,11 +333,14 @@ def app_count(df, bat, screen, feature_functions=None):
     
     if not "group_map" in feature_functions.keys():
         feature_functions['group_map'] = APP_GROUP
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T'
+    if not "screen_column_name" in feature_functions.keys():
+        screen_col_name = "screen_status"
+    else:
+        screen_col_name = feature_functions["screen_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = classify_app(df, feature_functions['group_map'])
-    feature_functions.pop('group_map', None) #no need for this argumetn anymore
+    df2 = classify_app(df, feature_functions)
 
     #Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
@@ -335,7 +348,7 @@ def app_count(df, bat, screen, feature_functions=None):
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2.drop(['sound', 'screen_status', 'vibrate'], axis=1, inplace=True)
+        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if (screen.empty and not bat.empty):
         shutdown = b.shutdown_info(bat)
@@ -343,15 +356,14 @@ def app_count(df, bat, screen, feature_functions=None):
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2.drop(['battery_level', 'battery_status', 'battery_health', 'battery_adaptor'], axis=1, inplace=True)
+        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if len(df2)>0:
-        result = df2.groupby(["user","app_group"]).resample(**feature_functions).count()
+        result = df2.groupby(["user","app_group"]).resample(**feature_functions["resample_args"]).count()
         result = result["device"].to_frame()
         result = result.reset_index()
         result.rename(columns={"level_2": "datetime", "device": "count"}, inplace=True)
         result = result.set_index('datetime')
-        
     return result
 
 def app_duration(df, bat, screen, feature_functions=None):
@@ -373,8 +385,10 @@ def app_duration(df, bat, screen, feature_functions=None):
         Dataframe with the screen information. If no data is available, an empty 
         dataframe should be passed.
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -389,11 +403,14 @@ def app_duration(df, bat, screen, feature_functions=None):
     
     if not "group_map" in feature_functions.keys():
         feature_functions['group_map'] = APP_GROUP
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T'
+    if not "screen_column_name" in feature_functions.keys():
+        screen_col_name = "screen_status"
+    else:
+        screen_col_name = feature_functions["screen_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = classify_app(df, feature_functions['group_map'])
-    feature_functions.pop('group_map', None) #no need for this argumetn anymore
+    df2 = classify_app(df, feature_functions)
 
     #Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
@@ -401,7 +418,7 @@ def app_duration(df, bat, screen, feature_functions=None):
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2.drop(['sound', 'screen_status', 'vibrate'], axis=1, inplace=True)
+        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if (screen.empty and not bat.empty):
         shutdown = b.shutdown_info(bat)
@@ -409,7 +426,7 @@ def app_duration(df, bat, screen, feature_functions=None):
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2.drop(['battery_level', 'battery_status', 'battery_health', 'battery_adaptor'], axis=1, inplace=True)
+        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     df2['duration']=np.nan
     df2['duration']=df2['datetime'].diff()
@@ -420,9 +437,8 @@ def app_duration(df, bat, screen, feature_functions=None):
     df2 = df2[~(df2.duration>thr)]
     
     if len(df2)>0:
-        result = df2.groupby(["user","app_group"])["duration"].resample(**feature_functions).sum()
+        result = df2.groupby(["user","app_group"])["duration"].resample(**feature_functions["resample_args"]).sum()
         result = result.reset_index()
         result.rename(columns={"level_2": "datetime"}, inplace=True)
-        result = result.set_index('datetime')
-        
+        result = result.set_index('datetime')   
     return result
