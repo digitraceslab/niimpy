@@ -54,8 +54,10 @@ def call_duration_total(df, feature_functions=None):
     bat: pandas.DataFrame
         Dataframe with the battery information
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -65,17 +67,21 @@ def call_duration_total(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "call_duration"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
-    df['call_duration']=pd.to_numeric(df['call_duration'])
+    df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")["call_duration"].resample(**feature_functions).sum()
+        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).sum()
         outgoing.rename("outgoing_duration", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")["call_duration"].resample(**feature_functions).sum()
+        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).sum()
         incoming.rename("incoming_duration", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")["call_duration"].resample(**feature_functions).sum()
+        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).sum()
         missed.rename("missed_duration", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -94,8 +100,10 @@ def call_duration_mean(df, feature_functions=None):
     bat: pandas.DataFrame
         Dataframe with the battery information
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -105,17 +113,21 @@ def call_duration_mean(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "call_duration"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
-    df['call_duration']=pd.to_numeric(df['call_duration'])
+    df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")["call_duration"].resample(**feature_functions).mean()
+        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).mean()
         outgoing.rename("outgoing_duration", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")["call_duration"].resample(**feature_functions).mean()
+        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).mean()
         incoming.rename("incoming_duration", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")["call_duration"].resample(**feature_functions).mean()
+        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).mean()
         missed.rename("missed_duration", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -134,8 +146,10 @@ def call_duration_median(df, feature_functions=None):
     bat: pandas.DataFrame
         Dataframe with the battery information
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -145,17 +159,21 @@ def call_duration_median(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "call_duration"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
-    df['call_duration']=pd.to_numeric(df['call_duration'])
+    df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")["call_duration"].resample(**feature_functions).median()
+        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).median()
         outgoing.rename("outgoing_duration", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")["call_duration"].resample(**feature_functions).median()
+        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).median()
         incoming.rename("incoming_duration", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")["call_duration"].resample(**feature_functions).median()
+        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).median()
         missed.rename("missed_duration", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -175,8 +193,10 @@ def call_duration_std(df, feature_functions=None):
     bat: pandas.DataFrame
         Dataframe with the battery information
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -186,17 +206,21 @@ def call_duration_std(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "call_duration"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
-    df['call_duration']=pd.to_numeric(df['call_duration'])
+    df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")["call_duration"].resample(**feature_functions).std()
+        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).std()
         outgoing.rename("outgoing_duration", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")["call_duration"].resample(**feature_functions).std()
+        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).std()
         incoming.rename("incoming_duration", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")["call_duration"].resample(**feature_functions).std()
+        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).std()
         missed.rename("missed_duration", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -213,8 +237,10 @@ def call_count(df, feature_functions=None):
     df_u: pandas.DataFrame
         Input data frame
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -224,18 +250,22 @@ def call_count(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "call_duration"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
-    df['call_duration']=pd.to_numeric(df['call_duration'])
+    df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")["call_duration"].resample(**feature_functions).count()
-        outgoing.rename("outgoing_count", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")["call_duration"].resample(**feature_functions).count()
-        incoming.rename("incoming_count", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")["call_duration"].resample(**feature_functions).count()
-        missed.rename("missed_count", inplace=True)
+        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).count()
+        outgoing.rename("outgoing_duration", inplace=True)
+        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).count()
+        incoming.rename("incoming_duration", inplace=True)
+        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).count()
+        missed.rename("missed_duration", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
     return result
@@ -251,8 +281,10 @@ def call_outgoing_incoming_ratio(df, feature_functions=None):
     df_u: pandas.DataFrame
         Input data frame
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -262,8 +294,12 @@ def call_outgoing_incoming_ratio(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "call_duration"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
     df2 = call_count(df, feature_functions=None)
     df2["outgoing_incoming_ratio"] = df2["outgoing_count"]/df2["incoming_count"]
@@ -283,8 +319,10 @@ def sms_count(df, feature_functions=None):
     df_u: pandas.DataFrame
         Input data frame
     feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. To include
+        information about the resampling window, please include the selected parameters
+        from pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -294,12 +332,16 @@ def sms_count(df, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "communication_column_name" in feature_functions.keys():
+        col_name = "message_type"
+    else:
+        col_name = feature_functions["col_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
         
-    outgoing = df[df.message_type=="outgoing"].groupby("user")["message_type"].resample(**feature_functions).count()
+    outgoing = df[df.message_type=="outgoing"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).count()
     outgoing.rename("outgoing_count", inplace=True)
-    incoming = df[df.message_type=="incoming"].groupby("user")["message_type"].resample(**feature_functions).count()
+    incoming = df[df.message_type=="incoming"].groupby("user")[col_name].resample(**feature_functions["resample_args"]).count()
     incoming.rename("incoming_count", inplace=True)
     result = pd.concat([outgoing, incoming], axis=1)
     result.fillna(0, inplace=True)
