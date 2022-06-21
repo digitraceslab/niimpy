@@ -67,17 +67,17 @@ def audio_count_silent(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "is_silent"
     else:
         col_name = feature_functions["col_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df_u[column_name] = pd.to_numeric(df_u[column_name])
+    df_u[col_name] = pd.to_numeric(df_u[col_name])
         
     if len(df_u)>0:
-        result = df_u.groupby('user')[column_name].resample(**feature_functions["resample_args"]).sum()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
     return result
 
@@ -103,11 +103,11 @@ def audio_count_speech(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "is_silent"
     else:
         col_name = feature_functions["col_name"]
-    if not "audio_freq_name" in feature_functions.keys():
+    if not "audio_freq_name" in feature_functions:
         freq_name = "double_frequency"
     else:
         freq_name = feature_functions["freq_name"]
@@ -146,7 +146,7 @@ def audio_count_loud(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
         col_name = feature_functions["col_name"]
@@ -182,7 +182,7 @@ def audio_min_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
         col_name = feature_functions["col_name"]
@@ -215,7 +215,7 @@ def audio_max_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
         col_name = feature_functions["col_name"]
@@ -248,7 +248,7 @@ def audio_mean_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
         col_name = feature_functions["col_name"]
@@ -281,7 +281,7 @@ def audio_median_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
         col_name = feature_functions["col_name"]
@@ -314,7 +314,7 @@ def audio_std_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
         col_name = feature_functions["col_name"]
@@ -347,7 +347,7 @@ def audio_min_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
         col_name = feature_functions["col_name"]
@@ -380,7 +380,7 @@ def audio_max_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
         col_name = feature_functions["col_name"]
@@ -413,7 +413,7 @@ def audio_mean_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
         col_name = feature_functions["col_name"]
@@ -446,7 +446,7 @@ def audio_median_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
         col_name = feature_functions["col_name"]
@@ -479,7 +479,7 @@ def audio_std_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "audio_column_name" in feature_functions.keys():
+    if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
         col_name = feature_functions["col_name"]
