@@ -55,9 +55,11 @@ def audio_count_silent(df_u, feature_functions=None):
     column_name: string
     feature_functions: dict
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. To include
-        information about the resampling window, please include the selected parameters
-        from pandas.DataFrame.resample in a dictionary called resample_args.
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -91,9 +93,13 @@ def audio_count_speech(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -134,9 +140,13 @@ def audio_count_loud(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -170,9 +180,13 @@ def audio_min_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -203,9 +217,13 @@ def audio_max_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -236,9 +254,13 @@ def audio_mean_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -269,9 +291,13 @@ def audio_median_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -302,9 +328,13 @@ def audio_std_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -335,9 +365,13 @@ def audio_min_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -368,9 +402,13 @@ def audio_max_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -401,9 +439,13 @@ def audio_mean_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -434,9 +476,13 @@ def audio_median_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -467,9 +513,13 @@ def audio_std_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
