@@ -144,7 +144,7 @@ def extract_features_screen(df, bat, features=None):
     
     Returns
     -------
-    result: dataframe
+    computed_features: dataframe
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
@@ -198,8 +198,11 @@ def screen_off(df, bat, feature_functions=None):
     
     df = screen_util(df, bat, feature_functions)
     df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
-    df = df[["user", "screen_status"]]
+    df["screen_status"] = 1
+    df = df[["user","screen_status"]]
     df.rename(columns={"screen_status":"screen_off"}, inplace=True)
+    df.reset_index(inplace=True)
+    df.set_index(["user", "index"], inplace=True)
     return df
 
 def screen_count(df, bat, feature_functions=None):
@@ -647,5 +650,5 @@ def screen_first_unlock(df, bat, feature_functions):
     df2 = screen_event_classification(df2, feature_functions)
     
     result = df2[df2.on==1].groupby("user").resample(rule='1D').min()
-    result = result[["user","datetime"]]
+    result = result[["datetime"]]
     return result
