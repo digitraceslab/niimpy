@@ -5,7 +5,7 @@ import niimpy
 from niimpy.preprocessing import battery as b
 from niimpy.preprocessing import screen as s
 
-APP_GROUP = {'CrossCycle':'sports',
+MAP_APP = {'CrossCycle':'sports',
              'Runtastic':'sports',
              'Polar Flow':'sports',
              'Pedometer - Step Counter':'sports',
@@ -227,7 +227,7 @@ def classify_app(df, feature_functions):
     df: pandas.DataFrame
         Input data frame
     feature_functions: dict, optional
-        Dictionary keys containing optional arguments for the computation of scrren
+        Dictionary keys containing optional arguments for the computation of screen
         information. Keys can be column names, other dictionaries, etc. It can
         contain a dictionary called group_map, which has the mapping to define 
         the app groups. Keys should be the app name, values are the app groups 
@@ -251,7 +251,7 @@ def classify_app(df, feature_functions):
         df.app_group[df[col_name] == key]=value
     return df
 
-def extract_features_app(df, group_map=None, features=None):
+def extract_features_app(df, features=None):
     """ This function computes and organizes the selected features for application
     events that have been recorded using Aware Framework. The function aggregates 
     the features by user, by app group, by time window. If no time window is 
@@ -265,9 +265,6 @@ def extract_features_app(df, group_map=None, features=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    group_map: dict
-        Mapping to define the app groups. Keys should be the app name, values are
-        the app groups (e.g. 'my_app':'my_app_group')
     features: dict, optional
         Dictionary keys contain the names of the features to compute. 
         If none is given, all features will be computed.
@@ -288,7 +285,7 @@ def extract_features_app(df, group_map=None, features=None):
     computed_features = []
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
-        command = f'{feature}(df,feature_functions=feature_arg)'
+        command = f'{feature}(df, bat, screen, feature_functions=feature_arg)'
         computed_feature = eval(command)
         computed_features.append(computed_feature)
         
@@ -316,9 +313,11 @@ def app_count(df, bat, screen, feature_functions=None):
         dataframe should be passed.
     feature_functions: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. To include
-        information about the resampling window, please include the selected parameters
-        from pandas.DataFrame.resample in a dictionary called resample_args.
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -332,7 +331,7 @@ def app_count(df, bat, screen, feature_functions=None):
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
     if not "group_map" in feature_functions.keys():
-        feature_functions['group_map'] = APP_GROUP
+        feature_functions['group_map'] = MAP_APP
     if not "screen_column_name" in feature_functions.keys():
         screen_col_name = "screen_status"
     else:
@@ -360,10 +359,9 @@ def app_count(df, bat, screen, feature_functions=None):
     
     if len(df2)>0:
         result = df2.groupby(["user","app_group"]).resample(**feature_functions["resample_args"]).count()
-        result = result["device"].to_frame()
-        result = result.reset_index()
-        result.rename(columns={"level_2": "datetime", "device": "count"}, inplace=True)
-        result = result.set_index('datetime')
+        result.rename(columns={"device": "count"}, inplace=True)
+        result = result["count"].to_frame()
+        
     return result
 
 def app_duration(df, bat, screen, feature_functions=None):
@@ -386,9 +384,11 @@ def app_duration(df, bat, screen, feature_functions=None):
         dataframe should be passed.
     feature_functions: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. To include
-        information about the resampling window, please include the selected parameters
-        from pandas.DataFrame.resample in a dictionary called resample_args.
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -402,7 +402,7 @@ def app_duration(df, bat, screen, feature_functions=None):
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
     if not "group_map" in feature_functions.keys():
-        feature_functions['group_map'] = APP_GROUP
+        feature_functions['group_map'] = MAP_APP
     if not "screen_column_name" in feature_functions.keys():
         screen_col_name = "screen_status"
     else:
@@ -435,10 +435,9 @@ def app_duration(df, bat, screen, feature_functions=None):
     thr = pd.Timedelta('10 hours')
     df2 = df2[~(df2.duration>thr)]
     df2 = df2[~(df2.duration>thr)]
+    df2["duration"] = df2["duration"].dt.total_seconds()
     
     if len(df2)>0:
         result = df2.groupby(["user","app_group"])["duration"].resample(**feature_functions["resample_args"]).sum()
-        result = result.reset_index()
-        result.rename(columns={"level_2": "datetime"}, inplace=True)
-        result = result.set_index('datetime')   
+        
     return result
