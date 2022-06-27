@@ -72,7 +72,7 @@ def audio_count_silent(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "is_silent"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -112,11 +112,11 @@ def audio_count_speech(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "is_silent"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "audio_freq_name" in feature_functions:
         freq_name = "double_frequency"
     else:
-        freq_name = feature_functions["freq_name"]
+        freq_name = feature_functions["audio_freq_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -159,7 +159,7 @@ def audio_count_loud(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -199,7 +199,7 @@ def audio_min_freq(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -236,7 +236,7 @@ def audio_max_freq(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -273,7 +273,7 @@ def audio_mean_freq(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -310,7 +310,7 @@ def audio_median_freq(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -347,7 +347,7 @@ def audio_std_freq(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -384,7 +384,7 @@ def audio_min_db(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -421,7 +421,7 @@ def audio_max_db(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -458,7 +458,7 @@ def audio_mean_db(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -495,7 +495,7 @@ def audio_median_db(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
@@ -532,7 +532,7 @@ def audio_std_db(df_u, feature_functions=None):
     if not "audio_column_name" in feature_functions:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["audio_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
