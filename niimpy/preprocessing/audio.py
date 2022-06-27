@@ -52,7 +52,6 @@ def audio_count_silent(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    column_name: string
     feature_functions: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
