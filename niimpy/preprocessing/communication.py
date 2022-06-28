@@ -70,7 +70,7 @@ def call_duration_total(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "call_duration"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -116,7 +116,7 @@ def call_duration_mean(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "call_duration"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -164,7 +164,7 @@ def call_duration_median(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "call_duration"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -211,7 +211,7 @@ def call_duration_std(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "call_duration"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -257,7 +257,7 @@ def call_count(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "call_duration"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -303,7 +303,7 @@ def call_outgoing_incoming_ratio(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "call_duration"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -344,7 +344,7 @@ def sms_count(df, feature_functions=None):
     if not "communication_column_name" in feature_functions:
         col_name = "message_type"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["communication_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
