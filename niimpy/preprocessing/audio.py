@@ -52,9 +52,13 @@ def audio_count_silent(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -64,12 +68,17 @@ def audio_count_silent(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
-    df_u["is_silent"] = pd.to_numeric(df_u["is_silent"])
+    if not "audio_column_name" in feature_functions:
+        col_name = "is_silent"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
+    
+    df_u[col_name] = pd.to_numeric(df_u[col_name])
         
     if len(df_u)>0:
-        result = df_u.groupby('user')["is_silent"].resample(**feature_functions).sum()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
     return result
 
@@ -83,9 +92,13 @@ def audio_count_speech(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -95,15 +108,24 @@ def audio_count_speech(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
-    df_u["is_silent"] = pd.to_numeric(df_u["is_silent"])
+    if not "audio_column_name" in feature_functions:
+        col_name = "is_silent"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "audio_freq_name" in feature_functions:
+        freq_name = "double_frequency"
+    else:
+        freq_name = feature_functions["audio_freq_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
+        
+    df_u[col_name] = pd.to_numeric(df_u[col_name])
     
     if len(df_u)>0:
-        df_s = df_u[df_u['double_frequency'].between(65, 255)]
-        df_s = df_s[df_s.is_silent==0] #check if there was a conversation. 0 is not silent, 1 is silent
-        df_s.loc[:,"is_silent"] = 1
-        result = df_s.groupby('user')["is_silent"].resample(**feature_functions).sum()
+        df_s = df_u[df_u[freq_name].between(65, 255)]
+        df_s = df_s[df_s[col_name]==0] #check if there was a conversation. 0 is not silent, 1 is silent
+        df_s.loc[:,col_name] = 1
+        result = df_s.groupby('user')[col_name].resample(**feature_functions["resample_args"]).sum()
         result = result.to_frame(name='audio_count_speech')
     return result
 
@@ -117,9 +139,13 @@ def audio_count_loud(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -129,14 +155,18 @@ def audio_count_loud(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
-    df_u["is_silent"] = pd.to_numeric(df_u["is_silent"])
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_decibels"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
+        
+    df_u[col_name] = pd.to_numeric(df_u[col_name])
     
     if len(df_u)>0:
-        df_s = df_u[df_u.double_decibels>70] #check if environment was noisy
-        df_s.loc[:,"is_silent"] = 1
-        result = df_s.groupby('user')["is_silent"].resample(**feature_functions).sum()
+        df_s = df_u[df_u[col_name]>70] #check if environment was noisy
+        result = df_s.groupby('user')[col_name].resample(**feature_functions["resample_args"]).count()
         result = result.to_frame(name='audio_count_loud')
     return result
 
@@ -149,9 +179,13 @@ def audio_min_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -161,11 +195,15 @@ def audio_min_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_frequency"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_frequency"].resample(**feature_functions).min()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).min()
         result = result.to_frame(name='audio_min_freq')
     return result
 
@@ -178,9 +216,13 @@ def audio_max_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -190,11 +232,15 @@ def audio_max_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_frequency"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_frequency"].resample(**feature_functions).max()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).max()
         result = result.to_frame(name='audio_max_freq')
     return result
 
@@ -207,9 +253,13 @@ def audio_mean_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -219,11 +269,15 @@ def audio_mean_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_frequency"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_frequency"].resample(**feature_functions).mean()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_freq')
     return result
 
@@ -236,9 +290,13 @@ def audio_median_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -248,11 +306,15 @@ def audio_median_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_frequency"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_frequency"].resample(**feature_functions).median()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).median()
         result = result.to_frame(name='audio_median_freq')
     return result
 
@@ -265,9 +327,13 @@ def audio_std_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -277,11 +343,15 @@ def audio_std_freq(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_frequency"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_frequency"].resample(**feature_functions).std()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).std()
         result = result.to_frame(name='audio_std_freq')
     return result
 
@@ -294,9 +364,13 @@ def audio_min_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -306,11 +380,15 @@ def audio_min_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_decibels"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_decibels"].resample(**feature_functions).min()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).min()
         result = result.to_frame(name='audio_min_db')
     return result
 
@@ -323,9 +401,13 @@ def audio_max_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -335,11 +417,15 @@ def audio_max_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_decibels"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_decibels"].resample(**feature_functions).max()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).max()
         result = result.to_frame(name='audio_max_db')
     return result
 
@@ -352,9 +438,13 @@ def audio_mean_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -364,11 +454,15 @@ def audio_mean_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_decibels"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_decibels"].resample(**feature_functions).mean()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_db')
     return result
 
@@ -381,9 +475,13 @@ def audio_median_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -393,11 +491,15 @@ def audio_median_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_decibels"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_decibels"].resample(**feature_functions).median()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).median()
         result = result.to_frame(name='audio_median_db')
     return result
 
@@ -410,9 +512,13 @@ def audio_std_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
-        The feature functions can be set according to the pandas.DataFrame.resample
-        function.
+    feature_functions: dict
+        Dictionary keys containing optional arguments for the computation of scrren
+        information. Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about 
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
     
     Returns
     -------
@@ -422,10 +528,14 @@ def audio_std_db(df_u, feature_functions=None):
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "rule" in feature_functions.keys():
-        feature_functions['rule'] = '30T' #Set the default value of aggregation to 30 mins
+    if not "audio_column_name" in feature_functions:
+        col_name = "double_decibels"
+    else:
+        col_name = feature_functions["audio_column_name"]
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')["double_decibels"].resample(**feature_functions).std()
+        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).std()
         result = result.to_frame(name='audio_std_db')
     return result
