@@ -1,57 +1,89 @@
-import io
+import os
 
+import numpy as np
 import pandas as pd
-from pandas import Timestamp
-import pytest
+import numpy as np
 
-'''
 import niimpy
-from niimpy.preprocessing.util import TZ
+import niimpy.preprocessing.screen as sc
+from niimpy.config import config
 
+# read sample data
+data = niimpy.read_csv(config.MULTIUSER_AWARE_SCREEN_PATH, tz='Europe/Helsinki')
+bat = niimpy.read_csv(config.MULTIUSER_AWARE_BATTERY_PATH, tz='Europe/Helsinki')
 
-def test_screen_duration():
-    screen  = niimpy.reading.read.read_csv(niimpy.sampledata.TEST_SCREEN_1, tz=TZ)
-    battery = niimpy.reading.read.read_csv(niimpy.sampledata.TEST_BATTERY_1, tz=TZ)
-    duration, count = niimpy.preprocess.screen_duration(screen, battery=battery)
-    print('duration:')
-    print(duration)
-    print('count:')
-    print(count)
-    # On and off duration during this day
-    assert duration.loc[Timestamp('1970-01-01', tz=niimpy.util.TZ), 'on'] == 10
-    assert duration.loc[Timestamp('1970-01-01', tz=niimpy.util.TZ), 'off'] == 540
-    # on==1 for some reason
-    assert count.loc[Timestamp('1970-01-01', tz=niimpy.util.TZ), 'on_count'] == 1
-    assert count.loc[Timestamp('1970-01-01', tz=niimpy.util.TZ), 'off_count'] == 1
-
-
-
-@pytest.fixture
-def screen1():
-    return niimpy.reading.read.read_csv_string("""\
-time,screen_status
-0,1
-60,0
-600,1
-610,0
-1700,1
-3600,1
-3601,2
-""", tz=TZ)
-
-@pytest.fixture
-def battery1():
-    return niimpy.reading.read.read_csv_string("""\
-time,battery_level,battery_status
-1800,,-1
-""", tz=TZ)
-
-def test_screen_off(screen1, battery1):
-    off = niimpy.preprocessing.preprocess.screen_off(screen1, battery=battery1)
-    print(off)
-    #import pdb ; pdb.set_trace()
-    assert pd.Timestamp(60,  unit='s', tz=TZ) in off.index
-    assert pd.Timestamp(610, unit='s', tz=TZ) in off.index
-    # Phone was turned on at 1700, and battery ran out at 1800.
-    assert pd.Timestamp(1800, unit='s', tz=TZ) in off.index
-'''
+def test_audio_features():
+    
+    test = sc.extract_features_screen(data, bat, features=None)
+    time = pd.Timestamp("2020-01-09 02:30:00", tz='Europe/Helsinki')
+    
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_count"] == 4
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_count"] == 5
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_count"] == 2
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_durationtotal"] < 37
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_durationminimum"] < 4
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_durationmaximum"] < 13
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_durationmean"] < 9.5
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_durationmedian"] < 10.5
+    assert test.loc["jd9INuQ5BBlW", time]["screen_on_durationstd"] < 3.8
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_durationtotal"] < 1204
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_durationminimum"] < 0.01
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_durationmaximum"] < 1204
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_durationmean"] < 241
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_durationmedian"] < 0.01
+    assert test.loc["jd9INuQ5BBlW", time]["screen_off_durationstd"] < 539
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_durationtotal"] < 93.5
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_durationminimum"] < 39
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_durationmaximum"] < 54.5
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_durationmean"] < 47
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_durationmedian"] < 47
+    assert test.loc["jd9INuQ5BBlW", time]["screen_use_durationstd"] < 11
+    
+    time = pd.Timestamp("2019-08-08 22:30:00", tz='Europe/Helsinki')
+    
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_count"] == 4
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_count"] == 4
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_count"] == 4
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_durationtotal"] < 83.5
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_durationminimum"] < 3
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_durationmaximum"] < 70
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_durationmean"] < 21
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_durationmedian"] < 5.5
+    assert test.loc["iGyXetHE3S8u", time]["screen_on_durationstd"] < 33
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_durationtotal"] < 32150
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_durationminimum"] < 9.5
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_durationmaximum"] < 31450
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_durationmean"] < 8035
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_durationmedian"] < 340
+    assert test.loc["iGyXetHE3S8u", time]["screen_off_durationstd"] < 15610
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_durationtotal"] < 0.8
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_durationminimum"] < 0.15
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_durationmaximum"] < 0.3
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_durationmean"] < 0.2
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_durationmedian"] < 0.2
+    assert test.loc["iGyXetHE3S8u", time]["screen_use_durationstd"] < 0.1
+    
+    
+    features ={"screen_count":{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
+               "screen_duration":{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
+               "screen_first_unlock":{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}}}
+    test = sc.extract_features_screen(data, bat, features=features)
+    
+    assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["screen_on_count"] == 45
+    assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["screen_off_count"] == 45
+    assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-08", tz='Europe/Helsinki')]["screen_use_count"] == 6
+    assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_on_durationtotal"] < 0.25
+    assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_off_durationtotal"] < 446000
+    
+    features ={"screen_duration_min":{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
+               "screen_duration_max":{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
+               "screen_duration_mean":{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
+               "screen_duration_median":{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}},
+               "screen_duration_std":{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}}}
+    test = sc.extract_features_screen(data, bat, features=features)
+    
+    assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09 12:00:00", tz='Europe/Helsinki')]["screen_on_durationminimum"] < 2.5
+    assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09 12:00:00", tz='Europe/Helsinki')]["screen_use_durationmaximum"] < 290
+    assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["screen_on_durationmedian"] < 18.5
+    assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["screen_use_durationmedian"] < 0.35
+    assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["screen_off_durationmaximum"] < 182350
