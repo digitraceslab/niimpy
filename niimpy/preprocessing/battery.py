@@ -30,6 +30,8 @@ def battery_shutdown_info(df, **kwargs):
     
     if not "battery_column_name" in kwargs:
         col_name = "battery_status"
+    else:
+        col_name = feature_functions["battery_column_name"]
         
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     

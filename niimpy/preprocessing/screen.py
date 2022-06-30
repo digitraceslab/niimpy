@@ -64,9 +64,7 @@ def screen_util(df, bat, feature_functions):
     df.fillna(0, inplace=True)
    
     df = df[df.missing == 0] #Discard missing values
-    df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])#Discard transitions between subjects
     df.drop(["missing"], axis=1, inplace=True)
-    df = df.droplevel(0)
     return df
 
 def screen_event_classification(df, feature_functions):
@@ -100,9 +98,10 @@ def screen_event_classification(df, feature_functions):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     
     #Classify the event 
+    df.sort_values(by=["user","device","datetime"], inplace=True)
     df['next'] = df[col_name].shift(-1)
     df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str)   
     df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])#Discard transitions between subjects
@@ -112,7 +111,7 @@ def screen_event_classification(df, feature_functions):
     df["use"][(df.next=='30') | (df.next=='31') | (df.next=='32')]=1 #in use
     df["on"][(df.next=='10') | (df.next=='12') | (df.next=='13') | (df.next=='20')]=1 #on
     df["na"][(df.next=='21') | (df.next=='23')]=1 #irrelevant. It seems like from 2 to 1 is from off to on (i.e. the screen goes to off and then it locks)
-    df["off"][(df.next=='01') | (df.next=='02') | (df.next=='03') | (df.next=='21')]=1 #off
+    df["off"][(df.next=='01') | (df.next=='02') | (df.next=='03')]=1 #off
     
     df.drop(columns=["next",col_name], inplace=True)   
     
@@ -122,6 +121,41 @@ def screen_event_classification(df, feature_functions):
     df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
     df = df.droplevel(0)
     df = df.droplevel(0)
+    return df
+
+def screen_duration_util(df):
+    """ This function is a helper function for other screen preprocessing.
+    The function computes the duration of an event, based on the classification
+    function screen_event_classification. 
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    
+    Returns
+    -------
+    df: dataframe
+        Resulting dataframe
+    """    
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+            
+    df.sort_values(by=["user","device","datetime"], inplace=True)
+    df['duration']=np.nan
+    df['duration']=df['datetime'].diff()
+    df['duration'] = df['duration'].shift(-1)
+    
+    #Discard transitions between subjects
+    df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
+    df = df.droplevel(0)
+    
+    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
+    #longer than 10 hours becaus they may be artifacts
+    thr = pd.Timedelta('10 hours')
+    df = df[~((df.on==1) & (df.duration>thr))]
+    df = df[~((df.use==1) & (df.duration>thr))]
+    df["duration"] = df["duration"].dt.total_seconds()
+    
     return df
 
 def extract_features_screen(df, bat, features=None):
@@ -154,6 +188,7 @@ def extract_features_screen(df, bat, features=None):
         features = {x: {} for x in features}
         del features["screen_util"]
         del features["screen_event_classification"]
+        del features["screen_duration_util"]
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
     
@@ -163,6 +198,7 @@ def extract_features_screen(df, bat, features=None):
         command = f'{feature}(df, bat, feature_functions=feature_arg)'
         computed_feature = eval(command)
         computed_features.append(computed_feature)
+    computed_features = pd.concat(computed_features, axis=1)
         
     return computed_features
 
@@ -194,7 +230,7 @@ def screen_off(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]        
+        col_name = feature_functions["screen_column_name"]        
     
     df = screen_util(df, bat, feature_functions)
     df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
@@ -237,7 +273,7 @@ def screen_count(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
@@ -286,23 +322,13 @@ def screen_duration(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df2 = screen_util(df, bat, feature_functions)
     df2 = screen_event_classification(df2, feature_functions)           
-    
-    df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
-    df2['duration'] = df2['duration'].shift(-1)
-    
-    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
-    #longer than 10 hours becaus they may be artifacts
-    thr = pd.Timedelta('10 hours')
-    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
-    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
-    df2["duration"] = df2["duration"].dt.total_seconds()
+    df2 = screen_duration_util(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).sum()
@@ -346,23 +372,13 @@ def screen_duration_min(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df2 = screen_util(df, bat, feature_functions)
     df2 = screen_event_classification(df2, feature_functions)           
-    
-    df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
-    df2['duration'] = df2['duration'].shift(-1)
-    
-    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
-    #longer than 10 hours becaus they may be artifacts
-    thr = pd.Timedelta('10 hours')
-    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
-    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
-    df2["duration"] = df2["duration"].dt.total_seconds()
+    df2 = screen_duration_util(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).min()
@@ -406,23 +422,13 @@ def screen_duration_max(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df2 = screen_util(df, bat, feature_functions)
     df2 = screen_event_classification(df2, feature_functions)           
-    
-    df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
-    df2['duration'] = df2['duration'].shift(-1)
-    
-    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
-    #longer than 10 hours becaus they may be artifacts
-    thr = pd.Timedelta('10 hours')
-    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
-    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
-    df2["duration"] = df2["duration"].dt.total_seconds()
+    df2 = screen_duration_util(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).max()
@@ -466,23 +472,13 @@ def screen_duration_mean(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df2 = screen_util(df, bat, feature_functions)
     df2 = screen_event_classification(df2, feature_functions)           
-    
-    df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
-    df2['duration'] = df2['duration'].shift(-1)
-    
-    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
-    #longer than 10 hours becaus they may be artifacts
-    thr = pd.Timedelta('10 hours')
-    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
-    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
-    df2["duration"] = df2["duration"].dt.total_seconds()
+    df2 = screen_duration_util(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).mean()
@@ -526,23 +522,13 @@ def screen_duration_median(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df2 = screen_util(df, bat, feature_functions)
     df2 = screen_event_classification(df2, feature_functions)           
-    
-    df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
-    df2['duration'] = df2['duration'].shift(-1)
-    
-    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
-    #longer than 10 hours becaus they may be artifacts
-    thr = pd.Timedelta('10 hours')
-    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
-    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
-    df2["duration"] = df2["duration"].dt.total_seconds()
+    df2 = screen_duration_util(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).median()
@@ -586,23 +572,13 @@ def screen_duration_std(df, bat, feature_functions=None):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df2 = screen_util(df, bat, feature_functions)
     df2 = screen_event_classification(df2, feature_functions)           
-    
-    df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
-    df2['duration'] = df2['duration'].shift(-1)
-    
-    #Discard any datapoints whose duration in “ON” and "IN USE" states are 
-    #longer than 10 hours becaus they may be artifacts
-    thr = pd.Timedelta('10 hours')
-    df2 = df2[~((df2.on==1) & (df2.duration>thr))]
-    df2 = df2[~((df2.use==1) & (df2.duration>thr))]
-    df2["duration"] = df2["duration"].dt.total_seconds()
+    df2 = screen_duration_util(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).std()
@@ -642,7 +618,7 @@ def screen_first_unlock(df, bat, feature_functions):
     if not "screen_column_name" in feature_functions:
         col_name = "screen_status"
     else:
-        col_name = feature_functions["col_name"]
+        col_name = feature_functions["screen_column_name"]
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
