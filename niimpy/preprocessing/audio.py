@@ -1,5 +1,8 @@
 import pandas as pd
 
+ALL_FEATURE_FUNCTIONS = [key for key in globals().keys() if key.startswith('audio_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in features}
+
 def extract_features_audio(df, features=None):
     """ This function computes and organizes the selected features for audio snippets 
     that have been recorded using Aware Framework. The function aggregates the features
@@ -27,8 +30,7 @@ def extract_features_audio(df, features=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     
     if features is None:
-        features = [key for key in globals().keys() if key.startswith('audio_')]
-        features = {x: {} for x in features}
+        features = ALL_FEATURE_FUNCTIONS
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
     
