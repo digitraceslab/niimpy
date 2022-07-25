@@ -353,7 +353,7 @@ def app_count(df, bat, screen, feature_functions=None):
         df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if (screen.empty and not bat.empty):
-        shutdown = b.shutdown_info(bat)
+        shutdown = b.shutdown_info(bat, feature_functions)
         shutdown = shutdown.replace([-1,-2],'off')
         if type(shutdown.index)==pd.MultiIndex:
             shutdown.reset_index(inplace=True) 
@@ -361,6 +361,9 @@ def app_count(df, bat, screen, feature_functions=None):
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
+        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+        
+    if (screen.empty and bat.empty):
         df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     df2.dropna(inplace=True)
@@ -434,7 +437,7 @@ def app_duration(df, bat, screen, feature_functions=None):
         df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if (screen.empty and not bat.empty):
-        shutdown = b.shutdown_info(bat)
+        shutdown = b.shutdown_info(bat, feature_functions)
         shutdown = shutdown.replace([-1,-2],'off')
         if type(shutdown.index)==pd.MultiIndex:
             shutdown.reset_index(inplace=True) 
@@ -443,6 +446,10 @@ def app_duration(df, bat, screen, feature_functions=None):
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
         df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+    
+    if (screen.empty and bat.empty):
+        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+    
     
     df2['duration']=np.nan
     df2['duration']=df2['datetime'].diff()
