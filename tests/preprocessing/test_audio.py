@@ -43,9 +43,9 @@ def test_audio_features():
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_median_db"] == 46.5
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_std_db"] < 3.54
     
-    features ={"audio_count_silent":{"audio_column_name":"is_silent","resample_args":{"rule":"1D"}},
-               "audio_count_speech":{"audio_column_name":"is_silent","audio_freq_name":"double_frequency","resample_args":{"rule":"1D"}},
-               "audio_count_loud":{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}}}
+    features ={audio.audio_count_silent:{"audio_column_name":"is_silent","resample_args":{"rule":"1D"}},
+               audio.audio_count_speech:{"audio_column_name":"is_silent","audio_freq_name":"double_frequency","resample_args":{"rule":"1D"}},
+               audio.audio_count_loud:{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}}}
     test = audio.extract_features_audio(data, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_silent"] == 0
@@ -54,11 +54,11 @@ def test_audio_features():
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_loud"] == 12
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-13", tz='Europe/Helsinki')]["audio_count_loud"] == 10
     
-    features ={"audio_min_freq":{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               "audio_max_freq":{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               "audio_mean_freq":{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               "audio_median_freq":{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}},
-               "audio_std_freq":{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}}}
+    features ={audio.audio_min_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
+               audio.audio_max_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
+               audio.audio_mean_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
+               audio.audio_median_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}},
+               audio.audio_std_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}}}
     test = audio.extract_features_audio(data, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_min_freq"] == 4138
@@ -72,11 +72,11 @@ def test_audio_features():
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_median_freq"] == 3853
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_std_freq"] < 3081
     
-    features ={"audio_min_db":{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
-               "audio_max_db":{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
-               "audio_mean_db":{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
-               "audio_median_db":{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
-               "audio_std_db":{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}}}
+    features ={audio.audio_min_db:{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
+               audio.audio_max_db:{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
+               audio.audio_mean_db:{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
+               audio.audio_median_db:{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}},
+               audio.audio_std_db:{"audio_column_name":"double_decibels","resample_args":{"rule":"1D"}}}
     test = audio.extract_features_audio(data, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_min_db"] == 52
