@@ -4,7 +4,7 @@ import pandas as pd
 import niimpy
 from niimpy.preprocessing import battery as b
 
-def screen_util(df, bat, feature_functions):
+def util_screen(df, bat, feature_functions):
     """ This function is a helper function for all other screen preprocessing.
     The function has the option to merge information from the battery sensors to
     include data when the phone is shut down. The function also detects the missing 
@@ -67,7 +67,7 @@ def screen_util(df, bat, feature_functions):
     df.drop(["missing"], axis=1, inplace=True)
     return df
 
-def screen_event_classification(df, feature_functions):
+def event_classification_screen(df, feature_functions):
     """ This function is a helper function for other screen preprocessing.
     The function classifies the screen events into four transition types: on, 
     off, in use, and undefined, based on the screen events recorded. For example,
@@ -123,10 +123,10 @@ def screen_event_classification(df, feature_functions):
     df = df.droplevel(0)
     return df
 
-def screen_duration_util(df):
+def duration_util_screen(df):
     """ This function is a helper function for other screen preprocessing.
     The function computes the duration of an event, based on the classification
-    function screen_event_classification. 
+    function event_classification_screen. 
     
     Parameters
     ----------
@@ -158,50 +158,6 @@ def screen_duration_util(df):
     
     return df
 
-def extract_features_screen(df, bat, features=None):
-    """ This function computes and organizes the selected features for screen events
-    that have been recorded using Aware Framework. The function aggregates the features
-    by user, by time window. If no time window is specified, it will automatically aggregate
-    the features in 30 mins non-overlapping windows. 
-    
-    The complete list of features that can be calculated are: screen_off, screen_count,
-    screen_duration, screen_duration_min, screen_duration_max, screen_duration_median,
-    screen_duration_mean, screen_duration_std, and screen_first_unlock.
-    
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        Input data frame
-    features: dict
-        Dictionary keys contain the names of the features to compute. 
-        If none is given, all features will be computed.
-    
-    Returns
-    -------
-    computed_features: dataframe
-        Resulting dataframe
-    """
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    
-    if features is None:
-        features = [key for key in globals().keys() if key.startswith('screen_')]
-        features = {x: {} for x in features}
-        del features["screen_util"]
-        del features["screen_event_classification"]
-        del features["screen_duration_util"]
-    else:
-        assert isinstance(features, dict), "Please input the features as a dictionary"
-    
-    computed_features = []
-    for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
-        command = f'{feature}(df, bat, feature_functions=feature_arg)'
-        computed_feature = eval(command)
-        computed_features.append(computed_feature)
-    computed_features = pd.concat(computed_features, axis=1)
-        
-    return computed_features
-
 def screen_off(df, bat, feature_functions=None):
     """ This function returns the timestamps, within the specified timeframe, 
     when the screen has turned off. If there is no specified timeframe,
@@ -232,7 +188,7 @@ def screen_off(df, bat, feature_functions=None):
     else:
         col_name = feature_functions["screen_column_name"]        
     
-    df = screen_util(df, bat, feature_functions)
+    df = util_screen(df, bat, feature_functions)
     df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
     df["screen_status"] = 1
     df = df[["user","screen_status"]]
@@ -277,8 +233,8 @@ def screen_count(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
         
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)
     
     if len(df2)>0:
         on = df2.groupby("user")["on"].resample(**feature_functions["resample_args"]).sum()
@@ -326,9 +282,9 @@ def screen_duration(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)           
-    df2 = screen_duration_util(df2)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)           
+    df2 = duration_util_screen(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).sum()
@@ -376,9 +332,9 @@ def screen_duration_min(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)           
-    df2 = screen_duration_util(df2)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)           
+    df2 = duration_util_screen(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).min()
@@ -426,9 +382,9 @@ def screen_duration_max(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)           
-    df2 = screen_duration_util(df2)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)           
+    df2 = duration_util_screen(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).max()
@@ -476,9 +432,9 @@ def screen_duration_mean(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)           
-    df2 = screen_duration_util(df2)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)           
+    df2 = duration_util_screen(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).mean()
@@ -526,9 +482,9 @@ def screen_duration_median(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)           
-    df2 = screen_duration_util(df2)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)           
+    df2 = duration_util_screen(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).median()
@@ -576,9 +532,9 @@ def screen_duration_std(df, bat, feature_functions=None):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)           
-    df2 = screen_duration_util(df2)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)           
+    df2 = duration_util_screen(df2)
     
     if len(df2)>0:
         on = df2[df2.on==1].groupby("user")["duration"].resample(**feature_functions["resample_args"]).std()
@@ -622,9 +578,52 @@ def screen_first_unlock(df, bat, feature_functions):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df2 = screen_util(df, bat, feature_functions)
-    df2 = screen_event_classification(df2, feature_functions)
+    df2 = util_screen(df, bat, feature_functions)
+    df2 = event_classification_screen(df2, feature_functions)
     
     result = df2[df2.on==1].groupby("user").resample(rule='1D').min()
     result = result[["datetime"]]
     return result
+
+ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('screen_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+
+def extract_features_screen(df, bat, features=None):
+    """ This function computes and organizes the selected features for screen events
+    that have been recorded using Aware Framework. The function aggregates the features
+    by user, by time window. If no time window is specified, it will automatically aggregate
+    the features in 30 mins non-overlapping windows. 
+    
+    The complete list of features that can be calculated are: screen_off, screen_count,
+    screen_duration, screen_duration_min, screen_duration_max, screen_duration_median,
+    screen_duration_mean, screen_duration_std, and screen_first_unlock.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    features: dict
+        Dictionary keys contain the names of the features to compute. 
+        If none is given, all features will be computed.
+    
+    Returns
+    -------
+    computed_features: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+    
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        computed_feature = feature(df, bat, feature_arg)
+        computed_features.append(computed_feature)
+        
+    computed_features = pd.concat(computed_features, axis=1)
+        
+    return computed_features

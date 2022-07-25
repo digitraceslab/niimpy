@@ -64,9 +64,9 @@ def test_audio_features():
     assert test.loc["iGyXetHE3S8u", time]["screen_use_durationstd"] < 0.1
     
     
-    features ={"screen_count":{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
-               "screen_duration":{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
-               "screen_first_unlock":{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}}}
+    features ={sc.screen_count:{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
+               sc.screen_duration:{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
+               sc.screen_first_unlock:{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}}}
     test = sc.extract_features_screen(data, bat, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["screen_on_count"] == 45
@@ -75,11 +75,11 @@ def test_audio_features():
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_on_durationtotal"] < 0.25
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_off_durationtotal"] < 446000
     
-    features ={"screen_duration_min":{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
-               "screen_duration_max":{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
-               "screen_duration_mean":{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
-               "screen_duration_median":{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}},
-               "screen_duration_std":{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}}}
+    features ={sc.screen_duration_min:{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
+               sc.screen_duration_max:{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
+               sc.screen_duration_mean:{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
+               sc.screen_duration_median:{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}},
+               sc.screen_duration_std:{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}}}
     test = sc.extract_features_screen(data, bat, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09 12:00:00", tz='Europe/Helsinki')]["screen_on_durationminimum"] < 2.5
