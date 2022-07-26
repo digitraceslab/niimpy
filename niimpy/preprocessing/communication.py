@@ -1,46 +1,5 @@
 import pandas as pd
 
-def extract_features_comms(df, features=None):
-    """ This function computes and organizes the selected features for calls 
-    and SMS events. The function aggregates the features by user, by time window. 
-    If no time window is specified, it will automatically aggregate the features 
-    in 30 mins non-overlapping windows. 
-    
-    The complete list of features that can be calculated are: call_duration_total,
-    call_duration_mean, call_duration_median, call_duration_std, call_count,
-    call_outgoing_incoming_ratio, sms_count
-    
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        Input data frame
-    features: dict, optional
-        Dictionary keys contain the names of the features to compute. 
-        If none is given, all features will be computed.
-    
-    Returns
-    -------
-    result: dataframe
-        Resulting dataframe
-    """
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    
-    if features is None:
-        features = [key for key in globals().keys() if key.startswith('call_')]
-        features = {x: {} for x in features}
-    else:
-        assert isinstance(features, dict), "Please input the features as a dictionary"
-    
-    computed_features = []
-    for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
-        command = f'{feature}(df,feature_functions=feature_arg)'
-        computed_feature = eval(command)
-        computed_features.append(computed_feature)
-        
-    computed_features = pd.concat(computed_features, axis=1)
-    return computed_features
-
 def call_duration_total(df, feature_functions=None):  
     """ This function returns the total duration of each call type, within the 
     specified timeframe. The call types are incoming, outgoing, and missed. If 
@@ -356,3 +315,45 @@ def sms_count(df, feature_functions=None):
     result.fillna(0, inplace=True)
     
     return result
+
+ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('call_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+
+def extract_features_comms(df, features=None):
+    """ This function computes and organizes the selected features for calls 
+    and SMS events. The function aggregates the features by user, by time window. 
+    If no time window is specified, it will automatically aggregate the features 
+    in 30 mins non-overlapping windows. 
+    
+    The complete list of features that can be calculated are: call_duration_total,
+    call_duration_mean, call_duration_median, call_duration_std, call_count,
+    call_outgoing_incoming_ratio, sms_count
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    features: dict, optional
+        Dictionary keys contain the names of the features to compute. 
+        If none is given, all features will be computed.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+    
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        computed_feature = feature(df, feature_arg)
+        computed_features.append(computed_feature)
+        
+    computed_features = pd.concat(computed_features, axis=1)
+    return computed_features

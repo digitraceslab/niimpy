@@ -40,8 +40,8 @@ def test_audio_features():
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-10 15:00:00", tz='Europe/Helsinki')]["missed_duration_std"] == 0
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-10 15:00:00", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 2
        
-    features ={"call_count":{"communication_column_name":"call_duration","resample_args":{"rule":"1D"}},
-               "call_outgoing_incoming_ratio":{"communication_column_name":"call_duration","resample_args":{"rule":"1D"}}}
+    features ={comms.call_count:{"communication_column_name":"call_duration","resample_args":{"rule":"1D"}},
+               comms.call_outgoing_incoming_ratio:{"communication_column_name":"call_duration","resample_args":{"rule":"1D"}}}
     test = comms.extract_features_comms(data, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["missed_count"] == 1
@@ -49,10 +49,10 @@ def test_audio_features():
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-10", tz='Europe/Helsinki')]["outgoing_count"] == 2
     assert test.loc["iGyXetHE3S8u", pd.Timestamp("2019-08-10", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 2
     
-    features ={"call_duration_total":{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               "call_duration_mean":{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               "call_duration_median":{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               "call_duration_std":{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}}}
+    features ={comms.call_duration_total:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
+               comms.call_duration_mean:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
+               comms.call_duration_median:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
+               comms.call_duration_std:{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}}}
     test = comms.extract_features_comms(data, features=features)
     
     assert test.loc["jd9INuQ5BBlW", pd.Timestamp("2020-01-09 02:00:00", tz='Europe/Helsinki')]["outgoing_duration_total"] == 6062

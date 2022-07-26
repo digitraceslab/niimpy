@@ -251,48 +251,6 @@ def classify_app(df, feature_functions):
         df.app_group[df[col_name] == key]=value
     return df
 
-def extract_features_app(df, bat, screen, features=None):
-    """ This function computes and organizes the selected features for application
-    events that have been recorded using Aware Framework. The function aggregates 
-    the features by user, by app group, by time window. If no time window is 
-    specified, it will automatically aggregate the features in 30 mins non-
-    overlapping windows. If no group_map is provided, a default one will be used. 
-    
-    The complete list of features that can be calculated are: app_count, and 
-    app_duration.
-    
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        Input data frame
-    features: dict, optional
-        Dictionary keys contain the names of the features to compute. 
-        If none is given, all features will be computed.
-    
-    Returns
-    -------
-    result: dataframe
-        Resulting dataframe
-    """
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    
-    if features is None:
-        features = [key for key in globals().keys() if key.startswith('app_')]
-        features = {x: {} for x in features}
-    else:
-        assert isinstance(features, dict), "Please input the features as a dictionary"
-    
-    computed_features = []
-    for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
-        command = f'{feature}(df, bat, screen, feature_functions=feature_arg)'
-        computed_feature = eval(command)
-        computed_features.append(computed_feature)
-        
-    computed_features = pd.concat(computed_features, axis=1)
-    return computed_features
-
-
 def app_count(df, bat, screen, feature_functions=None):
     """ This function returns the number of times each app group has been used, 
     within the specified timeframe. The app groups are defined as a dictionary 
@@ -468,3 +426,45 @@ def app_duration(df, bat, screen, feature_functions=None):
         result = df2.groupby(["user","app_group"])["duration"].resample(**feature_functions["resample_args"]).sum()
         
     return result
+
+ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('app_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+
+def extract_features_app(df, bat, screen, features=None):
+    """ This function computes and organizes the selected features for application
+    events that have been recorded using Aware Framework. The function aggregates 
+    the features by user, by app group, by time window. If no time window is 
+    specified, it will automatically aggregate the features in 30 mins non-
+    overlapping windows. If no group_map is provided, a default one will be used. 
+    
+    The complete list of features that can be calculated are: app_count, and 
+    app_duration.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    features: dict, optional
+        Dictionary keys contain the names of the features to compute. 
+        If none is given, all features will be computed.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+    
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        computed_feature = feature(df, bat, screen, feature_arg)
+        computed_features.append(computed_feature)
+        
+    computed_features = pd.concat(computed_features, axis=1)
+    return computed_features
