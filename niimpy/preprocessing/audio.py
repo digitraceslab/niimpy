@@ -1,47 +1,5 @@
 import pandas as pd
 
-def extract_features_audio(df, features=None):
-    """ This function computes and organizes the selected features for audio snippets 
-    that have been recorded using Aware Framework. The function aggregates the features
-    by user, by time window. If no time window is specified, it will automatically aggregate
-    the features in 30 mins non-overlapping windows. 
-    
-    The complete list of features that can be calculated are: audio_count_silent, 
-    audio_count_speech, audio_count_loud, audio_min_freq, audio_max_freq, audio_mean_freq, 
-    audio_median_freq, audio_std_freq, audio_min_db, audio_max_db, audio_mean_db, 
-    audio_median_db, audio_std_db
-    
-    Parameters
-    ----------
-    df: pandas.DataFrame
-        Input data frame
-    features: dict, optional
-        Dictionary keys contain the names of the features to compute. 
-        If none is given, all features will be computed.
-    
-    Returns
-    -------
-    result: dataframe
-        Resulting dataframe
-    """
-    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    
-    if features is None:
-        features = [key for key in globals().keys() if key.startswith('audio_')]
-        features = {x: {} for x in features}
-    else:
-        assert isinstance(features, dict), "Please input the features as a dictionary"
-    
-    computed_features = []
-    for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
-        command = f'{feature}(df,feature_functions=feature_arg)'
-        computed_feature = eval(command)
-        computed_features.append(computed_feature)
-        
-    computed_features = pd.concat(computed_features, axis=1)
-    return computed_features
-            
 def audio_count_silent(df_u, feature_functions=None): 
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound in the environment. If there is no specified timeframe,
@@ -539,3 +497,47 @@ def audio_std_db(df_u, feature_functions=None):
         result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).std()
         result = result.to_frame(name='audio_std_db')
     return result
+
+ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('audio_')]
+ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+
+def extract_features_audio(df, features=None):
+    """ This function computes and organizes the selected features for audio snippets 
+    that have been recorded using Aware Framework. The function aggregates the features
+    by user, by time window. If no time window is specified, it will automatically aggregate
+    the features in 30 mins non-overlapping windows. 
+    
+    The complete list of features that can be calculated are: audio_count_silent, 
+    audio_count_speech, audio_count_loud, audio_min_freq, audio_max_freq, audio_mean_freq, 
+    audio_median_freq, audio_std_freq, audio_min_db, audio_max_db, audio_mean_db, 
+    audio_median_db, audio_std_db
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    features: dict, optional
+        Dictionary keys contain the names of the features to compute. 
+        If none is given, all features will be computed.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+    
+    computed_features = []
+    for feature, feature_arg in features.items():
+        print(f'computing {feature}...')
+        computed_feature = feature(df, feature_arg)
+        computed_features.append(computed_feature)
+        
+    computed_features = pd.concat(computed_features, axis=1)
+    return computed_features
+            
