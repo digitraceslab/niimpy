@@ -3,7 +3,7 @@ import pandas as pd
 
 def step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
     """Return the summary of step count in a time range. The summary includes the following information
-    of step count per day: mean, mean standard deviation, min, max
+    of step count per day: mean, standard deviation, min, max
 
     Parameters
     ----------
@@ -56,7 +56,9 @@ def step_summary(df, value_col='values', user_id=None, start_date=None, end_date
 
 
 def tracker_daily_step_distribution(steps_df):
-    """Return distribution of steps within each day.
+    """Return distribution of steps within each day. 
+    Assuming the step count is recorded at hourly resolution, this function will compute
+    the contribution of each hourly step count into the daily count (percentage wise).
 
     Parameters
     ----------
@@ -66,7 +68,7 @@ def tracker_daily_step_distribution(steps_df):
     Returns
     -------
     df: pandas DataFrame
-        A dataframe containing the distribution of step count per day.
+        A dataframe containing the distribution of step count per day at hourly resolution.
     """
 
     # Combine date and time to acquire  timestamp 
