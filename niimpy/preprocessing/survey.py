@@ -176,6 +176,11 @@ def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', pr
         Example: {'PHQ9': {'min': 3, 'max': 8, 'avg': 4.5, 'std': 2}}
     '''
     
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(answer_col, str), "answer_col is not a string."
+    assert isinstance(question_id_col, str), "question_id is not a string."
+    
+    
     def calculate_statistic(df, prefix, answer_col, group=None):
         
         d = {}
@@ -232,7 +237,7 @@ def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', pr
     return res
 
 
-def survey_sum_scores(df, survey_prefix, answer_col='answer', id_column='id'):
+def survey_sum_scores(df, survey_prefix=None, answer_col='answer', id_column='id'):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
     Parameters
@@ -255,16 +260,17 @@ def survey_sum_scores(df, survey_prefix, answer_col='answer', id_column='id'):
         DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
 
-    if survey_prefix is not None:
-        answers = df[df[id_column].str.startswith(survey_prefix)]
-    else:
-        answers = df
+    answers = df[df[id_column].str.startswith(survey_prefix)]
     
-    survey_score = answers.groupby('user')[answer_col].apply(lambda x: x.sum(skipna=False))
+    groupby_columns = [ ]
+    if 'user' in answers.columns:
+        groupby_columns.append(df['user'])
+    groupby_columns.append(df.index)
     
+    survey_score = answers.groupby(groupby_columns)[answer_col].apply(lambda x: x.sum(skipna=False))
     
     survey_score = survey_score.to_frame()
-    survey_score = survey_score.rename({'answer': 'score'}, axis='columns')
+    survey_score = survey_score.rename({answer_col: 'score'}, axis='columns')
     return survey_score
 
 
