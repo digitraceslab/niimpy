@@ -136,7 +136,7 @@ def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_
     assert isinstance(use_prefix, bool), "use_prefix is not a bool."
     
     # copy original answers
-    result = df[answer_col]
+    result = df.copy()[answer_col]
     
     for key,value in id_map.items():
         if use_prefix == True:
@@ -184,9 +184,9 @@ def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', pr
             
             # Groupby, aggregate and extract statistic from answer column 
             agg_df = df.groupby(['user', group]) \
-                         .agg({'answer': sum}) \
+                         .agg({answer_col: sum}) \
                          .groupby(group) \
-                         .agg({'answer': ['mean', 'min', 'max','std']})
+                         .agg({answer_col: ['mean', 'min', 'max','std']})
             agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
             agg_df = agg_df.rename(columns={'': group}).reset_index() # reassign group column 
             lst = []
@@ -232,7 +232,7 @@ def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', pr
     return res
 
 
-def survey_sum_scores(df, survey_prefix, answer_column='answer', id_column='id'):
+def survey_sum_scores(df, survey_prefix, answer_col='answer', id_column='id'):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
     Parameters
@@ -254,21 +254,15 @@ def survey_sum_scores(df, survey_prefix, answer_column='answer', id_column='id')
     survey_score: pandas DataFrame
         DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
+
     if survey_prefix is not None:
-        answers = df[df[id_column].str.startswith(survey_prefix+'_')]
+        answers = df[df[id_column].str.startswith(survey_prefix)]
     else:
         answers = df
-    answers[answer_column] = pd.to_numeric(answers[answer_column])
-    # Group by both user and indxe.  I make this groupby_columns to be
-    # able to select both the index and the user, when you don't know
-    # what name the index might have.
-    groupby_columns = [ ]
-    if 'user' in answers.columns:
-        groupby_columns.append(df['user'])
-    groupby_columns.append(df.index)
-    #
-    survey_score = answers.groupby(groupby_columns)[answer_column].apply(lambda x: x.sum(skipna=False))
-
+    
+    survey_score = answers.groupby('user')[answer_col].apply(lambda x: x.sum(skipna=False))
+    
+    
     survey_score = survey_score.to_frame()
     survey_score = survey_score.rename({'answer': 'score'}, axis='columns')
     return survey_score
