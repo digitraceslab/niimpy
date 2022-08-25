@@ -31,10 +31,10 @@ provides many high-level functions for various types of data.
 .. toctree::
    :maxdepth: 1
    :caption: API
-   
+
    api/modules
-   
-   
+
+
 .. toctree::
    :maxdepth: 1
    :caption: User guide
