@@ -18,6 +18,6 @@ SINGLEUSER_AWARE_APP_PATH = os.path.join(ROOT,config['sample_paths']['singleuser
 STEP_SUMMARY_PATH = os.path.join(ROOT, config['sample_paths']['step_summary'])
 GPS_PATH =  os.path.join(ROOT, config['sample_paths']['gps'])
 SURVEY_PATH = os.path.join(ROOT, config['sample_paths']['survey'])
-SL_ACTIVITY_PATH = os.path.join(ROOT, config['sample_paths']['sl_activity'])
+SL_ACTIVITY_PATH = os.path.join(ROOT, config['sample_paths']['studentlife_activity'])
 SQLITE_SINGLEUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_singleuser']) 
 SQLITE_MULTIUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_multiuser']) 
