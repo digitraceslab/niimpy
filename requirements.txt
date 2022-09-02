@@ -8,3 +8,4 @@ plotly
 scikit-learn
 coverage
 geopy
+kaleido
