@@ -53,9 +53,11 @@ provides many high-level functions for various types of data.
    :maxdepth: 1
    :caption: Community
    
-   about-us
-   Community-rules
    adding-features
+.. 
+    about-us
+   Community-rules
+   
    Partners
 
 
