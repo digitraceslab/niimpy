@@ -1,3 +1,4 @@
+-e .
 python-dateutil
 numpy
 pandas
@@ -7,4 +8,11 @@ plotly
 scikit-learn
 coverage
 sklearn
-
+nbdime
+numpydoc
+pytest
+sphinx_rtd_theme
+sphinx
+nbsphinx
+geopy
+ipykernel
