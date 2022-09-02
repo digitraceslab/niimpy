@@ -2,12 +2,17 @@
 
 import pandas as pd
 
-# The below mapping works only with Corona dataset. Adjust them to your own need.
+
+# Below, we provide some mappings between standardized survey raw questions and their respective codes
+# You will need to adjust these mappings to your own needs if your questions do not match with these values.
+
+# PHQ2: Patient Health Questionnaire. Link: https://en.wikipedia.org/wiki/Patient_Health_Questionnaire
 PHQ2_MAP = {
     'Little interest or pleasure in doing things.' : 'PHQ2_1',
     'Feeling down; depressed or hopeless.' : 'PHQ2_2',
 }
 
+# PSQI: Pittsburgh Sleep Quality Index. Link: https://en.wikipedia.org/wiki/Pittsburgh_Sleep_Quality_Index
 PSQI_MAP = {
     'Currently; is your sleep typically interrupted? (For example; for attending to a child or due to loud neighbours or medical reasons.)' : 'PSQI_1',
     'During the past month; how often have you taken medicine (prescribed or “over the counter”) to help you sleep?' : 'PSQI_2',
@@ -20,6 +25,7 @@ PSQI_MAP = {
     'How many hours of actual sleep did you get at night?' : 'PSQI_9',
 }
 
+# PSS-10: Perceived Stress Scale. Link: https://en.wikipedia.org/wiki/Perceived_Stress_Scale
 PSS10_MAP = {
     'In the last month; how often have you been upset because of something that happened unexpectedly?' : 'PSS10_1',
     'In the last month; how often have you felt that you were unable to control the important things in your life?' : 'PSS10_2',
@@ -30,37 +36,31 @@ PSS10_MAP = {
     'In the last month; how often have you felt that you were on top of things?' : 'PSS10_7',
     'In the last month; how often have you been angered because of things that were outside of your control?' : 'PSS10_8',
     'In the last month; how often have you felt difficulties were piling up so high that you could not overcome them?' : 'PSS10_9',
+    'In the last month, how often have you found that you could not cope with all the things that you had to do?': 'PSS10_10'
 }
 
+# PANAS: Positive and Negative Affect Schedule. Link: https://en.wikipedia.org/wiki/Positive_and_Negative_Affect_Schedule
 PANAS_MAP = {
-    'Upset': 'pre_upset',
-    'Hostile': 'pre_hostile',
-    'Alert': 'pre_alert',
-    'Ashamed': 'pre_ashamed',
-    'Inspired': 'pre_inspired',
-    'Nervous': 'pre_nervous',
-    'Determined': 'pre_determined',
-    'Attentive': 'pre_attentive',
-    'Afraid': 'pre_afraid',
-    'Active': 'pre_active',
-    
-    'Upset.1': 'during_upset',
-    'Hostile.1': 'during_hostile',
-    'Alert.1': 'during_alert',
-    'Ashamed.1': 'during_ashamed',
-    'Inspired.1': 'during_inspired',
-    'Nervous.1': 'during_nervous',
-    'Determined.1': 'during_determined',
-    'Attentive.1': 'during_attentive',
-    'Afraid.1': 'during_afraid',
-    'Active.1': 'during_active'
+    'Upset': 'upset',
+    'Hostile': 'hostile',
+    'Alert': 'alert',
+    'Ashamed': 'ashamed',
+    'Inspired': 'inspired',
+    'Nervous': 'nervous',
+    'Determined': 'determined',
+    'Attentive': 'attentive',
+    'Afraid': 'afraid',
+    'Active': 'active',
 }
 
+# GAD: Generalized anxiety disorder. Link: https://en.wikipedia.org/wiki/Generalized_anxiety_disorder
 GAD2_MAP = {
     'Feeling nervous; anxious or on edge.': 'GAD2_1',
     'Not being able to stop or control worrying.': 'GAD2_2'
 }
 
+# The below mappings map between answers to the questionnaires and their numerical values
+# You will need to adjust these mappings to your own needs if the answers do not match with these values.
 PSS_ANSWER_MAP = {
     'never': 0,
     'almost-never': 1,
@@ -91,7 +91,8 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_6' : PSS_ANSWER_MAP,
            'PSS10_7' : PSS_ANSWER_MAP,
            'PSS10_8' : PSS_ANSWER_MAP,
-           'PSS10_9' : PSS_ANSWER_MAP}
+           'PSS10_9' : PSS_ANSWER_MAP,
+           'PSS10_10' : PSS_ANSWER_MAP}
 
 def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
