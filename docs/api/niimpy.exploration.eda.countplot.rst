@@ -1,7 +1,7 @@
-niimpy.exploration.EDA\_lineplot module
+niimpy.exploration.eda.countplot module
 =======================================
 
-.. automodule:: niimpy.exploration.EDA_lineplot
+.. automodule:: niimpy.exploration.eda.countplot
    :members:
    :undoc-members:
    :show-inheritance:

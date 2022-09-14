@@ -1,7 +1,7 @@
-niimpy.preprocessing.preprocess module
+niimpy.exploration.eda.lineplot module
 ======================================
 
-.. automodule:: niimpy.preprocessing.preprocess
+.. automodule:: niimpy.exploration.eda.lineplot
    :members:
    :undoc-members:
    :show-inheritance:
