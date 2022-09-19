@@ -22,7 +22,7 @@ def test_sum_survey_scores():
 
     df['user'] = 'some_user'
     results = niimpy.preprocessing.survey.survey_sum_scores(df, 'S1')
-    print(results)
+
     results = results.loc['some_user']
     assert results.loc['2019-01-01']['score'] == 3
     assert results.loc['2019-01-02']['score'] == 12

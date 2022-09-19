@@ -5,11 +5,6 @@ Sample data of different types
 import os
 
 '''
-path = os.getcwd()
-print(path)
-parent = os.path.abspath(os.path.join(path, os.pardir))
-print(parent)
-'''
 
 SAMPLEDATA_DIR = os.path.join(os.path.dirname(__file__),'..', 'sampledata')
 _dirname = SAMPLEDATA_DIR
@@ -50,3 +45,4 @@ BATTERY_FILE = os.path.join(_dirname, 'multiuser_AwareBattery.csv')
 APPS_FILE = os.path.join(_dirname, 'singleuser_AwareApplicationNotifications.csv')
 CALLS_FILE = os.path.join(_dirname, 'multiuser_AwareCalls.csv')
 SMS_FILE = os.path.join(_dirname, 'multiuser_AwareMessages.csv')
+'''

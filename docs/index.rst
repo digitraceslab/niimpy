@@ -31,21 +31,25 @@ provides many high-level functions for various types of data.
 .. toctree::
    :maxdepth: 1
    :caption: API
-   
+
    api/modules
-   
-   
+
+
 .. toctree::
    :maxdepth: 1
    :caption: User guide
    
-   reading
    demo_notebooks/Exploration
    demo_notebooks/location
-   preprocessing
-   analysis
-   database
-   basic-transformations 
+   demo_notebooks/preprocessing
+   demo_notebooks/application
+   demo_notebooks/audio
+   demo_notebooks/battery
+   demo_notebooks/basic-transformations 
+   demo_notebooks/communication
+   demo_notebooks/screen
+   demo_notebooks/survey
+   demo_notebooks/tracker
 
 
 
@@ -53,9 +57,11 @@ provides many high-level functions for various types of data.
    :maxdepth: 1
    :caption: Community
    
-   about-us
-   Community-rules
    adding-features
+.. 
+    about-us
+   Community-rules
+   
    Partners
 
 

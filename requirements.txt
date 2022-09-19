@@ -1,3 +1,4 @@
+
 python-dateutil
 numpy
 pandas
@@ -6,5 +7,5 @@ seaborn
 plotly
 scikit-learn
 coverage
-sklearn
-
+geopy
+kaleido

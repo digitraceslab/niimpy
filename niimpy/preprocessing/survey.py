@@ -2,12 +2,17 @@
 
 import pandas as pd
 
-# The below mapping works only with Corona dataset. Adjust them to your own need.
+
+# Below, we provide some mappings between standardized survey raw questions and their respective codes
+# You will need to adjust these mappings to your own needs if your questions do not match with these values.
+
+# PHQ2: Patient Health Questionnaire. Link: https://en.wikipedia.org/wiki/Patient_Health_Questionnaire
 PHQ2_MAP = {
     'Little interest or pleasure in doing things.' : 'PHQ2_1',
     'Feeling down; depressed or hopeless.' : 'PHQ2_2',
 }
 
+# PSQI: Pittsburgh Sleep Quality Index. Link: https://en.wikipedia.org/wiki/Pittsburgh_Sleep_Quality_Index
 PSQI_MAP = {
     'Currently; is your sleep typically interrupted? (For example; for attending to a child or due to loud neighbours or medical reasons.)' : 'PSQI_1',
     'During the past month; how often have you taken medicine (prescribed or “over the counter”) to help you sleep?' : 'PSQI_2',
@@ -20,6 +25,7 @@ PSQI_MAP = {
     'How many hours of actual sleep did you get at night?' : 'PSQI_9',
 }
 
+# PSS-10: Perceived Stress Scale. Link: https://en.wikipedia.org/wiki/Perceived_Stress_Scale
 PSS10_MAP = {
     'In the last month; how often have you been upset because of something that happened unexpectedly?' : 'PSS10_1',
     'In the last month; how often have you felt that you were unable to control the important things in your life?' : 'PSS10_2',
@@ -30,37 +36,31 @@ PSS10_MAP = {
     'In the last month; how often have you felt that you were on top of things?' : 'PSS10_7',
     'In the last month; how often have you been angered because of things that were outside of your control?' : 'PSS10_8',
     'In the last month; how often have you felt difficulties were piling up so high that you could not overcome them?' : 'PSS10_9',
+    'In the last month, how often have you found that you could not cope with all the things that you had to do?': 'PSS10_10'
 }
 
+# PANAS: Positive and Negative Affect Schedule. Link: https://en.wikipedia.org/wiki/Positive_and_Negative_Affect_Schedule
 PANAS_MAP = {
-    'Upset': 'pre_upset',
-    'Hostile': 'pre_hostile',
-    'Alert': 'pre_alert',
-    'Ashamed': 'pre_ashamed',
-    'Inspired': 'pre_inspired',
-    'Nervous': 'pre_nervous',
-    'Determined': 'pre_determined',
-    'Attentive': 'pre_attentive',
-    'Afraid': 'pre_afraid',
-    'Active': 'pre_active',
-    
-    'Upset.1': 'during_upset',
-    'Hostile.1': 'during_hostile',
-    'Alert.1': 'during_alert',
-    'Ashamed.1': 'during_ashamed',
-    'Inspired.1': 'during_inspired',
-    'Nervous.1': 'during_nervous',
-    'Determined.1': 'during_determined',
-    'Attentive.1': 'during_attentive',
-    'Afraid.1': 'during_afraid',
-    'Active.1': 'during_active'
+    'Upset': 'upset',
+    'Hostile': 'hostile',
+    'Alert': 'alert',
+    'Ashamed': 'ashamed',
+    'Inspired': 'inspired',
+    'Nervous': 'nervous',
+    'Determined': 'determined',
+    'Attentive': 'attentive',
+    'Afraid': 'afraid',
+    'Active': 'active',
 }
 
+# GAD: Generalized anxiety disorder. Link: https://en.wikipedia.org/wiki/Generalized_anxiety_disorder
 GAD2_MAP = {
     'Feeling nervous; anxious or on edge.': 'GAD2_1',
     'Not being able to stop or control worrying.': 'GAD2_2'
 }
 
+# The below mappings map between answers to the questionnaires and their numerical values
+# You will need to adjust these mappings to your own needs if the answers do not match with these values.
 PSS_ANSWER_MAP = {
     'never': 0,
     'almost-never': 1,
@@ -91,13 +91,14 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_6' : PSS_ANSWER_MAP,
            'PSS10_7' : PSS_ANSWER_MAP,
            'PSS10_8' : PSS_ANSWER_MAP,
-           'PSS10_9' : PSS_ANSWER_MAP}
+           'PSS10_9' : PSS_ANSWER_MAP,
+           'PSS10_10' : PSS_ANSWER_MAP}
 
 def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
-    Use answer mapping dictionaries provided by the uses to convert the answers.
-    Can convert multiple questions having same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
-    at same time if prefix mapping is provided. Function returns original values for the 
+    Use answer mapping dictionaries provided by the users to convert the answers.
+    Can convert multiple questions having the same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
+    if prefix mapping is provided. Function returns original values for the 
     answers that have not been specified for conversion.
     
     
@@ -136,7 +137,7 @@ def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_
     assert isinstance(use_prefix, bool), "use_prefix is not a bool."
     
     # copy original answers
-    result = df[answer_col]
+    result = df.copy()[answer_col]
     
     for key,value in id_map.items():
         if use_prefix == True:
@@ -151,23 +152,35 @@ def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_
         
     return result
 
-def survey_print_statistic(df, question_id = 'id', answer_col = 'answer', prefix=None, group=None):
+def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', prefix=None, group=None):
     '''
-    Return survey statistic. The statistic includes min, max, average and s.d values.
+    Return survey statistic. Assuming that the question ids are stored in question_id_col and 
+    the survey answers are stored in answer_col, this function returns all the relevant statistics for each question. 
+    The statistic includes min, max, average and s.d of the scores of each question.
 
-    :param df: 
-        DataFrame contains survey score.
-    :param question_id: string. 
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    question_id_col: string. 
         Column contains question id.
-    :param answer: 
+    answer_col: string
         Column contains answer in numerical values.
-    :param prefix: list. 
-        List contains survey prefix. If None is given, search question_id for all possible categories.
-    
-    Return: dict
+    prefix: list, optional
+        List contains survey prefix. If None is given, search question_id_col for all possible categories.
+    group: string, optional
+        Column contains group factor. If this is given, survey statistics for each group will be returned
+    Returns
+    -------
+    dict: dictionary
         A dictionary contains summary of each questionaire category.
         Example: {'PHQ9': {'min': 3, 'max': 8, 'avg': 4.5, 'std': 2}}
     '''
+    
+    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    assert isinstance(answer_col, str), "answer_col is not a string."
+    assert isinstance(question_id_col, str), "question_id is not a string."
+    
     
     def calculate_statistic(df, prefix, answer_col, group=None):
         
@@ -177,9 +190,9 @@ def survey_print_statistic(df, question_id = 'id', answer_col = 'answer', prefix
             
             # Groupby, aggregate and extract statistic from answer column 
             agg_df = df.groupby(['user', group]) \
-                         .agg({'answer': sum}) \
+                         .agg({answer_col: sum}) \
                          .groupby(group) \
-                         .agg({'answer': ['mean', 'min', 'max','std']})
+                         .agg({answer_col: ['mean', 'min', 'max','std']})
             agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
             agg_df = agg_df.rename(columns={'': group}).reset_index() # reassign group column 
             lst = []
@@ -202,12 +215,12 @@ def survey_print_statistic(df, question_id = 'id', answer_col = 'answer', prefix
     if prefix:
         if isinstance(prefix, str):
             
-            temp = df[df[question_id].str.startswith(prefix)]
+            temp = df[df[question_id_col].str.startswith(prefix)]
             return calculate_statistic(temp, prefix, answer_col, group)
         elif isinstance(prefix, list):
             
             for pr in prefix:
-                temp = df[df[question_id].str.startswith(pr)]
+                temp = df[df[question_id_col].str.startswith(pr)]
                 d = calculate_statistic(temp, prefix, answer_col, group)
                 res.update(d)
         else:
@@ -217,44 +230,48 @@ def survey_print_statistic(df, question_id = 'id', answer_col = 'answer', prefix
         
         # Search for all possible prefix (extract everything before the '_' delimimeter)
         # Then compute statistic as usual
-        prefix_lst = list(set(df[question_id].str.split('_').str[0]))
+        prefix_lst = list(set(df[question_id_col].str.split('_').str[0]))
         for pr in prefix_lst:
-            temp = df[df[question_id].str.startswith(pr)]
+            temp = df[df[question_id_col].str.startswith(pr)]
             d = calculate_statistic(temp, pr, answer_col, group)
             res.update(d)
     return res
 
 
-def survey_sum_scores(df, survey_prefix, answer_column='answer', id_column='id'):
+def survey_sum_scores(df, survey_prefix=None, answer_col='answer', id_column='id'):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
-    Input dataframe: has a DateTime index, an answer_column with numeric
-    scores, and an id_column with question IDs like "PHQ9_1", "PHQ9_2",
-    etc.  The given survey_prefix is the "PHQ9" (no underscore) part
-    which selects the right questions (rows not matching this prefix
-    won't be included).
+    Parameters
+    -------
+    
+    df: pandas DataFrame 
+        DataFrame should be a DateTime index, an answer_column with numeric
+        scores, and an id_column with question IDs like "PHQ9_1", "PHQ9_2",
+        etc.  The given survey_prefix is the "PHQ9" (no underscore) part
+        which selects the right questions (rows not matching this prefix
+        won't be included).
 
-    This assumes that all surveys have a different time.
-
-    survey: The survey prefix in the 'id' column, e.g. 'PHQ9'.  An '_' is appended.
+    survey_prefix: string
+        The survey prefix in the 'id' column, e.g. 'PHQ9'.  An '_' is appended.
+        
+    
+    Return
+    -------
+    survey_score: pandas DataFrame
+        DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
-    if survey_prefix is not None:
-        answers = df[df[id_column].str.startswith(survey_prefix+'_')]
-    else:
-        answers = df
-    answers[answer_column] = pd.to_numeric(answers[answer_column])
-    # Group by both user and indxe.  I make this groupby_columns to be
-    # able to select both the index and the user, when you don't know
-    # what name the index might have.
+
+    answers = df[df[id_column].str.startswith(survey_prefix)]
+    
     groupby_columns = [ ]
     if 'user' in answers.columns:
         groupby_columns.append(df['user'])
     groupby_columns.append(df.index)
-    #
-    survey_score = answers.groupby(groupby_columns)[answer_column].apply(lambda x: x.sum(skipna=False))
-
+    
+    survey_score = answers.groupby(groupby_columns)[answer_col].apply(lambda x: x.sum(skipna=False))
+    
     survey_score = survey_score.to_frame()
-    survey_score = survey_score.rename({'answer': 'score'}, axis='columns')
+    survey_score = survey_score.rename({answer_col: 'score'}, axis='columns')
     return survey_score
 
 
