@@ -6,7 +6,7 @@ import numpy as np
 
 import niimpy
 import niimpy.preprocessing.application as app
-from config import config
+from niimpy.config import config
 
 # read sample data
 data = niimpy.read_csv(config.SINGLEUSER_AWARE_APP_PATH, tz='Europe/Helsinki')

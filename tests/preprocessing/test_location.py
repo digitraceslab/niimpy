@@ -7,7 +7,7 @@ from geopy.distance import distance
 
 import niimpy
 import niimpy.preprocessing.location as nilo
-from config import config
+from niimpy.config import config
 
 # read sample data
 data = niimpy.read_csv(config.GPS_PATH, tz='et')

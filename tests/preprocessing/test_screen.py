@@ -6,7 +6,7 @@ import numpy as np
 
 import niimpy
 import niimpy.preprocessing.screen as sc
-from config import config
+from niimpy.config import config
 
 # read sample data
 data = niimpy.read_csv(config.MULTIUSER_AWARE_SCREEN_PATH, tz='Europe/Helsinki')

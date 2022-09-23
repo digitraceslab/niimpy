@@ -3,7 +3,7 @@ import numpy as np
 
 import niimpy
 from niimpy.reading import read
-from config import config
+from niimpy.config import config
 
 TZ = 'Europe/Helsinki'
 
