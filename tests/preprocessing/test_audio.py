@@ -6,7 +6,7 @@ import numpy as np
 
 import niimpy
 import niimpy.preprocessing.audio as audio
-from niimpy.config import config
+from niimpy import config
 
 # read sample data
 data = niimpy.read_csv(config.MULTIUSER_AWARE_AUDIO_PATH, tz='Europe/Helsinki')

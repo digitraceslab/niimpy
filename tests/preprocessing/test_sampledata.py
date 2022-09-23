@@ -3,7 +3,7 @@
 
 import pandas as pd
 import pytest
-from niimpy.config import config
+from niimpy import config
 
 import niimpy
 from niimpy.reading import read
