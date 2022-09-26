@@ -6,16 +6,11 @@ from os.path import join, dirname
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-version_ns = { }
-exec(open('niimpy/_version.py').read(), version_ns)
-version = version_ns['__version__']
-del version_ns
-
 requirementstxt = join(dirname(__file__), "requirements.txt")
 requirements = [ line.strip() for line in open(requirementstxt, "r") if line.strip() ]
 
 setup(name='niimpy',
-      version=1.0,
+      version=1.0.0,
       description='Behavorial data analysis',
       long_description=long_description,
       long_description_content_type='text/markdown',
