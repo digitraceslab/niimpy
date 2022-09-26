@@ -41,7 +41,6 @@ provides many high-level functions for various types of data.
    
    demo_notebooks/Exploration
    demo_notebooks/location
-   demo_notebooks/preprocessing
    demo_notebooks/application
    demo_notebooks/audio
    demo_notebooks/battery
