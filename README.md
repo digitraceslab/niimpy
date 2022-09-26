@@ -8,10 +8,6 @@
 [![codecov](https://codecov.io/gh/digitraceslab/niimpy/branch/master/graph/badge.svg?token=SEEOOF7A70)](https://codecov.io/gh/digitraceslab/niimpy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
-
-`niimpy` Introduction
-=====================
-
 What
 ----
 
@@ -49,35 +45,6 @@ The toolbox is divided into four layers by functionality: 1) reading, 2) preproc
   ```
   pip install https://github.com/digitraceslab/niimpy/archive/master.zip
   ```
-
-
-## Basic usage
-
-First, you need to download the data.  (Note: in normal use, this is
-done for you).  You can download in the `sqlite3` format from the
-Koota interface and import yourself to sqlite, or use the
-`download_sync.sh` script in Koota.
-
-So, then usage is fairly simple:
-
-```
-data = niimpy.open('/path/to/database.sqlite')
-
-# Get hourly summaries of MurataBSN data (mean/std/count), hr and rr columns
-d = data.hourly(table='MurataBSN', user='rkr561Rkn-3t', columns=['hr', 'rr'])
-d.head(5)
-
-                            day  hour  count    hr_mean     hr_std  hr_count       rr_mean    rr_std  rr_count
-2017-06-08 21:00:00  2017-06-08    21   3575  52.565145  12.561495      3575      6.165038  2.165948      3555
-```
-
-The `hourly` function provides hourly summaries.  The output is always
-[pandas]( 2.243038 4.184948 3555) data frames, which are a somewhat
-standard way of representing tabular-like data.
-
-There are different functions to provide summaries of the data in
-different formats, but it is expected that *you* will be the one doing
-the core analysis with your own code.
 
 ### Getting started with location data
 
@@ -134,12 +101,7 @@ features = nilo.extract_features(
 
 ## Documentation
 
-For now, see the included [docs/Introduction.ipynb] and [docs/Manual.ipynb]
-notebooks.
-
-To learn about what converters exist and what they mean, see the
-[Koota wiki](https://github.com/digitraceslab/koota-server/wiki), in
-particular the data sources section.
+Niimpy documentation is hosted at [readthedocs]https://niimpy.readthedocs.io/en/latest/.
 
 ## Development
 
