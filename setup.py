@@ -15,12 +15,12 @@ requirementstxt = join(dirname(__file__), "requirements.txt")
 requirements = [ line.strip() for line in open(requirementstxt, "r") if line.strip() ]
 
 setup(name='niimpy',
-      version=version,
+      version=1.0,
       description='Behavorial data analysis',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      author='Richard Darst',
-      author_email='rkd@zgib.net',
+      author='Digitraceslab',
+      author_email='talayeh.aledavood@aalto.fi',
       url='https://github.com/digitraceslab/niimpy',
       #packages=['niimpy', 'niimpy.preprocessing', 'niimpy.reading'],
       packages=find_packages(where='.'),
