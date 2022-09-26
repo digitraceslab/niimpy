@@ -9,46 +9,42 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 
-`niimpy` is a Python package for managing individual-level data.  The
-best way to describe it is to look at the big picture:
+`niimpy` Introduction
+=====================
 
-- [koota-server](https://github.com/digitraceslab/koota-server) is a
-  platform for collecting data from different sources, managing it for
-  users and studies, and downloading it.  Before downloading, it can
-  be converted into tabular format.
+What
+----
 
-- Koota can provide data in the form of sqlite databases, which
-  provides a nice interface for basic querying but still not enough
-  for really efficient use.  You can access these databases using the
-  Python `sqlite3` module, the `sqlite3` command line utility,
-  `pandas.read_sql`, and many other options.
+Niimpy is a Python package for analyzing and quantifying behavioral data. It uses pandas to read data from disk, perform basic manipulations, provides explorative data analysis functions, offers many high-level preprocessing functions for various types of data, and has functions for behavioral data analysis.
 
-- `niimpy` can open these databases and provide a querying shortcut
-  for basic operations, which saves you from having to write so much
-  SQL yourself.
+For Who
+-------
 
-- `niimpy` also provides some more high-level operations, such as
-  basic preprocessing/aggregation, visualizing data quality, and other
-  transformations so that you can focus on your interesting work.
+Niimpy is intended for researchers and data scientists analyzing digital digital behavioral data. Its purpose is to facilitate data analysis by providing a standardized replicable workflow.
 
-- ... but *you* need to do the real analysis work.  If you make good,
-  generalizable functions, they can be added to `niimpy`.
+Why
+---
 
-Table of contents:
+Digital behavioral studies using personal digital devices typically produce rich multi-sensor longitudinal datasets of mixed data types. Analyzing such data requires multidisciplinary expertise and software designed for the purpose. Currently, no standardized workflow or tools exist to analyze such data sets. The analysis requires domain knowledge in multiple fields and programming expertise. Niimpy package is specifically designed to analyze longitudinal, multimodal behavioral data. Nimpy is a user-friendly open-source package that can be easily expanded and adapted to specific research requirements. The toolbox facilitates the analysis phase by providing tools for data management, preprocessing, feature extraction, and visualization. The more advanced analysis methods will be incorporated into the toolbox in the future.
 
-- [Installation](#installation)
-- [Basic usage](#basic-usage)
-  -  [Getting started with location data](#getting-started-with-location-data)
-- [Documentation](#documentation)
-- [Development](#development)
-- [See also](#see-also)
+
+How
+---
+
+The toolbox is divided into four layers by functionality: 1) reading, 2) preprocessing, 3) exploration, and 4) analysis. For more information about the layers, refer the toolbox architecture chapter :doc:`architecture`. Quickstart guide would be a good place to start :doc:`quick-start`. More detailed demo Jupyter notebooks are provided in user guide chapter :doc:`demo_notebooks/Exploration`. Instructions for individual functions can be found under API chapter :doc:`api/niimpy`.
+
 
 ## Installation
 
 - Only supports Python 3 (tested on 3.5 and above)
 
-- This is a normal Python package to install.  It is not currently in
-  PyPI, so can be installed manually
+- This is a normal Python package to install. 
+
+  ```
+  pip install niimpy
+  ```
+
+- It can also be installed manually:
 
   ```
   pip install https://github.com/digitraceslab/niimpy/archive/master.zip
