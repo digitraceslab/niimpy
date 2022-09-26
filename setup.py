@@ -10,7 +10,7 @@ requirementstxt = join(dirname(__file__), "requirements.txt")
 requirements = [ line.strip() for line in open(requirementstxt, "r") if line.strip() ]
 
 setup(name='niimpy',
-      version=1.0.0,
+      version=1.0,
       description='Behavorial data analysis',
       long_description=long_description,
       long_description_content_type='text/markdown',
