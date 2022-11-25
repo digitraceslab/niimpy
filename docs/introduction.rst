@@ -11,7 +11,7 @@ Niimpy is a Python package for analyzing and quantifying behavioral data. It use
 For Who
 -------
 
-Niimpy is intended for researchers and data scientists analyzing digital digital behavioral data. Its purpose is to facilitate data analysis by providing a standardized replicable workflow.
+Niimpy is intended for researchers and data scientists analyzing digital behavioral data. Its purpose is to facilitate data analysis by providing a standardized replicable workflow.
 
 Why
 ---
@@ -30,7 +30,7 @@ This documentation has following chapters:
 - Quickstart guide
 - API documentation
 - User guide
-- Commununity guide 
+- Community guide
 - Data documentation
 
 Basic information contain toolbox description :ref:`introduction_reference`, installation instructions :doc:`installation`, software architecture :doc:`architecture`and workflow schematics, and information about compatible data input-formats :doc:`imput-formats` and required data schema :doc:`schema`.
