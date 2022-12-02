@@ -73,7 +73,7 @@ easily operate on diverse data types.
 * For questionaire data
 
   * ``id``: a question identifier.  String, should be of form
-    ``QUESTIONAIERE_QUESTIOR``, for example ``PHQ9_01``.  The common
+    ``QUESTIONAIRE_QUESTION``, for example ``PHQ9_01``.  The common
     prefix is used to group questions of the same series.
   * ``answer``: the answer to the question.  Opaque identifier.
 
