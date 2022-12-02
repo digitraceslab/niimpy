@@ -3,17 +3,17 @@ Architecture and workflow
 
 Niimpy toolbox functionality is organized into four layers:
 
-1. Data Reading 
+1. Data Reading
 2. Data Preprocessing
-3. Data Exploration 
-4. Data Analysis. 
+3. Data Exploration
+4. Data Analysis.
 
 Each layer in implemented as a module. Following table presents the layer properties.
-     
+
 +-----------------------+-------------------------------------------------+
-|         Layer         |                    Purpose                      | 
+|         Layer         |                    Purpose                      |
 +=======================+=================================================+
-|        Reading        |  Read data from the on-disk formats             | 
+|        Reading        |  Read data from the on-disk formats             |
 +-----------------------+-------------------------------------------------+
 |     Preprocessing     |  Prepare data for analysis                      |
 +-----------------------+-------------------------------------------------+
@@ -28,8 +28,8 @@ Layer: reading
 Data is read from the on-disk formats.
 
 Typical input consists of filenames on disk, and typical output is a
-pandas.DataFrame with a direct mapping of on-disk formats.  For
-converience, it may do various other small limiting and preprocessing,
+pandas.DataFrame with a direct mapping of on-disk formats. For
+convenience, it may do various other small limiting and preprocessing,
 but should not look inside the data too much.
 
 These are in ``niimpy.reading``.
@@ -78,7 +78,7 @@ Other possible workflows:
 * Data reading -> Exploration -> Preprocessing -> Analysis
 * Data reading -> Exploration -> Preprocessing -> Exploration -> Analysis
 
-Niimpy workflow diagram 
+Niimpy workflow diagram
 
 .. image:: images/Flowchart.jpg
   :width: 800
