@@ -11,7 +11,7 @@ Niimpy is a Python package for analyzing and quantifying behavioral data. It use
 For Who
 -------
 
-Niimpy is intended for researchers and data scientists analyzing digital digital behavioral data. Its purpose is to facilitate data analysis by providing a standardized replicable workflow.
+Niimpy is intended for researchers and data scientists analyzing digital behavioral data. Its purpose is to facilitate data analysis by providing a standardized replicable workflow.
 
 Why
 ---
@@ -30,16 +30,16 @@ This documentation has following chapters:
 - Quickstart guide
 - API documentation
 - User guide
-- Commununity guide 
+- Community guide
 - Data documentation
 
-Basic information contain toolbox description :ref:`introduction_reference`, installation instructions :doc:`installation`, software architecture :doc:`architecture`and workflow schematics, and information about compatible data input-formats :doc:`imput-formats` and required data schema :doc:`schema`.
+Basic information contain this :ref:`introduction <introduction>`, :doc:`installation instructions<installation>`, :doc:`software architecture and workflow schematics<architecture>`, and information about :doc:`compatible data input-formats<input-formats>` and the :doc:`required data schema<schema>`.
 
-Quickstart guide provides a minimal working analysis example to get you started :doc:`quick-start`.
+The :doc:`quickstart guide<quick-start>` provides a minimal working analysis example to get you started.
 
-API documentation has all technical details, containing instruction about how to use the toolbox functions, classes, return types, arguments and such :doc:`api/niimpy`.
+The :doc:`API documentation<api/niimpy>` has all technical details, containing instruction about how to use the toolbox functions, classes, return types, arguments and such.
 
-User guide provide more thorough examples of each toolbox layer functionalities. The examples are in Jupyter notebook format :doc:`demo_notebooks/Exploration`.
+The :doc:`user guide<demo_notebooks/Exploration>` provide more thorough examples of each toolbox layer functionalities. The examples are in Jupyter notebook format.
 
-Community guide has information about authors :doc:`about-us`, community rules :doc:`Community-rules`, contribution, and :doc:`adding-features`our collaborators :doc:`Partners`.
+The community guide has information :doc:`about the authors<about-us>`, :doc:`community rules<Community-rules>`, :doc:`contribution<adding-features>`, and our :doc:`collaborators <Partners>`.
 
