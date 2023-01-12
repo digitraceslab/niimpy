@@ -1,5 +1,9 @@
 """Read data from various formats, user entery point.
 
+This module contains various functions `read_*` which load data from different
+formats into pandas.DataFrame:s.  As a side effect, it provides the
+authoritative information on how incoming data is converted to dataframes.
+
 """
 
 import pandas as pd
