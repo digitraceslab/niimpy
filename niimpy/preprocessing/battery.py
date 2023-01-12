@@ -5,7 +5,7 @@ import niimpy
 
 def shutdown_info(df, feature_functions):
     """ Returns a DataFrame with the timestamps of when the phone has shutdown.
-    This includes both events, when the phone has shut down and when the phone 
+    This includes both events, when the phone has shut down and when the phone
     has been rebooted.
     NOTE: This is a helper function created originally to preprocess the application
     info data
@@ -15,20 +15,20 @@ def shutdown_info(df, feature_functions):
         Dataframe with the battery information
     feature_functions: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. 
+        information. Keys can be column names, other dictionaries, etc.
     Returns
     -------
     shutdown: pandas series
     """
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
-    
+
     if not "battery_column_name" in feature_functions.keys():
         col_name = "battery_status"
     else:
         col_name = feature_functions["battery_column_name"]
-        
+
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
-    
+
     shutdown = df[df[col_name].between(-3, 0, inclusive=False)]
     return shutdown
 
@@ -73,6 +73,7 @@ def battery_occurrences(battery_data, battery_status=False,
         occurrence_data = battery_data
 
     occurrence_data = occurrence_data.drop_duplicates(subset=['datetime', 'device'], keep='last')
+    occurrence_data.sort_values(by=['time'], inplace=True)
 
     if (start == None):
         start = occurrence_data.iloc[0]['datetime']
