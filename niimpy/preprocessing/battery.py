@@ -42,7 +42,7 @@ def get_battery_data(battery, batterylevel_column='battery_level',
     start: datetime, optional
     end: datetime, optional
     """
-    battery = niimpy.filter_dataframe(battery, begin=start, end=end, user=user)
+    battery = niimpy.filter_dataframe(battery, start=start, end=end, user=user)
     battery[batterylevel_column] = pd.to_numeric(battery[batterylevel_column])
 
     battery = battery.drop_duplicates(subset=['datetime', 'user', 'device'], keep='last')

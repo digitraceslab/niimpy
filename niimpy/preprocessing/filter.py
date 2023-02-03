@@ -7,7 +7,7 @@ standard arguments in other functions.
 """
 
 
-def filter_dataframe(df, user=None, begin=None, end=None, rename_columns={}):
+def filter_dataframe(df, user=None, start=None, end=None, rename_columns={}):
     """Standard dataframe preprocessing filter.
 
     This implements some standard and common dataframe preprocessing
@@ -16,7 +16,7 @@ def filter_dataframe(df, user=None, begin=None, end=None, rename_columns={}):
     directly.
 
     - select only certain user: `df['user'] == user`
-    - select date range:  `df[begin:end]`
+    - select date range:  `df[start:end]`
 - column map: `df.rename(columns=rename_columns)`
 
     It returns a new dataframe (and does not modify the passed one in-place).
@@ -25,12 +25,12 @@ def filter_dataframe(df, user=None, begin=None, end=None, rename_columns={}):
         df = df[df['user'] == user]
     # Slice by time
     time_slice = None
-    # begin and end
-    if begin is not None and end is not None:
-        time_slice = slice(begin, end)
-    # begin only
-    elif begin is not None:
-        time_slice = slice(begin, None)
+    # start and end
+    if start is not None and end is not None:
+        time_slice = slice(start, end)
+    # start only
+    elif start is not None:
+        time_slice = slice(start, None)
     # end only
     elif end is not None:
         time_slice = slice(None, end)

@@ -27,9 +27,9 @@ def test_filter_dataframe():
 
     # Time limits
     assert len(niimpy.filter_dataframe(df, end='1970-01-01')) == 3
-    assert len(niimpy.filter_dataframe(df, begin='1970-01-02')) == 3
-    assert len(niimpy.filter_dataframe(df, begin='1970-01-01 02:01:00', end='1970-01-01')) == 2
-    df2 = niimpy.filter_dataframe(df, begin='1970-01-01 02:01:00', end='1970-01-01')
+    assert len(niimpy.filter_dataframe(df, start='1970-01-02')) == 3
+    assert len(niimpy.filter_dataframe(df, start='1970-01-01 02:01:00', end='1970-01-01')) == 2
+    df2 = niimpy.filter_dataframe(df, start='1970-01-01 02:01:00', end='1970-01-01')
     numpy.testing.assert_array_equal(df2['value'].values, [1,2])
 
     # Renaming columns
