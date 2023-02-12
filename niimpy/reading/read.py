@@ -8,6 +8,7 @@ authoritative information on how incoming data is converted to dataframes.
 
 import pandas as pd
 import warnings
+import json
 
 from niimpy.reading import database
 from niimpy.preprocessing import util
@@ -115,8 +116,7 @@ def _get_dataframe(df_or_database, table, user=None):
 
     If input is:
 
-    - DataFrame: pass unchanged, but filter 'user' column
-    - Database: extract the given table/user using .raw() and return
+    - atabase: extract the given table/user using .raw() and return
 
     A typical usage is::
 
@@ -134,8 +134,7 @@ def _get_dataframe(df_or_database, table, user=None):
         df = df_or_database.raw(table=table, user=subject)
     else:
         df = df_or_database
-        # Maintain backwards compatibility in the case subject was passed and
-        # questions was *not* a dataframe.
+        # questions was *not*  dataframe.
         if user is not None and user is not database.ALL:
             df = df[df['user'] == user]
     return df
@@ -210,4 +209,79 @@ def read_csv_string(string, tz=None):
                  )
     if 'datetime' in df.columns:
         del df['datetime']
+    return df
+
+
+
+
+def format_mhealth_time_interval(df, prefix):
+    ''' Format a database containing columns in the mHealth time interval.
+    
+    A time interval in the mHealth format has either
+     - a date and a time of day (morning, afternoon, evening or night), or
+     - two of start time, end time and duration.
+
+    In the first case, the formatted database will contain two columns:
+    measure_date and time_of_day.
+
+    In the second case, the formatted database will contain two columns:
+    start_time and duration (as a timedelta64).
+    '''
+    df["start_time"] = None
+    df["duration"] = None
+
+    start_col = f'{prefix}.start_date_time'
+    end_col = f'{prefix}.end_date_time'
+    duration_value_col = f'{prefix}.duration.value'
+    duration_unit_col = f'{prefix}.duration.value'
+    
+    if start_col in df.columns:
+        rows = ~df[start_col].isnull()
+        df.loc[rows, "start_time"] = pd.to_datetime(df.loc[rows, start_col])
+
+    if end_col in df.columns:
+        rows = ~df[end_col].isnull()
+        df.loc[rows, end_col] = pd.to_datetime(df.loc[rows, end_col])
+
+    if duration_value_col in df.columns:
+        rows = ~df[duration_value_col].isnull()
+        value = df.loc[rows, duration_value_col]
+        unit = df.loc[rows, duration_unit_col]
+        df.loc[rows, "duration"] = pd.to_timedelta(value, unit=unit)
+
+    if start_col in df.columns and end_col in df.columns:
+        rows = ~df[end_col].isnull() & ~df[start_col].isnull()
+        df.loc[rows, "duration"] = pd.to_datetime(df.loc[rows, end_col]) - pd.to_datetime(df.loc[rows, "start_time"])
+
+    return df
+
+
+
+def read_mhealth_total_sleep_time(data_list):
+    df = pd.json_normalize(data_list)
+    total_sleep_time_columns = {
+        "total_sleep_time.value": "total_sleep_time",
+        "total_sleep_time.unit": "total_sleep_time_unit",
+        "effective_time_frame.time_interval.start_date_time": "effective_start_time",
+        "effective_time_frame.time_interval.end_date_time": "effective_end_time",
+    }
+    total_sleep_time_time_columns = ["effective_start_time", "effective_end_time"]
+
+    df = format_mhealth_time_interval(df, "effective_time_frame.time_interval")
+
+    df = df.rename(columns=total_sleep_time_columns)
+    for col in total_sleep_time_time_columns:
+        df[col] = pd.to_datetime(df[col])
+
+    df["timestamp"] = df["effective_start_time"]
+    df.set_index('timestamp', inplace=True)
+    return df
+
+
+def read_mhealth_total_sleep_time_from_file(filename):
+    with open(filename) as f:
+        data = json.load(f)
+
+    df = read_mhealth_total_sleep_time(data)
+
     return df
