@@ -264,7 +264,7 @@ def format_mhealth_time_interval(df, prefix):
     for col, mHealth_col in [("start", start_col), ("end", end_col)]:
         if col in df.columns:
             rows = ~df[mHealth_col].isnull()
-            df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col], utc=True)
+            df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col])
 
     if duration_value_col in df.columns:
         # Format duration as DateOffset. We use this below to calculate either start of end
