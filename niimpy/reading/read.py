@@ -213,45 +213,107 @@ def read_csv_string(string, tz=None):
 
 
 
+def format_mHealth_part_of_day(df, prefix):
+    ''' Format columns with mHealth formatted part of day. Returns a dataframe
+    with date stored in the column "date" and "part_of_day". Options for
+    part of day are "morning", "afternoon", "evening", "night".
+    '''
+
+    date_col = f'{prefix}.date'
+    part_of_day_col = f'{prefix}.part_of_day'
+
+    df = df.rename(columns={
+        date_col: "date",
+        part_of_day_col: "part_of_day",
+    })
+
+    rows = ~df["date"].isnull()
+    df.loc[rows, "date"] = pd.to_datetime(df.loc[rows, "date"])
+    df.loc[rows, "timestamp"] = df.loc[rows, "date"]
+    return df
+
 
 def format_mhealth_time_interval(df, prefix):
     ''' Format a database containing columns in the mHealth time interval.
     
     A time interval in the mHealth format has either
      - a date and a time of day (morning, afternoon, evening or night), or
-     - two of start time, end time and duration.
+     - any two of start time, end time and duration.
 
     In the first case, the formatted database will contain two columns:
     measure_date and time_of_day.
 
     In the second case, the formatted database will contain two columns:
-    start_time and duration (as a timedelta64).
+    start and end.
     '''
-    df["start_time"] = None
-    df["duration"] = None
-
+    if f'{prefix}.part_of_day' in df.columns:
+        df = format_mHealth_part_of_day(df, prefix)
+    
+    # Construct column names from the prefix
     start_col = f'{prefix}.start_date_time'
     end_col = f'{prefix}.end_date_time'
     duration_value_col = f'{prefix}.duration.value'
-    duration_unit_col = f'{prefix}.duration.value'
+    duration_unit_col = f'{prefix}.duration.unit'
     
+    # The columns might not exist, so we create them manually
+    if "start" not in df.columns:
+        df["start"] = None
+    if "end" not in df.columns:
+        df["end"] = None
+
+    # All the mHealth columns might exist if the formatting in the data is mixed
     if start_col in df.columns:
         rows = ~df[start_col].isnull()
-        df.loc[rows, "start_time"] = pd.to_datetime(df.loc[rows, start_col])
+        df.loc[rows, "start"] = pd.to_datetime(df.loc[rows, start_col])
 
     if end_col in df.columns:
         rows = ~df[end_col].isnull()
-        df.loc[rows, end_col] = pd.to_datetime(df.loc[rows, end_col])
+        df.loc[rows, "end"] = pd.to_datetime(df.loc[rows, end_col])
 
     if duration_value_col in df.columns:
-        rows = ~df[duration_value_col].isnull()
-        value = df.loc[rows, duration_value_col]
-        unit = df.loc[rows, duration_unit_col]
-        df.loc[rows, "duration"] = pd.to_timedelta(value, unit=unit)
+        # Format duration as DateOffset. We use this below to calculate either start of end
+        mHealth_DateOffset = {
+            "ps": "picoseconds",
+            "ns": "nanoseconds",
+            "us": "microseconds",
+            "ms": "milliseconds",
+            "sec": "seconds",
+            "min": "minutes",
+            "h": "hours",
+            "d": "days",
+            "wk": "weeks",
+            "Mo": "months",
+            "yr": "years",
+        }
+        
+        def mHealth_to_DateOffset(row):
+            unit = mHealth_DateOffset[row[duration_unit_col]]
+            value = row[duration_value_col]
+            if unit == "picoseconds":
+                # DateOffset doesn't support picoseconds
+                unit = "nanoseconds"
+                value *= 0.001
+            dataoffset = pd.tseries.offsets.DateOffset(**{unit: value})
+            return dataoffset
 
-    if start_col in df.columns and end_col in df.columns:
-        rows = ~df[end_col].isnull() & ~df[start_col].isnull()
-        df.loc[rows, "duration"] = pd.to_datetime(df.loc[rows, end_col]) - pd.to_datetime(df.loc[rows, "start_time"])
+        rows = ~df[duration_value_col].isnull()
+        df.loc[rows, duration_value_col] = df.loc[rows].apply(mHealth_to_DateOffset, axis=1)
+
+    # If duration is provided, we calculate either start or end
+    if start_col in df.columns and duration_value_col in df.columns:
+        rows = ~df[duration_value_col].isnull() & ~df[start_col].isnull()
+        df.loc[rows, "end"] = df.loc[rows, "start"] + df.loc[rows, duration_value_col]
+
+    if start_col in df.columns and duration_value_col in df.columns:
+        rows = ~df[end_col].isnull() & ~df[duration_value_col].isnull()
+        df.loc[rows, "start"] = df.loc[rows, "end"] - df.loc[rows, duration_value_col]
+
+    # Drop the original columns
+    df = df.drop([start_col, end_col, duration_value_col, duration_unit_col], axis=1)
+    rows = ~df["start"].isnull()
+    print(df["timestamp"])
+    df.loc[rows, "timestamp"] = df.loc[rows, "start"]
+    print(df["timestamp"])
 
     return df
 
@@ -262,18 +324,12 @@ def read_mhealth_total_sleep_time(data_list):
     total_sleep_time_columns = {
         "total_sleep_time.value": "total_sleep_time",
         "total_sleep_time.unit": "total_sleep_time_unit",
-        "effective_time_frame.time_interval.start_date_time": "effective_start_time",
-        "effective_time_frame.time_interval.end_date_time": "effective_end_time",
     }
-    total_sleep_time_time_columns = ["effective_start_time", "effective_end_time"]
 
     df = format_mhealth_time_interval(df, "effective_time_frame.time_interval")
-
     df = df.rename(columns=total_sleep_time_columns)
-    for col in total_sleep_time_time_columns:
-        df[col] = pd.to_datetime(df[col])
 
-    df["timestamp"] = df["effective_start_time"]
+    df["timestamp"] = df["start"]
     df.set_index('timestamp', inplace=True)
     return df
 

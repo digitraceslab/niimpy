@@ -30,11 +30,24 @@
             "value":3, "unit": "h"
         },
         "effective_time_frame": {
-            "duration": {
-                "value": 10,
-                "unit": "d"
-            },
-            "end_date_time": "2013-02-05T07:35:00Z"
+            "time_interval": {
+                "duration": {
+                    "value": 10,
+                    "unit": "d"
+                },
+                "end_date_time": "2013-02-05T07:35:00Z"
+            }
+        }
+    },
+    {
+        "total_sleep_time": {
+            "value":3, "unit": "h"
+        },
+        "effective_time_frame": {
+            "time_interval": {
+                "date" : "2013-02-05",
+                "part_of_day": "evening"
+            }
         }
     }
 ]
