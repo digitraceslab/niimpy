@@ -9,3 +9,4 @@ scikit-learn
 coverage
 geopy
 kaleido
+scipy
