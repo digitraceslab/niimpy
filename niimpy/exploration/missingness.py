@@ -19,7 +19,7 @@ def missing_data_format(question,keep_values=False):
     question = question.T.squeeze()
     return question
 
-def screen_missing_data(database,subject,begin=None,end=None):
+def screen_missing_data(database,subject,start=None,end=None):
     """ Returns a DataFrame contanining the percentage (range [0,1]) of loss data
     calculated based on the transitions of screen status. In general, if
     screen_status(t) == screen_status(t+1), we declared we have at least one
@@ -29,7 +29,7 @@ def screen_missing_data(database,subject,begin=None,end=None):
     ----------
     database: Niimpy database
     user: string
-    begin: datetime, optional
+    start: datetime, optional
     end: datetime, optional
 
 
@@ -44,10 +44,10 @@ def screen_missing_data(database,subject,begin=None,end=None):
 
     screen = database.raw(table='AwareScreen', user=subject)
 
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
+    if(start!=None):
+        assert isinstance(start,pd.Timestamp),"start not given in timestamp format"
     else:
-        begin = screen.iloc[0]['datetime']
+        start = screen.iloc[0]['datetime']
     if(end!= None):
         assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
     else:
@@ -55,11 +55,11 @@ def screen_missing_data(database,subject,begin=None,end=None):
 
     screen=screen.drop_duplicates(subset=['datetime'],keep='first')
     screen = screen.drop(['device','user','time'],axis=1)
-    screen=screen.loc[begin:end]
+    screen=screen.loc[start:end]
     screen['screen_status']=pd.to_numeric(screen['screen_status'])
 
     #Include the missing points that are due to shutting down the phone
-    shutdown = shutdown_info(database,subject,begin,end)
+    shutdown = shutdown_info(database,subject,start,end)
     shutdown=shutdown.rename(columns={'battery_status':'screen_status'})
     shutdown['screen_status']=0
     screen = screen.merge(shutdown, how='outer', left_index=True, right_index=True)
@@ -90,7 +90,7 @@ def screen_missing_data(database,subject,begin=None,end=None):
 
     return count
 
-def missing_noise(database,subject,begin=None,end=None):
+def missing_noise(database,subject,start=None,end=None):
     """ Returns a Dataframe with the estimated missing data from the ambient
     noise sensor.
 
@@ -102,7 +102,7 @@ def missing_noise(database,subject,begin=None,end=None):
     ----------
     database: Niimpy database
     user: string
-    begin: datetime, optional
+    start: datetime, optional
     end: datetime, optional
 
 
@@ -117,21 +117,21 @@ def missing_noise(database,subject,begin=None,end=None):
 
     noise = database.raw(table='AwareAmbientNoise', user=subject)
 
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
+    if(start!=None):
+        assert isinstance(start,pd.Timestamp),"start not given in timestamp format"
     else:
-        begin = noise.iloc[0]['datetime']
+        start = noise.iloc[0]['datetime']
     if(end!= None):
         assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
     else:
         end = noise.iloc[len(noise)-1]['datetime']
 
     noise = noise.drop(['device','user','time','double_silence_threshold','double_rms','blob_raw','is_silent','double_frequency'],axis=1)
-    noise = noise.loc[begin:end]
+    noise = noise.loc[start:end]
     noise['duration'] = noise['datetime'].diff()
     noise['duration'] = get_seconds(noise['duration'])
     noise = noise.iloc[1:]
-    shutdown = shutdown_info(database,subject,begin,end)
+    shutdown = shutdown_info(database,subject,start,end)
     shutdown=shutdown.rename(columns={'battery_status':'duration'})
     noise = noise.merge(shutdown, how='outer', left_index=True, right_index=True)
     noise['duration_x'] = noise.fillna(0)['duration_x'] + noise.fillna(0)['duration_y']

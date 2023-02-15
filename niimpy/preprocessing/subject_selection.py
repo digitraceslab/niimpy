@@ -126,7 +126,7 @@ def subject_selection(database,subject,mode, include_battery=None, include_noise
         # 3. Check other sensors
         if include_noise=='yes':
             #reliable fixed frequency data? (ambient noise)
-            noise = f.missing_noise(database,subject,begin=start_date,end=end_date)
+            noise = f.missing_noise(database,subject,start=start_date,end=end_date)
             noise['date'] = noise.index.normalize()
             noise_days = noise.groupby([noise.date])['missing'].sum() #ignores NaT
             noise_days = noise_days[noise_days<=28]
@@ -136,7 +136,7 @@ def subject_selection(database,subject,mode, include_battery=None, include_noise
 
         if include_screen=='yes':
             #reliable non fixed frequency data? (screen)
-            sc = f.screen_missing_data(database,subject,begin=start_date,end=end_date)
+            sc = f.screen_missing_data(database,subject,start=start_date,end=end_date)
             if mode=='month':
                 sc = sc.iloc[1:]#discard the first date, since it is baseline. 
             sc = sc[sc['missing']<0.5]

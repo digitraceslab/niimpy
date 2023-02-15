@@ -10,7 +10,7 @@ from datetime import date, datetime
 from scipy import stats
 
 
-def date_range(df, begin, end):
+def date_range(df, start, end):
     """Extract out a certain date range from a DataFrame.
 
     Extract out a certain data range from a dataframe.  The index must be the
@@ -21,16 +21,16 @@ def date_range(df, begin, end):
     # be used, pandas can take more than pd.Timestamp)
     # Move this function to utils
     # Deal with pandas timestamp compatibility 
-    if(begin!=None):
-        assert isinstance(begin,pd.Timestamp),"begin not given in timestamp format"
+    if(start!=None):
+        assert isinstance(start,pd.Timestamp),"start not given in timestamp format"
     else:
-        begin = df.index[0]
+        start = df.index[0]
     if(end!= None):
         assert isinstance(end,pd.Timestamp),"end not given in timestamp format"
     else:
         end = df.index[-1]
 
-    df_new = df.loc[begin:end]
+    df_new = df.loc[start:end]
     return df_new
 
 #SYSTEM_TZ = tzlocal()  # the operating system timezone - for sqlite output compat
