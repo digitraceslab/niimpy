@@ -16,3 +16,4 @@ This section provides user guide for Niimpy modules. Guide contain demo notebook
    basic-transformations 
    preprocessing 
    summary-statistics
+   student_life_example
