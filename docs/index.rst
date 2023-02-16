@@ -49,6 +49,7 @@ provides many high-level functions for various types of data.
    demo_notebooks/screen
    demo_notebooks/survey
    demo_notebooks/tracker
+   demo_notebooks/student_life_example
 
 
 
