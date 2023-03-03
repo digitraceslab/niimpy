@@ -203,7 +203,7 @@ def battery_discharge(df, feature_functions):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df.sort_values(by=["user","device","datetime"], inplace=True)
+    df.sort_values(by=["user","datetime"], inplace=True)
     
     df['duration'] = np.nan
     df['duration'] = df['datetime'].diff()
@@ -235,7 +235,7 @@ def extract_features_battery(df, feature_functions=None):
     ----------
     df : pd.DataFrame
         dataframe of location data. It must contain these columns:
-        `battery_level`, `battery_status`, `user`, and `device`.
+        `battery_level` and `battery_status`.
         If not provided, it will be computed manually.
     feature_functions : map (dictionary) of functions that compute features.
         it is a map of map, where the keys to the first map is the name of
