@@ -476,15 +476,14 @@ def extract_features_battery(df, feature_functions=None):
     ----------
     df : pd.DataFrame
         dataframe of location data. It must contain these columns:
-        `battery_occurences`, `double_longitude`, `user`, `group`.
-        `double_speed` is optional. If not provided, it will be
-        computed manually.
+        `battery_level`, `battery_status`, `user`, and `device`.
+        If not provided, it will be computed manually.
     feature_functions : map (dictionary) of functions that compute features.
         it is a map of map, where the keys to the first map is the name of
         functions that compute features and the nested map contains the keyword
         arguments to that function. If there is no arguments use an empty map.
         Default is None. If None, all the available functions are used.
-        Those functions are in the dict `location.ALL_FEATURE_FUNCTIONS`.
+        Those functions are in the dict `battery.ALL_FEATURE_FUNCTIONS`.
         You can implement your own function and use it instead or add it
         to the mentioned map.
 
