@@ -273,7 +273,7 @@ def app_count(df, bat, screen, feature_functions=None):
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
-        name employed by Aware Framework will be used. To include information about 
+        name "" will be used. To include information about 
         the resampling window, please include the selected parameters from
         pandas.DataFrame.resample in a dictionary called resample_args.
     
@@ -357,7 +357,7 @@ def app_duration(df, bat, screen, feature_functions=None):
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
-        name employed by Aware Framework will be used. To include information about 
+        name "application_name" will be used. To include information about 
         the resampling window, please include the selected parameters from
         pandas.DataFrame.resample in a dictionary called resample_args.
     
@@ -432,10 +432,10 @@ ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
 
 def extract_features_app(df, bat, screen, features=None):
     """ This function computes and organizes the selected features for application
-    events that have been recorded using Aware Framework. The function aggregates 
-    the features by user, by app group, by time window. If no time window is 
-    specified, it will automatically aggregate the features in 30 mins non-
-    overlapping windows. If no group_map is provided, a default one will be used. 
+    events. The function aggregates the features by user, by app group, 
+    by time window. If no time window is specified, it will automatically aggregate 
+    the features in 30 mins non-overlapping windows. If no group_map is provided, 
+    a default one will be used. 
     
     The complete list of features that can be calculated are: app_count, and 
     app_duration.
