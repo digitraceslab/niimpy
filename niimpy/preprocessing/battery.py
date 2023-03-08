@@ -253,6 +253,11 @@ def battery_occurrences(df, feature_functions):
     """
     assert isinstance(df, pd.DataFrame), "data is not a pandas DataFrame"
 
+    if "rule" in feature_functions.keys():
+        rule = feature_functions["rule"]
+    else:
+        rule = "6H"
+
     if "battery_status" in feature_functions.keys():
         battery_status = feature_functions["battery_status"]
     else:
@@ -264,25 +269,31 @@ def battery_occurrences(df, feature_functions):
         battery_status_col = feature_functions["battery_status_column_name"]
 
     occurrence_data = df.drop_duplicates(subset=['datetime', 'device'], keep='last')
-    occurrence_data.sort_values(by=['time'], inplace=True)
+    #occurrence_data.sort_values(by=['time'], inplace=True)
 
     if ((battery_status == True) & ('battery_status' in occurrence_data.columns)):
         def count_alive(series):
             return ((series == '-1') | (series == '-2') | (series == '-3')).sum()
         
+        # This seems like it should not be the best way
+        occurrence_data["time"] = occurrence_data.index
         occurrences = occurrence_data.groupby("user").resample(
-            "6H",
+            rule,
             origin="start"
         ).agg({
             "time": "count",
             battery_status_col: count_alive
-        })
+        }).to_frame(name='occurrences')
 
     else:
-        occurrences = occurrence_data.groupby("user").resample("6H")["time"].count()
-        occurrences = occurrences.to_frame(name='battery_occurrences')
+        # This seems like it should not be the best way
+        occurrence_data["time"] = occurrence_data.index
+        occurrences = occurrence_data.groupby("user").resample(
+            rule, 
+            origin="start"
+        )["time"].count()
+        occurrences = occurrences.to_frame(name='occurrences')
     return occurrences
-
 
 
 def _battery_gaps(data, min_duration_between=None):
@@ -476,7 +487,7 @@ def extract_features_battery(df, feature_functions=None):
         feature_functions = ALL_FEATURE_FUNCTIONS
     for feature_function, kwargs in feature_functions.items():
         print(feature_function, kwargs)
-        computed_feature = feature_function(df, **kwargs)
+        computed_feature = feature_function(df, kwargs)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)

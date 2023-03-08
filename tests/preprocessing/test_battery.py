@@ -38,10 +38,10 @@ def test_get_battery_data():
 def test_battery_occurrences():
     df = df11.copy()
     k = niimpy.preprocessing.battery.battery_occurrences
-    occurences = niimpy.preprocessing.battery.extract_features_battery(df, feature_functions={k: {'hours':0,'minutes':10}})
+    occurences = niimpy.preprocessing.battery.extract_features_battery(df, feature_functions={k: {}})
     print(occurences)
-    assert occurences.loc[Timestamp('2019-01-17 09:20:14.049999872+02:00'), 'occurrences'] == 2
-    assert occurences.loc[Timestamp('2019-01-17 09:40:14.049999872+02:00'), 'occurrences'] == 1
+    assert occurences.loc["wAzQNrdKZZax", Timestamp('2019-01-17 09:20:14.049999872+02:00')]["occurrences"] == 3
+    assert occurences.loc["Afxzi7oI0yyp", Timestamp('2019-01-17 09:35:40.990000128+02:00')]["occurrences"] == 3
 
 
 def test_battery_gaps():
