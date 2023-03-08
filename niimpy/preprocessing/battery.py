@@ -195,12 +195,12 @@ def battery_discharge(df, feature_functions):
     """
     assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
     
-    if not "battery_column_name" in feature_functions.keys():
+    if "battery_column_name" not in feature_functions.keys():
         col_name = "battery_level"
     else:
         col_name = feature_functions["battery_column_name"]
     
-    if not "resample_args" in feature_functions.keys():
+    if "resample_args" not in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
     df.sort_values(by=["user","datetime"], inplace=True)
@@ -222,6 +222,7 @@ def battery_discharge(df, feature_functions):
         result = result.to_frame(name='battery_discharge')
     return result
 
+
 def _get_battery_data(battery, batterylevel_column='battery_level',
                      user=None, start=None, end=None):
     """ Returns a DataFrame with battery data for a user.
@@ -239,72 +240,49 @@ def _get_battery_data(battery, batterylevel_column='battery_level',
     battery = battery.drop(['user', 'device', 'time', 'datetime'], axis=1)
     return battery
 
-
-def _battery_occurrences(battery_data, battery_status=False,
-                        days=0, hours=6, minutes=0, seconds=0, milli=0, micro=0, nano=0,
-                        user=None, start=None, end=None):
+def battery_occurrences(df, feature_functions):
     """ Returns a dataframe showing the amount of battery data points found between a given interval and steps.
     The default interval is 6 hours.
     Parameters
     ----------
-    battery_data: Dataframe
-    user: string, optional
-    start: datetime, optional
-    end: datetime, optional
-    battery_status: boolean, optional
+    df: pandas.DataFrame
+        Dataframe with the battery information
+    feature_functions: dict, optional
+        Dictionary keys containing optional arguments for the computation of batter
+        information. Keys can be column names, other dictionaries, etc. 
     """
+    assert isinstance(df, pd.DataFrame), "data is not a pandas DataFrame"
 
-    assert isinstance(battery_data, pd.DataFrame), "data is not a pandas DataFrame"
-    assert isinstance(user, (type(None), str)), "user not given in string format"
-
-    if (user != None):
-        ocurrence_data = battery_data[(battery_data['user'] == user)]
+    if "battery_status" in feature_functions.keys():
+        battery_status = feature_functions["battery_status"]
     else:
-        occurrence_data = battery_data
+        battery_status = False
 
-    occurrence_data = occurrence_data.drop_duplicates(subset=['datetime', 'device'], keep='last')
+    if "battery_status_column_name" not in feature_functions.keys():
+        battery_status_col = "battery_status"
+    else:
+        battery_status_col = feature_functions["battery_status_column_name"]
+
+    occurrence_data = df.drop_duplicates(subset=['datetime', 'device'], keep='last')
     occurrence_data.sort_values(by=['time'], inplace=True)
 
-    if (start == None):
-        start = occurrence_data.iloc[0]['datetime']
-        start = pd.to_datetime(start)
-
-    td = pd.Timedelta(days=days, hours=hours, minutes=minutes, seconds=seconds, milliseconds=milli, microseconds=micro,
-                      nanoseconds=nano)
-
-    delta = start + td
-
-    if (end == None):
-        end = occurrence_data.iloc[len(occurrence_data) - 1]['datetime']
-        end = pd.to_datetime(end)
-
-    idx_range = np.floor((end - start) / td).astype(int)
-    idx = pd.date_range(start, periods=idx_range, freq=td)
-
     if ((battery_status == True) & ('battery_status' in occurrence_data.columns)):
-        occurrences = pd.DataFrame(np.nan, index=idx, columns=list(['start', 'end', 'occurrences', 'battery_status']))
-        for i in range(idx_range):
-            idx_dat = occurrence_data.loc[
-                (occurrence_data['datetime'] > start) & (occurrence_data['datetime'] <= delta)]
-            battery_status = occurrence_data.loc[
-                (occurrence_data['datetime'] > start) & (occurrence_data['datetime'] <= delta) & (
-                            (occurrence_data['battery_status'] == '-1') | (
-                                occurrence_data['battery_status'] == '-2') | (
-                                        occurrence_data['battery_status'] == '-3'))]
-            occurrences.iloc[i] = [start, delta, len(idx_dat), len(battery_status)]
-            start = start + td
-            delta = start + td
-
+        def count_alive(series):
+            return ((series == '-1') | (series == '-2') | (series == '-3')).sum()
+        
+        occurrences = occurrence_data.groupby("user").resample(
+            "6H",
+            origin="start"
+        ).agg({
+            "time": "count",
+            battery_status_col: count_alive
+        })
 
     else:
-        occurrences = pd.DataFrame(np.nan, index=idx, columns=list(['start', 'end', 'occurrences']))
-        for i in range(idx_range):
-            idx_dat = occurrence_data.loc[
-                (occurrence_data['datetime'] > start) & (occurrence_data['datetime'] <= delta)]
-            occurrences.iloc[i] = [start, delta, len(idx_dat)]
-            start = start + td
-            delta = start + td
+        occurrences = occurrence_data.groupby("user").resample("6H")["time"].count()
+        occurrences = occurrences.to_frame(name='battery_occurrences')
     return occurrences
+
 
 
 def _battery_gaps(data, min_duration_between=None):
