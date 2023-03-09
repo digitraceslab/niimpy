@@ -13,4 +13,4 @@ from niimpy.preprocessing.screen import screen_off, screen_duration
 #                      battery_gaps, battery_charge_discharge,
 #                      find_real_gaps, find_non_battery_gaps,
 #                      find_battery_gaps)
-from niimpy.preprocessing.battery import (battery_occurrences)
+from niimpy.preprocessing.battery import (battery_occurrences, format_battery_data)
