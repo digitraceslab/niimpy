@@ -343,8 +343,7 @@ def battery_charge_discharge(df, feature_functions):
     return charge
 
 
-def _find_real_gaps(battery_data, other_data, start=None, end=None, days=0, hours=6, minutes=0, seconds=0, milli=0,
-                   micro=0, nano=0):
+def find_real_gaps(battery_df, other_df, feature_functions):
     """ Returns a dataframe showing the gaps found both in the battery data and the other data.
     The default interval is 6 hours.
     Parameters
@@ -355,27 +354,25 @@ def _find_real_gaps(battery_data, other_data, start=None, end=None, days=0, hour
     start: datetime, optional
     end: datetime, optional
     """
-    assert isinstance(battery_data, pd.core.frame.DataFrame), "battery_data is not a pandas DataFrame"
-    assert isinstance(other_data, pd.core.frame.DataFrame), "other_data is not a pandas DataFrame"
-    assert isinstance(battery_data.index,
-                      pd.core.indexes.datetimes.DatetimeIndex), "battery_data index is not DatetimeIndex"
-    assert isinstance(other_data.index,
-                      pd.core.indexes.datetimes.DatetimeIndex), "other_data index is not DatetimeIndex"
+    assert isinstance(battery_df, pd.core.frame.DataFrame), "battery_df is not a pandas DataFrame"
+    assert isinstance(other_df, pd.core.frame.DataFrame), "other_df is not a pandas DataFrame"
+    assert isinstance(battery_df.index,
+                      pd.core.indexes.datetimes.DatetimeIndex), "battery_df index is not DatetimeIndex"
+    assert isinstance(other_df.index,
+                      pd.core.indexes.datetimes.DatetimeIndex), "other_df index is not DatetimeIndex"
 
-    if (start != None):
+    if "start" in feature_functions.keys():
         start = pd.to_datetime(start)
     else:
-        start = battery_data.index[0] if (battery_data.index[0] <= other_data.index[0]) else other_data.index[0]
+        start = battery_df.index[0] if (battery_df.index[0] <= other_df.index[0]) else other_df.index[0]
     if (end != None):
         end = pd.to_datetime(end)
     else:
-        end = battery_data.index[-1] if (battery_data.index[-1] >= other_data.index[-1]) else other_data.index[-1]
+        end = battery_df.index[-1] if (battery_df.index[-1] >= other_df.index[-1]) else other_df.index[-1]
 
-    battery = battery_occurrences(battery_data, start=start, end=end, days=days, hours=hours, minutes=minutes,
-                                  seconds=seconds, milli=milli, micro=micro, nano=nano)
+    battery = battery_occurrences(battery_df, feature_functions)
     battery.rename({'occurrences': 'battery_occurrences'}, axis=1, inplace=True)
-    other = battery_occurrences(other_data, start=start, days=days, hours=hours, minutes=minutes, seconds=seconds,
-                                milli=milli, micro=micro, nano=nano)
+    other = battery_occurrences(other_df, feature_functions)
 
     mask = (battery['battery_occurrences'] == 0) & (other['occurrences'] == 0)
     gaps = pd.concat([battery[mask], other[mask]['occurrences']], axis=1, sort=False)
