@@ -293,7 +293,7 @@ def battery_occurrences(df, feature_functions):
     return occurrences
 
 
-def _battery_gaps(data, min_duration_between=None):
+def battery_gaps(df, feature_functions):
     '''Returns a DataFrame including all battery data and showing the delta between
     consecutive battery timestamps. The minimum size of the considered deltas can be decided
     with the min_duration_between parameter.
@@ -302,10 +302,15 @@ def _battery_gaps(data, min_duration_between=None):
     data: dataframe with date index
     min_duration_between: Timedelta, for example, pd.Timedelta(hours=6)
     '''
-    assert isinstance(data, pd.core.frame.DataFrame), "data is not a pandas DataFrame"
-    assert isinstance(data.index, pd.core.indexes.datetimes.DatetimeIndex), "data index is not DatetimeIndex"
+    assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
+    assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
 
-    gaps = data.copy()
+    if "min_duration_between" in feature_functions.keys():
+        min_duration_between = feature_functions["min_duration_between"]
+    else:
+        min_duration_between = None
+
+    gaps = df.copy()
     gaps['tvalue'] = gaps.index
     gaps['delta'] = (gaps['tvalue'] - gaps['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
     if (min_duration_between != None):
@@ -314,20 +319,25 @@ def _battery_gaps(data, min_duration_between=None):
     return gaps
 
 
-def _battery_charge_discharge(data):
+def battery_charge_discharge(df, feature_functions):
     '''Returns a DataFrame including all battery data and showing the charge/discharge between each timestamp.
     Parameters
     ----------
     data: dataframe with date index
     '''
-    assert isinstance(data, pd.core.frame.DataFrame), "data is not a pandas DataFrame"
-    assert isinstance(data.index, pd.core.indexes.datetimes.DatetimeIndex), "data index is not DatetimeIndex"
+    assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
+    assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
 
-    charge = data.copy()
-    charge['battery_level'] = pd.to_numeric(charge['battery_level'])
+    if "battery_level_column" in feature_functions.keys():
+        battery_level_column = feature_functions["battery_level_column"]
+    else:
+        battery_level_column = "battery_level"
+
+    charge = df.copy()
+    charge[battery_level_column] = pd.to_numeric(charge[battery_level_column])
     charge['tvalue'] = charge.index
     charge['tdelta'] = (charge['tvalue'] - charge['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
-    charge['bdelta'] = (charge['battery_level'] - charge['battery_level'].shift()).fillna(0)
+    charge['bdelta'] = (charge[battery_level_column] - charge[battery_level_column].shift()).fillna(0)
     charge['charge/discharge'] = ((charge['bdelta']) / ((charge['tdelta'] / pd.Timedelta(seconds=1))))
 
     return charge
