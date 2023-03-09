@@ -223,22 +223,20 @@ def battery_discharge(df, feature_functions):
     return result
 
 
-def _get_battery_data(battery, batterylevel_column='battery_level',
-                     user=None, start=None, end=None):
+def format_battery_data(df, feature_functions):
     """ Returns a DataFrame with battery data for a user.
     Parameters
     ----------
     battery: DataFrame with battery data
-    user: string, optional
-    start: datetime, optional
-    end: datetime, optional
     """
-    battery = niimpy.filter_dataframe(battery, start=start, end=end, user=user)
-    battery[batterylevel_column] = pd.to_numeric(battery[batterylevel_column])
 
-    battery = battery.drop_duplicates(subset=['datetime', 'user', 'device'], keep='last')
-    battery = battery.drop(['user', 'device', 'time', 'datetime'], axis=1)
-    return battery
+    if "batterylevel_column" in feature_functions.keys():
+        batterylevel_column = feature_functions["batterylevel_column"]
+    else:
+        batterylevel_column = "battery_level"
+
+    df[batterylevel_column] = pd.to_numeric(df[batterylevel_column])
+    return df
 
 def battery_occurrences(df, feature_functions):
     """ Returns a dataframe showing the amount of battery data points found between a given interval and steps.
@@ -268,10 +266,9 @@ def battery_occurrences(df, feature_functions):
     else:
         battery_status_col = feature_functions["battery_status_column_name"]
 
-    occurrence_data = df.drop_duplicates(subset=['datetime', 'device'], keep='last')
-    #occurrence_data.sort_values(by=['time'], inplace=True)
+    occurrence_data = df.drop_duplicates(subset=['datetime', 'device', battery_status_col], keep='last')
 
-    if ((battery_status == True) & ('battery_status' in occurrence_data.columns)):
+    if ((battery_status == True) & (battery_status_col in occurrence_data.columns)):
         def count_alive(series):
             return ((series == '-1') | (series == '-2') | (series == '-3')).sum()
         
