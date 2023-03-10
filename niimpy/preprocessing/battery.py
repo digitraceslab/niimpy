@@ -290,7 +290,7 @@ def battery_occurrences(df, feature_functions):
             origin="start"
         )["time"].count()
         occurrences = occurrences.to_frame(name='occurrences')
-    return occurrences
+    return occurrences.reset_index("user")
 
 
 def battery_gaps(df, feature_functions):
