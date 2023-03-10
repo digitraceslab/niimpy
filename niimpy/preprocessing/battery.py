@@ -310,13 +310,15 @@ def battery_gaps(df, feature_functions):
     else:
         min_duration_between = None
 
-    gaps = df.copy()
-    gaps['tvalue'] = gaps.index
-    gaps['delta'] = (gaps['tvalue'] - gaps['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
-    if (min_duration_between != None):
-        gaps = gaps[gaps['delta'] >= min_duration_between]
+    def calculate_gaps(df):
+        df['tvalue'] = df.index
+        df['delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
+        if (min_duration_between != None):
+            df = df[df['delta'] >= min_duration_between]
 
-    return gaps
+        return df
+
+    return df.groupby('user').apply(calculate_gaps)
 
 
 def battery_charge_discharge(df, feature_functions):
