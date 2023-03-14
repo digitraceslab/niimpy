@@ -94,7 +94,7 @@ def battery_median_level(df, feature_functions):
     
     if len(df)>0:
         result = df.groupby('user')[col_name].resample(**feature_functions["resample_args"]).median()
-        result = result.to_frame(name='battery_mean_level')
+        result = result.to_frame(name='battery_median_level')
     return result
 
 
@@ -127,7 +127,7 @@ def battery_std_level(df, feature_functions):
     
     if len(df)>0:
         result = df.groupby('user')[col_name].resample(**feature_functions["resample_args"]).std()
-        result = result.to_frame(name='battery_mean_level')
+        result = result.to_frame(name='battery_std_level')
     return result
 
 def battery_shutdown_time(df, feature_functions):
