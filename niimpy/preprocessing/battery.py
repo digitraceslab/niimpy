@@ -431,9 +431,8 @@ def extract_features_battery(df, feature_functions=None):
     Parameters
     ----------
     df : pd.DataFrame
-        dataframe of location data. It must contain these columns:
+        dataframe of battery data. It must contain these columns:
         `battery_level` and `battery_status`.
-        If not provided, it will be computed manually.
     feature_functions : map (dictionary) of functions that compute features.
         it is a map of map, where the keys to the first map is the name of
         functions that compute features and the nested map contains the keyword
