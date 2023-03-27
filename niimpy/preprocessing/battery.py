@@ -396,7 +396,7 @@ def find_non_battery_gaps(battery_df, other_df, feature_functions):
     return gaps
 
 
-def _find_battery_gaps(battery_df, other_df, feature_functions):
+def find_battery_gaps(battery_df, other_df, feature_functions):
     """ Returns a dataframe showing the gaps found only in the battery data.
     The default interval is 6 hours.
     Parameters
