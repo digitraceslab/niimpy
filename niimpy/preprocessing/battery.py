@@ -346,8 +346,10 @@ def battery_charge_discharge(df, feature_functions):
         df['tdelta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
         df['bdelta'] = (df[battery_level_column] - df[battery_level_column].shift()).fillna(0)
         df['charge/discharge'] = ((df['bdelta']) / ((df['tdelta'] / pd.Timedelta(seconds=1))))
+        return df
 
-    return df.groupby('user').apply(calculate_discharge)
+    discharge = df.groupby('user').apply(calculate_discharge)
+    return discharge
 
 
 def find_real_gaps(battery_df, other_df, feature_functions):
