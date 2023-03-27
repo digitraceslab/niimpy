@@ -297,10 +297,15 @@ def battery_gaps(df, feature_functions):
     '''Returns a DataFrame including all battery data and showing the delta between
     consecutive battery timestamps. The minimum size of the considered deltas can be decided
     with the min_duration_between parameter.
+
     Parameters
     ----------
     df: dataframe with date index
-    min_duration_between: Timedelta, for example, pd.Timedelta(hours=6)
+    feature_functions: A dictionary of optional arguments
+
+    Optional arguments in feature_functions:
+        min_duration_between: Timedelta, for example, pd.Timedelta(hours=6)
+        
     '''
     assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
@@ -325,7 +330,7 @@ def battery_charge_discharge(df, feature_functions):
     '''Returns a DataFrame including all battery data and showing the charge/discharge between each timestamp.
     Parameters
     ----------
-    data: dataframe with date index
+    df: dataframe with date index
     '''
     assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
