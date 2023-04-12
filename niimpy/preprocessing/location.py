@@ -7,6 +7,8 @@ from sklearn.cluster import DBSCAN
 
 from geopy.distance import geodesic
 
+import niimpy
+
 
 def distance_matrix(lats, lons):
     """Compute distance matrix using great-circle distance formula
@@ -279,29 +281,36 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def location_significant_place_features(df, speed_threshold=0.277, min_samples=5, eps=200):
+def location_significant_place_features(df, feature_functions={}):
     """Calculates features related to Significant Places"""
+
+    latitude_column = feature_functions.get("latitude_column", "double_latitude")
+    longitude_column = feature_functions.get("longitude_column", "double_latitude")
+    speed_column = feature_functions.get("speed_column", "double_speed")
+    speed_threshold = feature_functions.get("speed_threshold", 0.277)
+    
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"5min"}
 
     def compute_features(df):
         """Compute features for a single user"""
         df = df.sort_index()  # sort based on time
 
-        lats = df['double_latitude']
-        lons = df['double_longitude']
+        lats = df[latitude_column]
+        lons = df[longitude_column]
         times = df.index
 
         # Home realted featuers
         latlon_home = find_home(lats, lons, times)
 
-        if 'double_speed' in df:
-            speeds = df['double_speed']
+        if speed_column in df:
+            speeds = df[speed_column]
         else:
             speeds, _ = get_speeds_totaldist(lats, lons, times)
 
         static_bins = speeds < speed_threshold
         lats_static = lats[static_bins]
         lons_static = lons[static_bins]
-        times_static = times[static_bins]
         clusters = cluster_locations(lats_static, lons_static)
 
         non_rare_clusters = clusters[clusters != -1]
@@ -328,7 +337,7 @@ def location_significant_place_features(df, speed_threshold=0.277, min_samples=5
         n_top4 = stay_times[3] if len(stay_times) > 3 else 0
         n_top5 = stay_times[4] if len(stay_times) > 4 else 0
 
-        row = pd.DataFrame({
+        df = pd.DataFrame({
             'n_sps': [n_unique_sps],
             'n_static': [n_static],
             'n_moving': [n_moving],
@@ -343,28 +352,45 @@ def location_significant_place_features(df, speed_threshold=0.277, min_samples=5
             'n_top5': [n_top5],
             'entropy': [entropy],
             'normalized_entropy': [normalized_entropy],
-        })
-        return row
+        }, index=times)
+        return df
 
-    features = df.groupby('user').apply(compute_features)
-    features = features.reset_index(level=[1], drop=True)
+    features = niimpy.util.aggregate(df, freq=feature_functions["resample_args"]["rule"], method_numerical='median').dropna()
+    features = features.reset_index('user').groupby('user').apply(compute_features)
     return features
 
-def location_distance_features(df):
-    """Calculates features related to distance and speed"""
+def location_distance_features(df, feature_functions={}):
+    """Calculates features related to distance and speed
     
+    Parameters
+    ----------
+    df: dataframe with date index
+    feature_functions: A dictionary of optional arguments
+
+    Optional arguments in feature_functions:
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        resample_args: 
+    """
+    latitude_column = feature_functions.get("latitude_column", "double_latitude")
+    longitude_column = feature_functions.get("longitude_column", "double_latitude")
+    speed_column = feature_functions.get("speed_column", "double_speed")
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"5min"}
+
     def compute_features(df):
         """Compute features for a single user"""
         df = df.sort_index()  # sort based on time
         n_bins = df.shape[0]
 
-        lats = df['double_latitude']
-        lons = df['double_longitude']
+        lats = df[latitude_column]
+        lons = df[longitude_column]
         times = df.index
 
         speeds, total_dist = get_speeds_totaldist(lats, lons, times)
-        if 'double_speed' in df:
-            speeds = df['double_speed']
+        if speed_column in df:
+            speeds = df[speed_column]
 
         speed_average = np.nanmean(speeds)
         speed_variance = np.nanvar(speeds)
@@ -373,7 +399,8 @@ def location_distance_features(df):
         variance = np.var(lats) + np.var(lons)
         log_variance = np.log(variance)
 
-        row = pd.DataFrame({
+        df = pd.DataFrame({
+            'dist_total': [total_dist],
             'dist_total': [total_dist],
             'n_bins': [n_bins],
             'speed_average': [speed_average],
@@ -381,11 +408,11 @@ def location_distance_features(df):
             'speed_max': [speed_max],
             'variance': [variance],
             'log_variance': [log_variance],
-        })
-        return row
+        }, index=times)
+        return df
 
-    features = df.groupby('user').apply(compute_features)
-    features = features.reset_index(level=[1], drop=True)
+    features = niimpy.util.aggregate(df, freq=feature_functions["resample_args"]["rule"], method_numerical='median').dropna()
+    features = features.reset_index('user').groupby('user').apply(compute_features)
     return features
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
