@@ -338,6 +338,7 @@ def location_significant_place_features(df, feature_functions={}):
         n_top5 = stay_times[4] if len(stay_times) > 4 else 0
 
         df = pd.DataFrame({
+            'user': df["user"],
             'n_sps': [n_unique_sps],
             'n_static': [n_static],
             'n_moving': [n_moving],
@@ -400,7 +401,7 @@ def location_distance_features(df, feature_functions={}):
         log_variance = np.log(variance)
 
         df = pd.DataFrame({
-            'dist_total': [total_dist],
+            'user': df["user"],
             'dist_total': [total_dist],
             'n_bins': [n_bins],
             'speed_average': [speed_average],
@@ -457,6 +458,7 @@ def extract_features_location(df,
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
+    computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
