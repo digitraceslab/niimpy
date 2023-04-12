@@ -222,7 +222,7 @@ def number_of_significant_places(lats, lons, times):
     Returns
     """
     sps = []
-    numper_of_places = []
+    number_of_places = []
     months = pd.date_range(min(times), max(times), freq='M')
     months = list(months)
     if len(months) == 0:
@@ -243,10 +243,39 @@ def number_of_significant_places(lats, lons, times):
         number_of_sps = len(set(clusters))
         if -1 in clusters:
             number_of_sps -= 1
-        numper_of_places.append(sum(idx))
+        number_of_places.append(sum(idx))
         sps.append(number_of_sps)
 
     return np.nanmedian(sps)
+
+
+def location_number_of_significant_places(df, feature_functions={}):
+    """Computes number of significant places """
+    latitude_column = feature_functions.get("latitude_column", "double_latitude")
+    longitude_column = feature_functions.get("longitude_column", "double_longitude")
+    if not "resample_args" in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"2M"}
+
+    def compute_features(df):
+        df = df.sort_index()  # sort based on time
+
+        lats = df[latitude_column]
+        lons = df[longitude_column]
+        times = df.index
+
+        clusters = cluster_locations(lats, lons)
+        number_of_sps = len(set(clusters))
+        if -1 in clusters:
+            number_of_sps -= 1
+        
+        row = pd.Series({
+            'n_significant_places': number_of_sps,
+        })
+        return row
+    
+    result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
+    return result.reset_index('user')
+        
 
 
 def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
@@ -454,10 +483,12 @@ def extract_features_location(df,
     if feature_functions is None:
         feature_functions = ALL_FEATURE_FUNCTIONS
     for feature_function, kwargs in feature_functions.items():
-        computed_feature = feature_function(df, **kwargs)
+        print(feature_function, kwargs)
+        computed_feature = feature_function(df, **kwargs).reset_index()
+        print(computed_feature)
         computed_features.append(computed_feature)
 
-    computed_features = pd.concat(computed_features, axis=1)
+    computed_features = pd.concat(computed_features, axis=1).set_index('index')
     computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
 
     if 'group' in df:
