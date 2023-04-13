@@ -488,6 +488,7 @@ def extract_features_location(df,
 
     computed_features = pd.concat(computed_features)
     computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
+    computed_features = computed_features.sort_index().ffill()
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
