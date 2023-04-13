@@ -43,27 +43,27 @@ def test_location_features():
     assert ((sps > 0) & (sps < 100)).all(), "Number of SPs not reasonable"
 
     features_u1 = features[features['user'] == 'gps_u00']
-    sp_features = features_u1[~features_u1['n_sps'].isna()].iloc[1]
-    assert sp_features['n_sps'] == 24.0
-    assert sp_features['n_static'] == 3852.0
-    assert sp_features['n_moving'] == 144.0
-    assert sp_features['n_rare'] == 98.0
-    assert sp_features['n_home'] == 2051.0
-    assert np.abs(sp_features['max_dist_home'] - 1041741.47359) < 0.1
-    assert sp_features['n_transitions'] == 320.0
-    assert sp_features['n_top1'] == 2059.0
-    assert sp_features['n_top2'] == 1177.0
-    assert sp_features['n_top3'] == 151.0
-    assert sp_features['n_top4'] == 98.0
-    assert sp_features['n_top5'] == 69.0
-    assert np.abs(sp_features['entropy'] - 7.517049) < 0.1
-    assert np.abs(sp_features['normalized_entropy'] - 2.365299) < 0.1
-
-    dist_features = features_u1[~features_u1['dist_total'].isna()].iloc[1]
-    assert np.abs(dist_features['dist_total'] - 9806714.819275) < 0.1
-    assert dist_features['n_bins'] == 4247.0
-    assert np.abs(dist_features['speed_average'] - 0.289073) < 0.1
-    assert np.abs(dist_features['speed_variance'] - 6.34365) < 0.1
-    assert np.abs(dist_features['speed_max'] - 34.0) < 0.1
-    assert np.abs(dist_features['variance'] - 3.865936) < 0.1
-    assert np.abs(dist_features['log_variance'] - 1.352204) < 0.1
+    features_u1 = features_u1.dropna().iloc[1]
+    print(features_u1)
+    assert features_u1['n_significant_places'] == 4.0
+    assert features_u1['n_sps'] == 2.0
+    assert features_u1['n_static'] == 309.0
+    assert features_u1['n_moving'] == 18.0
+    assert features_u1['n_rare'] == 0.0
+    assert features_u1['n_home'] == 261.0
+    assert np.abs(features_u1['max_dist_home'] - 697.447877) < 0.1
+    assert features_u1['n_transitions'] == 8.0
+    assert features_u1['n_top1'] == 287.0
+    assert features_u1['n_top2'] == 22.0
+    assert features_u1['n_top3'] == 0.0
+    assert features_u1['n_top4'] == 0.0
+    assert features_u1['n_top5'] == 0.0
+    assert np.abs(features_u1['entropy'] - 3.091042) < 0.1
+    assert np.abs(features_u1['normalized_entropy'] - 4.459432) < 0.1
+    assert np.abs(features_u1['dist_total'] - 9806714.819275) < 0.1
+    assert features_u1['n_bins'] == 4247.0
+    assert np.abs(features_u1['speed_average'] - 0.289073) < 0.1
+    assert np.abs(features_u1['speed_variance'] - 6.34365) < 0.1
+    assert np.abs(features_u1['speed_max'] - 34.0) < 0.1
+    assert np.abs(features_u1['variance'] - 3.865936) < 0.1
+    assert np.abs(features_u1['log_variance'] - 1.352204) < 0.1
