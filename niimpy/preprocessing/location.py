@@ -319,7 +319,7 @@ def location_significant_place_features(df, feature_functions={}):
     speed_threshold = feature_functions.get("speed_threshold", 0.277)
     
     if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"5min"}
+        feature_functions["resample_args"] = {"rule":"2M"}
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -366,28 +366,27 @@ def location_significant_place_features(df, feature_functions={}):
         n_top4 = stay_times[3] if len(stay_times) > 3 else 0
         n_top5 = stay_times[4] if len(stay_times) > 4 else 0
 
-        df = pd.DataFrame({
-            'user': df["user"],
-            'n_sps': [n_unique_sps],
-            'n_static': [n_static],
-            'n_moving': [n_moving],
-            'n_rare': [n_rare],
-            'n_home': [n_home],
-            'max_dist_home': [max_dist_home],
-            'n_transitions': [n_transitions],
-            'n_top1': [n_top1],
-            'n_top2': [n_top2],
-            'n_top3': [n_top3],
-            'n_top4': [n_top4],
-            'n_top5': [n_top5],
-            'entropy': [entropy],
-            'normalized_entropy': [normalized_entropy],
-        }, index=times)
-        return df
+        row = pd.Series({
+            'n_sps': n_unique_sps,
+            'n_static': n_static,
+            'n_moving': n_moving,
+            'n_rare': n_rare,
+            'n_home': n_home,
+            'max_dist_home': max_dist_home,
+            'n_transitions': n_transitions,
+            'n_top1': n_top1,
+            'n_top2': n_top2,
+            'n_top3': n_top3,
+            'n_top4': n_top4,
+            'n_top5': n_top5,
+            'entropy': entropy,
+            'normalized_entropy': normalized_entropy,
+        })
+        return row
 
-    features = niimpy.util.aggregate(df, freq=feature_functions["resample_args"]["rule"], method_numerical='median').dropna()
-    features = features.reset_index('user').groupby('user').apply(compute_features)
-    return features
+    result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
+    return result.reset_index('user')
+
 
 def location_distance_features(df, feature_functions={}):
     """Calculates features related to distance and speed
@@ -484,11 +483,10 @@ def extract_features_location(df,
         feature_functions = ALL_FEATURE_FUNCTIONS
     for feature_function, kwargs in feature_functions.items():
         print(feature_function, kwargs)
-        computed_feature = feature_function(df, **kwargs).reset_index()
-        print(computed_feature)
+        computed_feature = feature_function(df, **kwargs)
         computed_features.append(computed_feature)
 
-    computed_features = pd.concat(computed_features, axis=1).set_index('index')
+    computed_features = pd.concat(computed_features)
     computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
 
     if 'group' in df:
