@@ -44,7 +44,6 @@ def test_location_features():
 
     features_u1 = features[features['user'] == 'gps_u00']
     features_u1 = features_u1.dropna().iloc[1]
-    print(features_u1)
     assert features_u1['n_significant_places'] == 4.0
     assert features_u1['n_sps'] == 2.0
     assert features_u1['n_static'] == 309.0
