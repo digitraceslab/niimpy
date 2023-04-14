@@ -481,9 +481,9 @@ def extract_features_location(df,
     computed_features = []
     if feature_functions is None:
         feature_functions = ALL_FEATURE_FUNCTIONS
-    for feature_function, kwargs in feature_functions.items():
-        print(feature_function, kwargs)
-        computed_feature = feature_function(df, **kwargs)
+    for feature_function, feature_arg in feature_functions.items():
+        print(feature_function, feature_arg)
+        computed_feature = feature_function(df, feature_arg)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features)
