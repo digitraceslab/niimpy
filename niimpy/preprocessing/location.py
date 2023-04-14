@@ -481,15 +481,24 @@ def extract_features_location(df,
     computed_features = []
     if feature_functions is None:
         feature_functions = ALL_FEATURE_FUNCTIONS
+
+    freqs_same = True
+    global_freq = next(iter(feature_functions.values()))["resample_args"]["rule"]
     for feature_function, feature_arg in feature_functions.items():
         print(feature_function, feature_arg)
         computed_feature = feature_function(df, feature_arg)
         computed_features.append(computed_feature)
 
-    computed_features = pd.concat(computed_features)
-    computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
-    computed_features = computed_features.sort_index().ffill()
-    computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
+        if global_freq != feature_arg["resample_args"]["rule"]:
+            freqs_same = False
+
+    if freqs_same:
+        computed_features = pd.concat(computed_features, axis=1)
+    else:
+        computed_features = pd.concat(computed_features)
+        computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
+        computed_features = computed_features.groupby('user').apply(lambda x : x.sort_index().ffill())
+        computed_features = computed_features.reset_index("user", drop=True)
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
