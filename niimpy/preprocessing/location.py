@@ -451,7 +451,7 @@ ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
 
 def extract_features_location(df,
                               feature_functions=None):
-    """Calculates location feautres
+    """Calculates location features
 
     Parameters
     ----------
