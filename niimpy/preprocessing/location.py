@@ -9,6 +9,7 @@ from geopy.distance import geodesic
 
 import niimpy
 
+default_freq = "1M"
 
 def distance_matrix(lats, lons):
     """Compute distance matrix using great-circle distance formula
@@ -254,7 +255,7 @@ def location_number_of_significant_places(df, feature_functions={}):
     latitude_column = feature_functions.get("latitude_column", "double_latitude")
     longitude_column = feature_functions.get("longitude_column", "double_longitude")
     if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"2M"}
+        feature_functions["resample_args"] = {"rule":default_freq}
 
     def compute_features(df):
         df = df.sort_index()  # sort based on time
@@ -319,7 +320,7 @@ def location_significant_place_features(df, feature_functions={}):
     speed_threshold = feature_functions.get("speed_threshold", 0.277)
     
     if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"2M"}
+        feature_functions["resample_args"] = {"rule":default_freq}
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -406,7 +407,7 @@ def location_distance_features(df, feature_functions={}):
     longitude_column = feature_functions.get("longitude_column", "double_latitude")
     speed_column = feature_functions.get("speed_column", "double_speed")
     if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"5min"}
+        feature_functions["resample_args"] = {"rule":default_freq}
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -428,21 +429,19 @@ def location_distance_features(df, feature_functions={}):
         variance = np.var(lats) + np.var(lons)
         log_variance = np.log(variance)
 
-        df = pd.DataFrame({
-            'user': df["user"],
-            'dist_total': [total_dist],
-            'n_bins': [n_bins],
-            'speed_average': [speed_average],
-            'speed_variance': [speed_variance],
-            'speed_max': [speed_max],
-            'variance': [variance],
-            'log_variance': [log_variance],
-        }, index=times)
-        return df
+        row = pd.Series({
+            'dist_total': total_dist,
+            'n_bins': n_bins,
+            'speed_average': speed_average,
+            'speed_variance': speed_variance,
+            'speed_max': speed_max,
+            'variance': variance,
+            'log_variance': log_variance,
+        })
+        return row
 
-    features = niimpy.util.aggregate(df, freq=feature_functions["resample_args"]["rule"], method_numerical='median').dropna()
-    features = features.reset_index('user').groupby('user').apply(compute_features)
-    return features
+    result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
+    return result.reset_index('user')
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
                          if name.startswith('location_')]
@@ -483,17 +482,25 @@ def extract_features_location(df,
         feature_functions = ALL_FEATURE_FUNCTIONS
 
     freqs_same = True
-    global_freq = next(iter(feature_functions.values()))["resample_args"]["rule"]
+    global_freq = None
     for feature_function, feature_arg in feature_functions.items():
         print(feature_function, feature_arg)
         computed_feature = feature_function(df, feature_arg)
         computed_features.append(computed_feature)
 
-        if global_freq != feature_arg["resample_args"]["rule"]:
+        if "resample_args" in feature_arg.keys():
+            freq = feature_arg["resample_args"]["rule"]
+        else:
+            freq = default_freq
+
+        if global_freq is None:
+            global_freq = freq
+        if global_freq != freq:
             freqs_same = False
 
     if freqs_same:
         computed_features = pd.concat(computed_features, axis=1)
+        computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
     else:
         computed_features = pd.concat(computed_features)
         computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
