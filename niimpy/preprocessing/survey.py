@@ -13,7 +13,7 @@ PHQ2_MAP = {
 }
 
 # PHQ9: Patient Health Questionnaire. Link: https://en.wikipedia.org/wiki/PHQ-9
-PHQ9_MAP = {'Little interest in doing things.' : "PHQ9_1",
+PHQ9_MAP = {'Little interest or pleasure in doing things.' : "PHQ9_1",
             'Feeling down, depressed, or hopeless.' : "PHQ9_2",
             'Trouble falling or staying asleep, or sleeping too much.' : "PHQ9_3",
             'Feeling tired or having little energy.' : "PHQ9_4",
@@ -86,6 +86,13 @@ PHQ2_ANSWER_MAP = {
     'several-days': 1,
     'more-than-half-the-days': 2,
     'nearly-every-day': 3
+}
+
+PHQ9_ANSWER_MAP = {
+    "Not at all": 0,
+    "Several days": 1,
+    "More than half the days": 2,
+    "Nearly every day": 3
 }
 
 # use this mapping for prefix option, so that multiple question id's can be processed
