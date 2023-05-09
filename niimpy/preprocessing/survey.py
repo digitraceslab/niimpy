@@ -12,6 +12,18 @@ PHQ2_MAP = {
     'Feeling down; depressed or hopeless.' : 'PHQ2_2',
 }
 
+# PHQ9: Patient Health Questionnaire. Link: https://en.wikipedia.org/wiki/PHQ-9
+PHQ9_MAP = {'Little interest in doing things.' : "PHQ9_1",
+            'Feeling down, depressed, or hopeless.' : "PHQ9_2",
+            'Trouble falling or staying asleep, or sleeping too much.' : "PHQ9_3",
+            'Feeling tired or having little energy.' : "PHQ9_4",
+            'Poor appetite or overeating.' : "PHQ9_5",
+            'Feeling bad about yourself or that you are a failure or have let yourself or your family down.' : "PHQ9_6",
+            'Trouble concentrating on things, such as reading the newspaper or watching television.' : "PHQ9_7",
+            'Moving or speaking so slowly that other people could have noticed. Or the opposite being so fidgety or restless that you have been moving around a lot more than usual.' : "PHQ9_8",
+            'Thoughts that you would be better off dead, or of hurting yourself.' : "PHQ9_9",
+            }
+
 # PSQI: Pittsburgh Sleep Quality Index. Link: https://en.wikipedia.org/wiki/Pittsburgh_Sleep_Quality_Index
 PSQI_MAP = {
     'Currently; is your sleep typically interrupted? (For example; for attending to a child or due to loud neighbours or medical reasons.)' : 'PSQI_1',
