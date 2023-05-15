@@ -237,7 +237,7 @@ def format_battery_data(df, feature_functions):
 
 def battery_occurrences(df, feature_functions):
     """ Returns a dataframe showing the amount of battery data points found within a specified time window.
-    If there is no specified timeframe, the function sets a 30 min default time window. 
+    If there is no specified timeframe, the function sets a 30 min default time window.
     Parameters
     ----------
     df: pandas.DataFrame
