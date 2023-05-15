@@ -238,8 +238,8 @@ def format_battery_data(df, feature_functions):
     return df
 
 def battery_occurrences(df, feature_functions):
-    """ Returns a dataframe showing the amount of battery data points found between a given interval and steps.
-    The default interval is 6 hours.
+    """ Returns a dataframe showing the amount of battery data points found within a specified time window.
+    If there is no specified timeframe, the function sets a 30 min default time window. 
     Parameters
     ----------
     df: pandas.DataFrame
@@ -250,10 +250,8 @@ def battery_occurrences(df, feature_functions):
     """
     assert isinstance(df, pd.DataFrame), "data is not a pandas DataFrame"
 
-    if "rule" in feature_functions.keys():
-        rule = feature_functions["rule"]
-    else:
-        rule = "30T"
+    if "resample_args" not in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
 
     if "battery_status" in feature_functions.keys():
         battery_status = feature_functions["battery_status"]
@@ -273,7 +271,7 @@ def battery_occurrences(df, feature_functions):
         
         occurrence_data["time"] = occurrence_data.index
         occurrences = occurrence_data.groupby("user").resample(
-            rule,
+            **feature_functions["resample_args"]
         ).agg({
             "time": "count",
             battery_status_col: count_alive
@@ -282,7 +280,7 @@ def battery_occurrences(df, feature_functions):
     else:
         occurrence_data["time"] = occurrence_data.index
         occurrences = occurrence_data.groupby("user").resample(
-            rule,
+            **feature_functions["resample_args"]
         )["time"].count()
         occurrences = occurrences.to_frame(name='occurrences')
     return occurrences
