@@ -343,11 +343,12 @@ def battery_charge_discharge(df, feature_functions):
 
     def calculate_discharge(df):
         battery_level = pd.to_numeric(df[battery_level_column])
-        battery_level = battery_level.resample(**feature_functions["resample_args"]).mean()
         tvalue = battery_level.index.to_series()
         tdelta = (tvalue - tvalue.shift()).fillna(pd.Timedelta(seconds=0))
         bdelta = (battery_level - battery_level.shift()).fillna(0)
         delta = bdelta / (tdelta / pd.Timedelta(seconds=1))
+        bdelta = bdelta.resample(**feature_functions["resample_args"]).mean()
+        delta = delta.resample(**feature_functions["resample_args"]).mean()
         return pd.DataFrame({
             'bdelta': bdelta,
             'charge/discharge': delta
