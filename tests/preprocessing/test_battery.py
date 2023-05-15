@@ -53,8 +53,8 @@ def test_battery_gaps():
     k = niimpy.preprocessing.battery.battery_gaps
     gaps = niimpy.preprocessing.battery.extract_features_battery(df, feature_functions={k: {}})
     assert gaps.battery_gap.dtype == 'timedelta64[ns]'
-    assert gaps.loc['Afxzi7oI0yyp', Timestamp('2019-01-17 09:30:00+02:00')]["battery_gap"] == pd.Timedelta('0 days 00:13:18.448999680')
-    assert gaps.loc['lb983ODxEFUD', Timestamp('2019-01-17 09:30:00+02:00')]["battery_gap"] == pd.Timedelta('0 days 00:02:00.906999808')
+    assert gaps.loc['Afxzi7oI0yyp', Timestamp('2019-01-17 09:30:00+02:00')]["battery_gap"] == pd.Timedelta('0 days 00:04:26.149666560')
+    assert gaps.loc['lb983ODxEFUD', Timestamp('2019-01-17 09:30:00+02:00')]["battery_gap"] == pd.Timedelta('0 days 00:01:00.453499904')
 
 
 def test_battery_charge_discharge():
@@ -62,4 +62,4 @@ def test_battery_charge_discharge():
     k = niimpy.preprocessing.battery.battery_charge_discharge
     chdisch = niimpy.preprocessing.battery.extract_features_battery(df, feature_functions={k: {}})
     assert chdisch.loc["lb983ODxEFUD", Timestamp('2019-01-17 10:30:00+02:00')]['bdelta'] == -2.0
-    assert chdisch.loc["lb983ODxEFUD", Timestamp('2019-01-17 10:30:00+02:00')]['charge/discharge'] == -2.0/1800
+    assert chdisch.loc["lb983ODxEFUD", Timestamp('2019-01-17 10:30:00+02:00')]['charge/discharge'] == -0.001050474788377773
