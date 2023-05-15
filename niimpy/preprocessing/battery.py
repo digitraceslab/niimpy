@@ -29,7 +29,7 @@ def shutdown_info(df, feature_functions):
 
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
 
-    shutdown = df[df[col_name].between(-3, 0, inclusive=False)]
+    shutdown = df[df[col_name].between(-3, 0, inclusive="neither")]
     return shutdown
 
 def battery_mean_level(df, feature_functions):
