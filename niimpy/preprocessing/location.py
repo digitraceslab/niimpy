@@ -262,7 +262,6 @@ def location_number_of_significant_places(df, feature_functions={}):
 
         lats = df[latitude_column]
         lons = df[longitude_column]
-        times = df.index
 
         clusters = cluster_locations(lats, lons)
         number_of_sps = len(set(clusters))
