@@ -164,15 +164,13 @@ def battery_shutdown_time(df, feature_functions):
     
         df_u = df.iloc[ids]
         df_u.sort_index(inplace=True)
-        df_u['duration']=np.nan
-        df_u['duration']= df_u.index.to_series().diff()
-        df_u['duration'] = df_u['duration'].shift(-1)
-        df_u["duration"] = df_u["duration"].dt.total_seconds()
+        duration = np.nan
+        duration = df_u.index.to_series().diff()
+        duration = duration.shift(-1).iloc[:-1]
+        duration = duration.dt.total_seconds()
            
-        result = None
-        if len(df_u)>0:
-            result = df_u['duration'].resample(**feature_functions["resample_args"]).sum()
-            result = result.to_frame(name='shutdown_time')
+        result = duration.resample(**feature_functions["resample_args"]).sum()
+        result = result.to_frame(name='shutdown_time')
         return result
 
     return df.groupby('user').apply(calculate_shutdown)
