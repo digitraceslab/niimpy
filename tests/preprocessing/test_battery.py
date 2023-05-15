@@ -12,7 +12,7 @@ df11 = pd.DataFrame(
      "time": [1547709614.05, 1547709686.036, 1547709722.06, 1547710540.99, 1547710688.469, 1547711339.439,
               1547711831.275, 1547711952.182, 1547712028.281],
      "battery_level": [96, 96, 95, 95, 94, 93, 94, 94, 94],
-     "battery_status": ['3'] * 5 + ['2', '2', '3', '3'],
+     "battery_status": ['3'] * 5 + ['-2', '2', '3', '-2'],
      "battery_health": ['2'] * 9,
      "battery_adaptor": ['0'] * 5 + ['1', '1', '0', '0'],
      "datetime": ['2019-01-17 09:20:14.049999872+02:00', '2019-01-17 09:21:26.036000+02:00',
@@ -25,6 +25,7 @@ df11 = pd.DataFrame(
 df11['datetime'] = pd.to_datetime(df11['datetime'])
 df11 = df11.set_index('datetime', drop=False)
 
+niimpy.preprocessing.battery.extract_features_battery(df11)
 
 def test_format_battery_data():
     df = df11.copy()
@@ -51,7 +52,7 @@ def test_battery_gaps():
     k = niimpy.preprocessing.battery.battery_gaps
     gaps = niimpy.preprocessing.battery.extract_features_battery(df, feature_functions={k: {}})
     assert gaps.delta.dtype == 'timedelta64[ns]'
-    assert gaps.tvalue.dtype == 'datetime64[ns, pytz.FixedOffset(120)]'
+    assert gaps.tvalue.dtype == 'datetime64[ns, UTC+02:00]'
     assert gaps.loc[Timestamp('2019-01-17 09:22:02.060000+02:00'), 'delta'] == pd.Timedelta('0 days 00:00:36.024000')
     assert gaps.loc[Timestamp('2019-01-17 09:57:11.275000064+02:00'), 'tvalue'] == pd.Timestamp(
         '2019-01-17 09:57:11.275000064+0200', tz='Europe/Helsinki')
@@ -62,6 +63,6 @@ def test_battery_charge_discharge():
     k = niimpy.preprocessing.battery.battery_charge_discharge
     chdisch = niimpy.preprocessing.battery.extract_features_battery(df, feature_functions={k: {}})
     assert chdisch.tdelta.dtype == 'timedelta64[ns]'
-    assert chdisch.tvalue.dtype == 'datetime64[ns, pytz.FixedOffset(120)]'
+    assert chdisch.tvalue.dtype == 'datetime64[ns, UTC+02:00]'
     assert chdisch.loc[Timestamp('2019-01-17 09:48:59.438999808+02:00'), 'bdelta'] == -1
     assert chdisch.loc[Timestamp('2019-01-17 09:48:59.438999808+02:00'), 'charge/discharge'] == -0.0015361691024008617

@@ -155,28 +155,28 @@ def battery_shutdown_time(df, feature_functions):
     if not "resample_args" in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
 
-    df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str) 
-    ids = np.where((df.next=='-32') | (df.next=='-33') | (df.next=='-12') | (df.next=='-13') | (df.next=='-22') | (df.next=='-23'))[0]
-    ids = ids.tolist()
-    [ids.append(ids[i]+1) for i in range(len(ids))]
-    ids.sort()
+    def calculate_shutdown(df):
+        df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str) 
+        ids = np.where((df.next=='-32') | (df.next=='-33') | (df.next=='-12') | (df.next=='-13') | (df.next=='-22') | (df.next=='-23'))[0]
+        ids = ids.tolist()
+        [ids.append(ids[i]+1) for i in range(len(ids))]
+        ids.sort()
     
-    df_u = df.iloc[ids]
-    df_u.sort_values(by=["user","datetime"], inplace=True)
-    df_u['duration']=np.nan
-    df_u['duration']=df_u['datetime'].diff()
-    df_u['duration'] = df_u['duration'].shift(-1)
-    df_u["duration"] = df_u["duration"].dt.total_seconds()
+        df_u = df.iloc[ids]
+        df_u.sort_index(inplace=True)
+        df_u['duration']=np.nan
+        df_u['duration']= df_u.index.to_series().diff()
+        df_u['duration'] = df_u['duration'].shift(-1)
+        df_u["duration"] = df_u["duration"].dt.total_seconds()
+           
+        result = None
+        if len(df_u)>0:
+            result = df_u['duration'].resample(**feature_functions["resample_args"]).sum()
+            result = result.to_frame(name='shutdown_time')
+        return result
+
+    return df.groupby('user').apply(calculate_shutdown)
     
-    #Discard transitions between subjects
-    if len(list(df_u.user.unique()))>1:
-        df_u = df_u.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
-        df_u = df_u.droplevel(0)
-       
-    if len(df_u)>0:
-        result = df_u.groupby('user')['duration'].resample(**feature_functions["resample_args"]).sum()
-        result = result.to_frame(name='shutdown_time')
-    return result
 
 def battery_discharge(df, feature_functions):
     """ This function returns the mean discharge rate of the battery within a specified time window. 
@@ -203,24 +203,23 @@ def battery_discharge(df, feature_functions):
     if "resample_args" not in feature_functions.keys():
         feature_functions["resample_args"] = {"rule":"30T"}
     
-    df.sort_values(by=["user","datetime"], inplace=True)
+    def calculate_discharge(df):
+        df.sort_index(inplace=True)
     
-    df['duration'] = np.nan
-    df['duration'] = df['datetime'].diff()
-    df['duration'] = df['duration'].shift(-1)
-    df["duration"] = df["duration"].dt.total_seconds()
-    df['discharge'] = (df[col_name].shift(-1) - df[col_name])/df['duration']
-    df['discharge'] = df['discharge'].shift(1)
-    
-    #Discard transitions between subjects
-    if len(list(df.user.unique()))>1:
-        df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
-        df = df.droplevel(0)
+        df['duration'] = np.nan
+        df['duration'] = df.index.to_series().diff()
+        df['duration'] = df['duration'].shift(-1)
+        df["duration"] = df["duration"].dt.total_seconds()
+        df['discharge'] = (df[col_name].shift(-1) - df[col_name])/df['duration']
+        df['discharge'] = df['discharge'].shift(1)
        
-    if len(df)>0:
-        result = df.groupby('user')['discharge'].resample(**feature_functions["resample_args"]).mean()
-        result = result.to_frame(name='battery_discharge')
-    return result
+        result = None
+        if len(df)>0:
+            result = df['discharge'].resample(**feature_functions["resample_args"]).mean()
+            result = result.to_frame(name='battery_discharge')
+        return result
+    
+    return df.groupby('user').apply(calculate_discharge)
 
 
 def format_battery_data(df, feature_functions):
@@ -254,7 +253,7 @@ def battery_occurrences(df, feature_functions):
     if "rule" in feature_functions.keys():
         rule = feature_functions["rule"]
     else:
-        rule = "6H"
+        rule = "30T"
 
     if "battery_status" in feature_functions.keys():
         battery_status = feature_functions["battery_status"]
@@ -272,25 +271,21 @@ def battery_occurrences(df, feature_functions):
         def count_alive(series):
             return ((series == '-1') | (series == '-2') | (series == '-3')).sum()
         
-        # This seems like it should not be the best way
         occurrence_data["time"] = occurrence_data.index
         occurrences = occurrence_data.groupby("user").resample(
             rule,
-            origin="start"
         ).agg({
             "time": "count",
             battery_status_col: count_alive
         }).to_frame(name='occurrences')
 
     else:
-        # This seems like it should not be the best way
         occurrence_data["time"] = occurrence_data.index
         occurrences = occurrence_data.groupby("user").resample(
-            rule, 
-            origin="start"
+            rule,
         )["time"].count()
         occurrences = occurrences.to_frame(name='occurrences')
-    return occurrences.reset_index("user")
+    return occurrences
 
 
 def battery_gaps(df, feature_functions):
@@ -310,19 +305,24 @@ def battery_gaps(df, feature_functions):
     assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
 
+    if "resample_args" not in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
+
     if "min_duration_between" in feature_functions.keys():
         min_duration_between = feature_functions["min_duration_between"]
     else:
         min_duration_between = None
 
     def calculate_gaps(df):
-        df['tvalue'] = df.index
-        df['delta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
-        if (min_duration_between != None):
-            df = df[df['delta'] >= min_duration_between]
+        tvalue = df.index.to_series()
+        delta = (tvalue - tvalue.shift()).fillna(pd.Timedelta(seconds=0))
+        if (min_duration_between is not None):
+            delta[delta < min_duration_between] = None
 
-        return df
+        delta = delta.resample(**feature_functions["resample_args"]).sum()
 
+        return pd.DataFrame({"battery_gap": delta})
+    
     return df.groupby('user').apply(calculate_gaps)
 
 
@@ -340,13 +340,17 @@ def battery_charge_discharge(df, feature_functions):
     else:
         battery_level_column = "battery_level"
     
+    if "resample_args" not in feature_functions.keys():
+        feature_functions["resample_args"] = {"rule":"30T"}
+
     def calculate_discharge(df):
-        df[battery_level_column] = pd.to_numeric(df[battery_level_column])
-        df['tvalue'] = df.index
-        df['tdelta'] = (df['tvalue'] - df['tvalue'].shift()).fillna(pd.Timedelta(seconds=0))
-        df['bdelta'] = (df[battery_level_column] - df[battery_level_column].shift()).fillna(0)
-        df['charge/discharge'] = ((df['bdelta']) / ((df['tdelta'] / pd.Timedelta(seconds=1))))
-        return df
+        battery_level = pd.to_numeric(df[battery_level_column])
+        tvalue = df.index.to_series()
+        tdelta = (tvalue - tvalue.shift()).fillna(pd.Timedelta(seconds=0))
+        bdelta = (battery_level - battery_level.shift()).fillna(0)
+        delta = bdelta / (tdelta / pd.Timedelta(seconds=1))
+        delta = delta.resample(**feature_functions["resample_args"]).sum()
+        return pd.DataFrame({'charge/discharge': delta})
 
     discharge = df.groupby('user').apply(calculate_discharge)
     return discharge
