@@ -287,18 +287,21 @@ def battery_occurrences(df, feature_functions):
 
 
 def battery_gaps(df, feature_functions):
-    '''Returns a DataFrame including all battery data and showing the delta between
-    consecutive battery timestamps. The minimum size of the considered deltas can be decided
-    with the min_duration_between parameter.
+    '''Returns a DataFrame with the mean time difference between consecutive battery
+    timestamps. The mean is calculated within intervals specified in feature_functions.
+    The minimum size of the considered deltas can be decided with the min_duration_between
+    parameter.
 
     Parameters
     ----------
-    df: dataframe with date index
-    feature_functions: A dictionary of optional arguments
+    df: pandas.DataFrame
+        Dataframe with the battery information
+    feature_functions: dict, optional
+        Dictionary keys containing optional arguments for the computation of batter
+        information. Keys can be column names, other dictionaries, etc. 
 
     Optional arguments in feature_functions:
-        min_duration_between: Timedelta, for example, pd.Timedelta(hours=6)
-        
+        min_duration_between: Timedelta, for example, pd.Timedelta(minutes=5)
     '''
     assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
@@ -317,7 +320,7 @@ def battery_gaps(df, feature_functions):
         if (min_duration_between is not None):
             delta[delta < min_duration_between] = None
 
-        delta = delta.resample(**feature_functions["resample_args"]).sum()
+        delta = delta.resample(**feature_functions["resample_args"]).mean()
 
         return pd.DataFrame({"battery_gap": delta})
     
@@ -325,7 +328,9 @@ def battery_gaps(df, feature_functions):
 
 
 def battery_charge_discharge(df, feature_functions):
-    '''Returns a DataFrame including all battery data and showing the charge/discharge between each timestamp.
+    '''Returns a DataFrame showing the mean difference in battery values and mean battery
+    charge/discharge rate within specified time windows.
+    If there is no specified timeframe, the function sets a 30 min default time window.
     Parameters
     ----------
     df: dataframe with date index
