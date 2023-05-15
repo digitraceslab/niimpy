@@ -4,7 +4,8 @@ import pandas as pd
 import niimpy
 
 def shutdown_info(df, feature_functions):
-    """ Returns a pandas Index with the timestamps of when the phone has shutdown.
+    """ Returns a pandas DataFrame with battery information for the timestamps when the phone
+    has shutdown.
     This includes both events, when the phone has shut down and when the phone
     has been rebooted.
     NOTE: This is a helper function created originally to preprocess the application
@@ -30,7 +31,7 @@ def shutdown_info(df, feature_functions):
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
 
     shutdown = df[df[col_name].between(-3, 0, inclusive="neither")]
-    return shutdown[col_name].to_dataframe()
+    return shutdown
 
 def battery_mean_level(df, feature_functions):
     """ This function returns the mean battery level within the specified timeframe. 
