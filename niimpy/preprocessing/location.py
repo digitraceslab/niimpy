@@ -122,6 +122,9 @@ def get_speeds_totaldist(lats, lons, times):
     assert len(lats) == len(lons) == len(times)
     n_bins = len(lats)
 
+    if n_bins == 0:
+        return ([], [])
+
     dists = np.zeros(n_bins)
     time_deltas = np.ones(n_bins)
     for i in range(1, n_bins):
@@ -196,6 +199,8 @@ def cluster_locations(lats, lons, min_samples=5, eps=200):
     clusters : array
         Array of clusters. -1 indicates outlier.
     """
+    if lats.shape[0] == 0 or lons.shape[0] == 0:
+        return np.array([])
     dists_matrix = distance_matrix(lats, lons)
     dbscan = DBSCAN(min_samples=min_samples, eps=eps, metric='precomputed')
     clusters = dbscan.fit_predict(dists_matrix)
@@ -337,6 +342,9 @@ def location_significant_place_features(df, feature_functions={}):
         """Compute features for a single user"""
         df = df.sort_index()  # sort based on time
 
+        if df.shape[0] == 0:
+            return None
+
         lats = df[latitude_column]
         lons = df[longitude_column]
         times = df.index
@@ -356,8 +364,12 @@ def location_significant_place_features(df, feature_functions={}):
 
         non_rare_clusters = clusters[clusters != -1]
         n_unique_sps = len(set(non_rare_clusters))
-        entropy = scipy.stats.entropy(non_rare_clusters)
-        normalized_entropy = entropy / np.log(len(set(non_rare_clusters)))
+        if n_unique_sps > 1:
+            entropy = scipy.stats.entropy(non_rare_clusters)
+            normalized_entropy = entropy / np.log(len(set(non_rare_clusters)))
+        else:
+            entropy = 0
+            normalized_entropy = 0
 
         counter = collections.Counter(clusters)
         stay_times = counter.values()
@@ -424,6 +436,9 @@ def location_distance_features(df, feature_functions={}):
         """Compute features for a single user and given time interval"""
         df = df.sort_index()  # sort based on time
         n_bins = df.shape[0]
+
+        if n_bins == 0:
+            return None
 
         lats = df[latitude_column]
         lons = df[longitude_column]
