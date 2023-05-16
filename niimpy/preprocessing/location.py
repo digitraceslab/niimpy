@@ -55,7 +55,8 @@ def distance_matrix(lats, lons):
     lons_diff = np.cos(lons_diff)
 
     # TODO: make this function more efficient
-    dists = R * np.arccos(sin_matrix + cos_matrix * lons_diff)
+    dists = np.minimum(1, sin_matrix + cos_matrix * lons_diff)
+    dists = R * np.arccos(dists)
     dists[np.isnan(dists)] = 0
     return dists
 
@@ -122,7 +123,7 @@ def get_speeds_totaldist(lats, lons, times):
     n_bins = len(lats)
 
     dists = np.zeros(n_bins)
-    time_deltas = np.zeros(n_bins)
+    time_deltas = np.ones(n_bins)
     for i in range(1, n_bins):
         loc1 = (lats[i - 1], lons[i - 1])
         loc2 = (lats[i], lons[i])
@@ -202,7 +203,7 @@ def cluster_locations(lats, lons, min_samples=5, eps=200):
 
 
 def number_of_significant_places(lats, lons, times):
-    """Computes number of significant places
+    """Computes number of significant places.
 
     Number of significant plcaes is computed by first clustering
     the locations in each month and then taking the median of the
@@ -220,7 +221,7 @@ def number_of_significant_places(lats, lons, times):
     times : array
         Array of times
 
-    Returns
+    Returns : the number of significant places discovered
     """
     sps = []
     number_of_places = []
@@ -275,7 +276,6 @@ def location_number_of_significant_places(df, feature_functions={}):
     
     result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
     return result.reset_index('user')
-        
 
 
 def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
@@ -311,7 +311,19 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
 
 
 def location_significant_place_features(df, feature_functions={}):
-    """Calculates features related to Significant Places"""
+    """Calculates features related to Significant Places.
+    
+    Parameters
+    ----------
+    df: dataframe with date index
+    feature_functions: A dictionary of optional arguments
+
+    Optional arguments in feature_functions:
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
+    """
 
     latitude_column = feature_functions.get("latitude_column", "double_latitude")
     longitude_column = feature_functions.get("longitude_column", "double_latitude")
@@ -319,7 +331,7 @@ def location_significant_place_features(df, feature_functions={}):
     speed_threshold = feature_functions.get("speed_threshold", 0.277)
     
     if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":default_freq}
+        feature_functions["resample_args"] = {"rule": default_freq}
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -389,7 +401,7 @@ def location_significant_place_features(df, feature_functions={}):
 
 
 def location_distance_features(df, feature_functions={}):
-    """Calculates features related to distance and speed
+    """Calculates features related to distance and speed.
     
     Parameters
     ----------
@@ -400,7 +412,7 @@ def location_distance_features(df, feature_functions={}):
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
-        resample_args: 
+        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
     """
     latitude_column = feature_functions.get("latitude_column", "double_latitude")
     longitude_column = feature_functions.get("longitude_column", "double_latitude")
@@ -409,7 +421,7 @@ def location_distance_features(df, feature_functions={}):
         feature_functions["resample_args"] = {"rule":default_freq}
 
     def compute_features(df):
-        """Compute features for a single user"""
+        """Compute features for a single user and given time interval"""
         df = df.sort_index()  # sort based on time
         n_bins = df.shape[0]
 
@@ -483,7 +495,6 @@ def extract_features_location(df,
     freqs_same = True
     global_freq = None
     for feature_function, feature_arg in feature_functions.items():
-        print(feature_function, feature_arg)
         computed_feature = feature_function(df, feature_arg)
         computed_features.append(computed_feature)
 
