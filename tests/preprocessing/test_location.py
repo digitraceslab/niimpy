@@ -42,7 +42,7 @@ def test_location_features():
     sps = features['n_sps'].dropna()
     assert ((sps > 0) & (sps < 100)).all(), "Number of SPs not reasonable"
 
-    features_u1 = features[features['user'] == 'gps_u00']
+    features_u1 = features.loc['gps_u00']
     features_u1 = features_u1.dropna().iloc[1]
     print(features_u1)
 

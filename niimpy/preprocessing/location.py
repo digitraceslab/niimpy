@@ -280,7 +280,7 @@ def location_number_of_significant_places(df, feature_functions={}):
         return row
     
     result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
-    return result.reset_index('user')
+    return result
 
 
 def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
@@ -409,7 +409,7 @@ def location_significant_place_features(df, feature_functions={}):
         return row
 
     result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
-    return result.reset_index('user')
+    return result
 
 
 def location_distance_features(df, feature_functions={}):
@@ -467,7 +467,7 @@ def location_distance_features(df, feature_functions={}):
         return row
 
     result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
-    return result.reset_index('user')
+    return result
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
                          if name.startswith('location_')]
@@ -503,34 +503,18 @@ def extract_features_location(df,
         Dataframe of computed features where the index is users and columns
         are the the features.
     """
-    computed_features = []
     if feature_functions is None:
         feature_functions = ALL_FEATURE_FUNCTIONS
+    else:
+        assert isinstance(feature_functions, dict), "Please input the feature_functions as a dictionary"
 
-    freqs_same = True
-    global_freq = None
+    computed_features = []
     for feature_function, feature_arg in feature_functions.items():
         computed_feature = feature_function(df, feature_arg)
         computed_features.append(computed_feature)
-
-        if "resample_args" in feature_arg.keys():
-            freq = feature_arg["resample_args"]["rule"]
-        else:
-            freq = default_freq
-
-        if global_freq is None:
-            global_freq = freq
-        if global_freq != freq:
-            freqs_same = False
-
-    if freqs_same:
-        computed_features = pd.concat(computed_features, axis=1)
-        computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
-    else:
-        computed_features = pd.concat(computed_features)
-        computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
-        computed_features = computed_features.groupby('user').apply(lambda x : x.sort_index().ffill())
-        computed_features = computed_features.reset_index("user", drop=True)
+    
+    computed_features = pd.concat(computed_features, axis=1)
+    computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
