@@ -22,7 +22,7 @@ Digital behavioral studies using personal digital devices typically produce rich
 How
 ---
 
-The toolbox is divided into four layers by functionality: 1) reading, 2) preprocessing, 3) exploration, and 4) analysis. For more information about the layers, refer the toolbox architecture chapter :doc:`architecture`. Quickstart guide would be a good place to start :doc:`quick-start`. More detailed demo Jupyter notebooks are provided in user guide chapter :doc:`demo_notebooks/Exploration`. Instructions for individual functions can be found under API chapter :doc:`api/niimpy`.
+The toolbox is divided into four layers by functionality: 1) reading, 2) preprocessing, 3) exploration, and 4) analysis. For more information about the layers, refer the toolbox :doc:`architecture` chapter. The :doc:`quick start <quick-start>` guide is be a good place to start. More detailed demo Jupyter notebooks are provided in the :doc:`user guide <demo_notebooks/Exploration>` chapter. Instructions for individual functions can be found under API chapter :doc:`api/niimpy`.
 
 This documentation has following chapters:
 
