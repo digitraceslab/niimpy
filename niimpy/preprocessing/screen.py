@@ -49,10 +49,12 @@ def util_screen(df, bat, config):
         if not shutdown.empty:
             df = pd.concat([df, shutdown])
             df.fillna(0, inplace=True)
-            df = df[["user","device","time",col_name, "datetime"]]
+            print(df.columns)
+            df = df[["user","device","time",col_name]]
 
     #Sort the dataframe
-    df.sort_values(by=["user","device","datetime"], inplace=True)
+    df.sort_index(inplace=True)
+    df.sort_values(by=["user","device"], inplace=True)
     
     #Detect missing data points
     df['missing']=0
@@ -101,7 +103,8 @@ def event_classification_screen(df, config):
         col_name = config["screen_column_name"]
     
     #Classify the event 
-    df.sort_values(by=["user","device","datetime"], inplace=True)
+    df.sort_index(inplace=True)
+    df.sort_values(by=["user","device"], inplace=True)
     df['next'] = df[col_name].shift(-1)
     df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str)   
     df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])#Discard transitions between subjects
@@ -140,9 +143,10 @@ def duration_util_screen(df):
     """    
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
             
-    df.sort_values(by=["user","device","datetime"], inplace=True)
+    df.sort_index(inplace=True)
+    df.sort_values(by=["user","device"], inplace=True)
     df['duration']=np.nan
-    df['duration']=df['datetime'].diff()
+    df['duration']=df.index.to_series().diff()
     df['duration'] = df['duration'].shift(-1)
     
     #Discard transitions between subjects
@@ -582,7 +586,7 @@ def screen_first_unlock(df, bat, config):
     df2 = event_classification_screen(df2, config)
     
     result = df2[df2.on==1].groupby("user").resample(rule='1D').min()
-    result = result[["datetime"]]
+    result = result.index.to_series()
     return result
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('screen_')]
