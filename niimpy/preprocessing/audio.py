@@ -424,7 +424,7 @@ def audio_mean_db(df_u, config=None):
         result = result.to_frame(name='audio_mean_db')
     return result
 
-def audio_median_db(df_u, config
+def audio_median_db(df_u, config):
     """ This function returns the median decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.

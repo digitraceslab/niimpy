@@ -158,7 +158,7 @@ def duration_util_screen(df):
     
     return df
 
-def screen_off(df, bat, config
+def screen_off(df, bat, config):
     """ This function returns the timestamps, within the specified timeframe, 
     when the screen has turned off. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number 
@@ -574,9 +574,9 @@ def screen_first_unlock(df, bat, config):
     if not "screen_column_name" in config:
         col_name = "screen_status"
     else:
-        col_name = configlumn_name"]
-    if not "resample_args" in config
-        configargs"] = {"rule":"30T"}
+        col_name = config["screen_column_name"]
+    if not "resample_args" in config:
+        config["resample_args"] = {"rule":"30T"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)
