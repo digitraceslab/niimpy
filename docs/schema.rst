@@ -16,7 +16,7 @@ Format
 Data is in a tabular (relational) format.  A row is an observation,
 and columns are properties of observations.  (At this level of
 abstraction, an "observation" may be one sensor observation, or some
-data which contains a package of multiple observations".
+data which contains a package of multiple observations).
 
 In Niimpy, this is internally stored and handled as a
 pandas.DataFrame.  The schema naturally maps to the columns/rows of
