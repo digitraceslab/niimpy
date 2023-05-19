@@ -256,12 +256,12 @@ def number_of_significant_places(lats, lons, times):
     return np.nanmedian(sps)
 
 
-def location_number_of_significant_places(df, feature_functions={}):
+def location_number_of_significant_places(df, config={}):
     """Computes number of significant places """
-    latitude_column = feature_functions.get("latitude_column", "double_latitude")
-    longitude_column = feature_functions.get("longitude_column", "double_longitude")
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":default_freq}
+    latitude_column = config.get("latitude_column", "double_latitude")
+    longitude_column = config.get("longitude_column", "double_longitude")
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":default_freq}
 
     def compute_features(df):
         df = df.sort_index()  # sort based on time
@@ -279,7 +279,7 @@ def location_number_of_significant_places(df, feature_functions={}):
         })
         return row
     
-    result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
+    result = df.groupby('user').resample(**config["resample_args"]).apply(compute_features)
     return result
 
 
@@ -315,28 +315,28 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def location_significant_place_features(df, feature_functions={}):
+def location_significant_place_features(df, config={}):
     """Calculates features related to Significant Places.
     
     Parameters
     ----------
     df: dataframe with date index
-    feature_functions: A dictionary of optional arguments
+    config: A dictionary of optional arguments
 
-    Optional arguments in feature_functions:
+    Optional arguments in config:
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
     """
 
-    latitude_column = feature_functions.get("latitude_column", "double_latitude")
-    longitude_column = feature_functions.get("longitude_column", "double_latitude")
-    speed_column = feature_functions.get("speed_column", "double_speed")
-    speed_threshold = feature_functions.get("speed_threshold", 0.277)
+    latitude_column = config.get("latitude_column", "double_latitude")
+    longitude_column = config.get("longitude_column", "double_latitude")
+    speed_column = config.get("speed_column", "double_speed")
+    speed_threshold = config.get("speed_threshold", 0.277)
     
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule": default_freq}
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule": default_freq}
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -408,29 +408,29 @@ def location_significant_place_features(df, feature_functions={}):
         })
         return row
 
-    result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
+    result = df.groupby('user').resample(**config["resample_args"]).apply(compute_features)
     return result
 
 
-def location_distance_features(df, feature_functions={}):
+def location_distance_features(df, config={}):
     """Calculates features related to distance and speed.
     
     Parameters
     ----------
     df: dataframe with date index
-    feature_functions: A dictionary of optional arguments
+    config: A dictionary of optional arguments
 
-    Optional arguments in feature_functions:
+    Optional arguments in config:
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
     """
-    latitude_column = feature_functions.get("latitude_column", "double_latitude")
-    longitude_column = feature_functions.get("longitude_column", "double_latitude")
-    speed_column = feature_functions.get("speed_column", "double_speed")
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":default_freq}
+    latitude_column = config.get("latitude_column", "double_latitude")
+    longitude_column = config.get("longitude_column", "double_latitude")
+    speed_column = config.get("speed_column", "double_speed")
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":default_freq}
 
     def compute_features(df):
         """Compute features for a single user and given time interval"""
@@ -469,7 +469,7 @@ def location_distance_features(df, feature_functions={}):
         })
         return row
 
-    result = df.groupby('user').resample(**feature_functions["resample_args"]).apply(compute_features)
+    result = df.groupby('user').resample(**config["resample_args"]).apply(compute_features)
     return result
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()

@@ -290,7 +290,7 @@ MAP_APP = {'CrossCycle':'sports',
             "MoMoMood": 'wellbeing',
 }
 
-def classify_app(df, feature_functions):
+def classify_app(df, config):
     """ This function is a helper function for other screen preprocessing.
     The function classifies the screen events into the groups specified by group_map. 
     
@@ -298,7 +298,7 @@ def classify_app(df, feature_functions):
     ----------
     df: pandas.DataFrame
         Input data frame
-    feature_functions: dict, optional
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of screen
         information. Keys can be column names, other dictionaries, etc. It can
         contain a dictionary called group_map, which has the mapping to define 
@@ -311,22 +311,22 @@ def classify_app(df, feature_functions):
         Resulting dataframe
     """    
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "app_column_name" in feature_functions.keys():
+    if not "app_column_name" in config.keys():
         col_name = "application_name"
     else:
-        col_name = feature_functions["app_column_name"]
+        col_name = config["app_column_name"]
     
     df['app_group'] = 'na'
-    for key,value in feature_functions["group_map"].items():
+    for key,value in config["group_map"].items():
         df.app_group[df[col_name] == key]=value
     return df
 
-def app_count(df, bat, screen, feature_functions=None):
+def app_count(df, bat, screen, config=None):
     """ This function returns the number of times each app group has been used, 
     within the specified timeframe. The app groups are defined as a dictionary 
-    within the feature_functions variable. Examples of app groups are social 
+    within the config variable. Examples of app groups are social 
     media, sports, games, etc. If no mapping is given, a default one will be used.
     If no resampling window is given, the function sets a 30 min default time window. The 
     function aggregates the duration by user, by app group, by timewindow. 
@@ -341,7 +341,7 @@ def app_count(df, bat, screen, feature_functions=None):
     screen: pandas.DataFrame
         Dataframe with the screen information. If no data is available, an empty 
         dataframe should be passed.
-    feature_functions: dict, optional
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -358,22 +358,22 @@ def app_count(df, bat, screen, feature_functions=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(screen, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "group_map" in feature_functions.keys():
-        feature_functions['group_map'] = MAP_APP
-    if not "screen_column_name" in feature_functions.keys():
+    if not "group_map" in config.keys():
+        config['group_map'] = MAP_APP
+    if not "screen_column_name" in config.keys():
         screen_col_name = "screen_status"
     else:
-        screen_col_name = feature_functions["screen_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        screen_col_name = config["screen_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
-    df2 = classify_app(df, feature_functions)
+    df2 = classify_app(df, config)
 
     #Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        screen = s.screen_off(screen, bat, feature_functions)
+        screen = s.screen_off(screen, bat, config)
         if type(screen.index)==pd.MultiIndex:
             screen.reset_index(inplace=True) 
             screen.set_index("index", inplace=True)
@@ -383,7 +383,7 @@ def app_count(df, bat, screen, feature_functions=None):
         df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if (screen.empty and not bat.empty):
-        shutdown = b.shutdown_info(bat, feature_functions)
+        shutdown = b.shutdown_info(bat, config)
         shutdown = shutdown.replace([-1,-2],'off')
         if type(shutdown.index)==pd.MultiIndex:
             shutdown.reset_index(inplace=True) 
@@ -401,16 +401,16 @@ def app_count(df, bat, screen, feature_functions=None):
     if len(df2)>0:
         df2['datetime'] = pd.to_datetime(df2['datetime'])
         df2.set_index('datetime', inplace=True)
-        result = df2.groupby(["user","app_group"]).resample(**feature_functions["resample_args"]).count()
+        result = df2.groupby(["user","app_group"]).resample(**config["resample_args"]).count()
         result.rename(columns={"device": "count"}, inplace=True)
         result = result["count"].to_frame()
         
     return result
 
-def app_duration(df, bat, screen, feature_functions=None):
+def app_duration(df, bat, screen, config=None):
     """ This function returns the duration of use of different app groups, within the 
     specified timeframe. The app groups are defined as a dictionary within the 
-    feature_functions variable. Examples of app groups are social media, sports,
+    config variable. Examples of app groups are social media, sports,
     games, etc. If no mapping is given, a default one will be used.
     If no resampling window is given, the function sets a 30 min default time window. The 
     function aggregates the duration by user, by app group, by timewindow. 
@@ -425,7 +425,7 @@ def app_duration(df, bat, screen, feature_functions=None):
     screen: pandas.DataFrame
         Dataframe with the screen information. If no data is available, an empty 
         dataframe should be passed.
-    feature_functions: dict, optional
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -442,22 +442,22 @@ def app_duration(df, bat, screen, feature_functions=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(screen, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "group_map" in feature_functions.keys():
-        feature_functions['group_map'] = MAP_APP
-    if not "screen_column_name" in feature_functions.keys():
+    if not "group_map" in config.keys():
+        config['group_map'] = MAP_APP
+    if not "screen_column_name" in config.keys():
         screen_col_name = "screen_status"
     else:
-        screen_col_name = feature_functions["screen_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        screen_col_name = config["screen_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
-    df2 = classify_app(df, feature_functions)
+    df2 = classify_app(df, config)
 
     #Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        screen = s.screen_off(screen, bat, feature_functions)
+        screen = s.screen_off(screen, bat, config)
         if type(screen.index)==pd.MultiIndex:
             screen.reset_index(inplace=True) 
             screen.set_index("index", inplace=True)
@@ -467,7 +467,7 @@ def app_duration(df, bat, screen, feature_functions=None):
         df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
     if (screen.empty and not bat.empty):
-        shutdown = b.shutdown_info(bat, feature_functions)
+        shutdown = b.shutdown_info(bat, config)
         shutdown = shutdown.replace([-1,-2],'off')
         if type(shutdown.index)==pd.MultiIndex:
             shutdown.reset_index(inplace=True) 
@@ -495,7 +495,7 @@ def app_duration(df, bat, screen, feature_functions=None):
     if len(df2)>0:
         df2['datetime'] = pd.to_datetime(df2['datetime'])
         df2.set_index('datetime', inplace=True)
-        result = df2.groupby(["user","app_group"])["duration"].resample(**feature_functions["resample_args"]).sum()
+        result = df2.groupby(["user","app_group"])["duration"].resample(**config["resample_args"]).sum()
         
     return result
 
