@@ -453,7 +453,10 @@ def location_distance_features(df, feature_functions={}):
         speed_max = np.nanmax(speeds)
 
         variance = np.var(lats) + np.var(lons)
-        log_variance = np.log(variance)
+        if variance > 0:
+            log_variance = np.log(variance)
+        else:
+            log_variance = -np.inf
 
         row = pd.Series({
             'dist_total': total_dist,
