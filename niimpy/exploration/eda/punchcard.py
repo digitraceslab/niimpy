@@ -184,7 +184,13 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
         # multiple columns
         else:
             bools = df['user'].isin(user_list)
-            df_sel = df[bools][columns].resample(resample).agg(agg_func)
+            selected = []
+            for col in columns:
+                if pd.api.types.is_numeric_dtype(df[col]):
+                    selected.append(df[bools][col].resample(resample).agg(agg_func))
+                else:
+                    selected.append(df[bools][col].resample(resample).first())
+            df_sel = pd.concat(selected, axis=1)
             
             if normalize:
                 df_sel[columns] = (df_sel[columns] - df_sel[columns].min()) / (df_sel[columns].max() - df_sel[columns].min())

@@ -24,7 +24,7 @@ the DataFrames.
 
 The on-disk format is currently irrelevant, as long as the producers
 can create a DataFrame of the necessary format.  Currently, we provide
-readers for sqlite3 and csv.  Standards may be produced later.
+readers for sqlite3 and csv.  Other standards may be implemented later.
 
 
 
