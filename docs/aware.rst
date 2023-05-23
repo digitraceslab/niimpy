@@ -29,7 +29,7 @@ Some columns that are stored in all the tables.
 AwareAccelerometer
 ------------------
 
-accelerometer data is collected using the
+Accelerometer data is collected using the
 phones’ accelerometer sensors. The data is used to measure the acceleration 
 of the the phone in any direction of the 3D environment. The
 coordinate-system is defined relative to the screen of the phone in its default 
@@ -51,7 +51,7 @@ vary largely. It can be in the range of 0 to hundreds of data instances per hour
 AwareApplicationCrashes
 -----------------------
 
-contains information about crashed applications. This data is logged whenever any
+Contains information about crashed applications. This data is logged whenever any
 application crashes, which can occur from zero to several times per hour.
 
 * ``application_name``: application’s localized name.
@@ -64,9 +64,8 @@ application crashes, which can occur from zero to several times per hour.
 AwareApplicationNotifications
 -----------------------------
 
-contains the log of notifications the device has received. This data is logged whenever the phone receives a
-notification so the frequency of this data can range from zero to hundreds per hour.
-of times per hour. 
+Contains the log of notifications the device has received. This data is logged whenever the phone receives a
+notification so the frequency of this data can range from zero to hundreds of times per hour. 
 
 * ``application_name``: application’s localized name.
 * ``package_name``: application’s package name.
@@ -77,7 +76,7 @@ of times per hour.
 AwareBattery
 ------------
 
-provides information about the battery and monitors power related events such as phone 
+Provides information about the battery and monitors power related events such as phone 
 shutting down or rebooting or charging. The frequency of data sent by battery sensor can be from 0 to tens of times per hour.
 
 * ``battery_level``: marks the current percentage of battery charge remaining.
@@ -88,7 +87,7 @@ shutting down or rebooting or charging. The frequency of data sent by battery se
 AwareCalls
 ------------
 
-logs incoming and outgoing call details. The frequency of AwareMessages data depends upon number of calls
+Logs incoming and outgoing call details. The frequency of AwareMessages data depends upon number of calls
 the users get so it can be from 0 to tens of times per hour.
 
 * ``call_type``: 'incoming', 'outgoing', 'missed'.
@@ -121,7 +120,7 @@ expires (in case expiration threshold is set to 0).
 AwareLocationDayOld
 -------------------
 
-This table ptakes one-day chunks of data and does some processing, for cases where we can't give raw location data. A day goes from 04:00 one day to 04:00 the next day. Since the information is reliant upon location services being enabled, the frequency can range from zero to several thousands per hour.
+This table takes one-day chunks of data and does some processing, for cases where we can't give raw location data. A day goes from 04:00 one day to 04:00 the next day. Since the information is reliant upon location services being enabled, the frequency can range from zero to several thousands per hour.
 * ``day``: day which is being analyzed, format YYYY-MM-DD.
 * ``totdist``: total distance traveled during the day, meters.
 * ``locstd``: radius of gyration (standard deviation of location throughout the day), meters.
@@ -136,7 +135,7 @@ This table ptakes one-day chunks of data and does some processing, for cases whe
 AwareLocationDay
 ----------------
 
-This table ptakes one-day chunks of data and does some processing, for cases where we can't give raw location data. A day goes from 04:00 one day to 04:00 the next day. Since the information is reliant upon location services being enabled, the frequency can range from zero to several thousands per hour.
+This table takes one-day chunks of data and does some processing, for cases where we can't give raw location data. A day goes from 04:00 one day to 04:00 the next day. Since the information is reliant upon location services being enabled, the frequency can range from zero to several thousands per hour.
 * ``day``: day which is being analyzed, format YYYY-MM-DD.
 * ``n_points``: the number of raw datapoints.
 * ``n_bins_nonnan``: number of these 10-minute intervals with data.
@@ -147,7 +146,7 @@ This table ptakes one-day chunks of data and does some processing, for cases whe
 * ``totdist``: total distance covered throughout the day, looking at only the binned averages. If there are large gaps in data, pretend those gaps don't exist and find the distances anyway (meters).
 * ``totdist_raw``: total distance considering every data point (not binned). Probably larger than totdist, more affected by random fluctuations (meters).
 * ``locstd``: Radius of gyration of locations, after the binning (meters).
-* ``radius_mean``: this isn't exactly a radius, but the longest distance between any point an the mean location (both mean location and other points after binning). This measure may not make the most sense, but can be compared to locstd.
+* ``radius_mean``: this isn't exactly a radius, but the longest distance between any point and the mean location (both mean location and other points after binning). This measure may not make the most sense, but can be compared to locstd.
 * ``diameter``: Not implemented, always nan.
 * ``n_bins_moving``: number of bins which are considered to be moving. Each bin is compared to the one after to determine an average speed, and n_bins_moving is the number of bins above some threshold.
 * ``n_bins_moving_speed``: number of bins which are moving, using the self-reported speed from Aware. Probably more accurate than the previous.
@@ -169,7 +168,7 @@ This table provides information about the users’ current location. Since the i
 AwareMessagess
 --------------
 
-logs incoming and outgoing message details. The frequency of AwareMessages data depends upon number of messages the users get so it can be from 0 to tens of times per hour.
+Logs incoming and outgoing message details. The frequency of AwareMessages data depends upon number of messages the users get so it can be from 0 to tens of times per hour.
 
 * ``message_type``: 'incoming', 'outgoing'.
 * ``trace``: SHA-1 one-way source/target of the call.
@@ -201,7 +200,7 @@ Provides details about the active data collected from the participants in the fo
 
 
 MMMBackgroundAnswers, MMMBaselineAnswers, MMMDiagnosticPatientAnswers, MMMFeedbackPostActiveAnswers, MMMPostActiveAnswers, MMMSurveyAllAnswers
-------------------------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------------------------------------------
 
 These 6 tables provide details about questions and answers that were asked to the participants of this study. The answers in each of these 6 tables were collected only once per user.
 
@@ -216,9 +215,8 @@ selected as answers.
 
 
 
-MMMBackgroundMeta, MMMBaselineMeta, MMMDiagnosticPatientMeta, MMMFeedbackPostActiveMeta, MMMPostActiveMeta,
-MMMSurveyAllMeta
-------------------------------------------------------------------------------------------------------
+MMMBackgroundMeta, MMMBaselineMeta, MMMDiagnosticPatientMeta, MMMFeedbackPostActiveMeta, MMMPostActiveMeta, MMMSurveyAllMeta
+----------------------------------------------------------------------------------------------------------------------------
 
 These 6 tables provide meta data for their respective set of questionnaires’ answers. Each of these tables summerize the overall information gathered per user for that particular set of questionnaire. All of
 the data in these 6 tables were collected only once.
