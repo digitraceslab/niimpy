@@ -442,7 +442,7 @@ ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
 ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
 
 
-def extract_features_battery(df, feature_functions=None):
+def extract_features_battery(df, features=None):
     """Calculates battery features
 
     Parameters
@@ -450,7 +450,7 @@ def extract_features_battery(df, feature_functions=None):
     df : pd.DataFrame
         dataframe of battery data. It must contain these columns:
         `battery_level` and `battery_status`.
-    feature_functions : map (dictionary) of functions that compute features.
+    features : map (dictionary) of functions that compute features.
         it is a map of map, where the keys to the first map is the name of
         functions that compute features and the nested map contains the keyword
         arguments to that function. If there is no arguments use an empty map.
@@ -466,11 +466,11 @@ def extract_features_battery(df, feature_functions=None):
         are the the features.
     """
     computed_features = []
-    if feature_functions is None:
-        feature_functions = ALL_FEATURE_FUNCTIONS
-    for feature_function, kwargs in feature_functions.items():
-        print(feature_function, kwargs)
-        computed_feature = feature_function(df, kwargs)
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
+    for features, kwargs in features.items():
+        print(features, kwargs)
+        computed_feature = features(df, kwargs)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)

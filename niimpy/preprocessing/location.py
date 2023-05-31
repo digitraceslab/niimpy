@@ -478,7 +478,7 @@ ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
 
 
 def extract_features_location(df,
-                              feature_functions=None):
+                              features=None):
     """Calculates location features
 
     Parameters
@@ -491,7 +491,7 @@ def extract_features_location(df,
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
         `static` and the rest are `moving`.
-    feature_functions : map (dictionary) of functions that compute features.
+    features : map (dictionary) of functions that compute features.
         it is a map of map, where the keys to the first map is the name of
         functions that compute features and the nested map contains the keyword
         arguments to that function. If there is no arguments use an empty map.
@@ -506,14 +506,14 @@ def extract_features_location(df,
         Dataframe of computed features where the index is users and columns
         are the the features.
     """
-    if feature_functions is None:
-        feature_functions = ALL_FEATURE_FUNCTIONS
+    if features is None:
+        features = ALL_FEATURE_FUNCTIONS
     else:
-        assert isinstance(feature_functions, dict), "Please input the feature_functions as a dictionary"
+        assert isinstance(features, dict), "Please input the features as a dictionary"
 
     computed_features = []
-    for feature_function, feature_arg in feature_functions.items():
-        computed_feature = feature_function(df, feature_arg)
+    for features, feature_arg in features.items():
+        computed_feature = features(df, feature_arg)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
