@@ -38,7 +38,10 @@ def audio_count_silent(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_count_speech(df_u, config=None): 
     """ This function returns the number of times, within the specified timeframe, 
@@ -85,7 +88,10 @@ def audio_count_speech(df_u, config=None):
         df_s.loc[:,col_name] = 1
         result = df_s.groupby('user')[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_speech')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_count_loud(df_u, config=None): 
     """ This function returns the number of times, within the specified timeframe, 
@@ -126,7 +132,10 @@ def audio_count_loud(df_u, config=None):
         df_s = df_u[df_u[col_name]>70] #check if environment was noisy
         result = df_s.groupby('user')[col_name].resample(**config["resample_args"]).count()
         result = result.to_frame(name='audio_count_loud')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_min_freq(df_u, config=None): 
     """ This function returns the minimum frequency of the recorded audio snippets, 
@@ -163,7 +172,10 @@ def audio_min_freq(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_max_freq(df_u, config=None): 
     """ This function returns the maximum frequency of the recorded audio snippets, 
@@ -200,7 +212,10 @@ def audio_max_freq(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_mean_freq(df_u, config=None): 
     """ This function returns the mean frequency of the recorded audio snippets, 
@@ -237,7 +252,10 @@ def audio_mean_freq(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_median_freq(df_u, config=None):
     """ This function returns the median frequency of the recorded audio snippets, 
@@ -274,7 +292,10 @@ def audio_median_freq(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_std_freq(df_u, config=None): 
     """ This function returns the standard deviation of the frequency of the recorded audio snippets, 
@@ -311,7 +332,10 @@ def audio_std_freq(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_min_db(df_u, config=None): 
     """ This function returns the minimum decibels of the recorded audio snippets, 
@@ -348,7 +372,10 @@ def audio_min_db(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_max_db(df_u, config=None): 
     """ This function returns the maximum decibels of the recorded audio snippets, 
@@ -385,7 +412,10 @@ def audio_max_db(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_mean_db(df_u, config=None): 
     """ This function returns the mean decibels of the recorded audio snippets, 
@@ -422,7 +452,10 @@ def audio_mean_db(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_median_db(df_u, config):
     """ This function returns the median decibels of the recorded audio snippets, 
@@ -459,7 +492,10 @@ def audio_median_db(df_u, config):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 def audio_std_db(df_u, config=None): 
     """ This function returns the standard deviation of the decibels of the recorded audio snippets, 
@@ -496,7 +532,10 @@ def audio_std_db(df_u, config=None):
     if len(df_u)>0:
         result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('audio_')]
 ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
@@ -536,8 +575,13 @@ def extract_features_audio(df, features=None):
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
         computed_feature = feature(df, feature_arg)
+        index_by = [c for c in ["user","device"] if c in computed_feature.columns]
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
-        
+
     computed_features = pd.concat(computed_features, axis=1)
+    # index the result only by the original index (datetime)
+    computed_features = computed_features.reset_index()
+    computed_features = computed_features.set_index("datetime")
     return computed_features
             

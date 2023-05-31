@@ -404,8 +404,8 @@ def app_count(df, bat, screen, config=None):
         result = df2.groupby(["user","app_group"]).resample(**config["resample_args"]).count()
         result.rename(columns={"device": "count"}, inplace=True)
         result = result["count"].to_frame()
-        
-    return result
+        return result.reset_index(["user", "app_group"])
+    return None
 
 def app_duration(df, bat, screen, config=None):
     """ This function returns the duration of use of different app groups, within the 
@@ -496,8 +496,8 @@ def app_duration(df, bat, screen, config=None):
         df2['datetime'] = pd.to_datetime(df2['datetime'])
         df2.set_index('datetime', inplace=True)
         result = df2.groupby(["user","app_group"])["duration"].resample(**config["resample_args"]).sum()
-        
-    return result
+        return result.reset_index(["user", "app_group"])
+    return None
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('app_')]
 ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
@@ -531,12 +531,18 @@ def extract_features_app(df, bat, screen, features=None):
         features = ALL_FEATURE_FUNCTIONS
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
-    
+
     computed_features = []
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
         computed_feature = feature(df, bat, screen, feature_arg)
+        # index by app_group, user and device to make each row index unique. Otherwise concat will fail.
+        index_by = [c for c in ["app_group","user","device"] if c in computed_feature.columns]
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
-        
+
     computed_features = pd.concat(computed_features, axis=1)
+    # index the result only by the original index (datetime)
+    computed_features = computed_features.reset_index()
+    computed_features = computed_features.set_index("datetime")
     return computed_features
