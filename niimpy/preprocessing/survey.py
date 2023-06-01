@@ -113,7 +113,7 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
 
-def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
+def convert_survey_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
     Use answer mapping dictionaries provided by the users to convert the answers.
     Can convert multiple questions having the same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
@@ -171,7 +171,8 @@ def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_
         
     return result
 
-def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', prefix=None, group=None):
+def survey_statistic(df, config):
+                     #question_id_col = 'id', answer_col = 'answer', prefix=None, group=None):
     '''
     Return survey statistic. Assuming that the question ids are stored in question_id_col and 
     the survey answers are stored in answer_col, this function returns all the relevant statistics for each question. 
@@ -181,79 +182,57 @@ def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', pr
     ----------
     df: pandas.DataFrame
         Input data frame
-    question_id_col: string. 
-        Column contains question id.
-    answer_col: string
-        Column contains answer in numerical values.
-    prefix: list, optional
-        List contains survey prefix. If None is given, search question_id_col for all possible categories.
-    group: string, optional
-        Column contains group factor. If this is given, survey statistics for each group will be returned
+    config: dict
+        Dictionary keys containing optional arguments for the computation of screen
+        information
+
+        configuration options include:
+            question_id_col: string
+                Column contains question id.
+            answer_col: string
+                Column contains answer in numerical values.
+            prefix: list
+                List contains survey prefix. If not given, search question_id_col for all possible categories.
+            group: string
+                Column contains group factor. If this is given, survey statistics for each group will be returned
+                
     Returns
     -------
-    dict: dictionary
-        A dictionary contains summary of each questionaire category.
-        Example: {'PHQ9': {'min': 3, 'max': 8, 'avg': 4.5, 'std': 2}}
+    dict: pandas.DataFrame
+        A dataframe containing summaries of each questionaire.
     '''
+
+    question_id_col = config.get('question_id_col', 'id')
+    answer_col = config.get('answer_col', 'answer')
+    prefix = config.get('prefix', None)
+    group = config.get('group', None)
     
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(answer_col, str), "answer_col is not a string."
     assert isinstance(question_id_col, str), "question_id is not a string."
     
     
-    def calculate_statistic(df, prefix, answer_col, group=None):
-        
-        d = {}
-        if group:
-            assert isinstance(group, str),"group is not given in string format"
-            
-            # Groupby, aggregate and extract statistic from answer column 
-            agg_df = df.groupby(['user', group]) \
-                         .agg({answer_col: sum}) \
-                         .groupby(group) \
-                         .agg({answer_col: ['mean', 'min', 'max','std']})
-            agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
-            agg_df = agg_df.rename(columns={'': group}).reset_index() # reassign group column 
-            lst = []
+    def calculate_statistic(df):
 
-            for index, row in agg_df.iterrows():
-                temp = {'min': row['min'], 'max': row['max'], 
-                        'avg': row['mean'], 'std': row['std']}
-                d[(prefix,row[group])] = temp
-        else:
-            
-            agg_df = df.groupby('user').agg({answer_col: sum})
-            d[prefix] = {'min': agg_df[answer_col].min(), 'max': agg_df[answer_col].max(), 
-                         'avg': agg_df[answer_col].mean(), 'std': agg_df[answer_col].std()}
-        return d
+        minimum = df[answer_col].min()
+        maximum = df[answer_col].max()
+        average = df[answer_col].mean()
+        return pd.Series({
+            'min': minimum,
+            'max': maximum,
+            'avg': average,
+            'std': df[answer_col].std()}
+        )
     
-    res = {}
-    
-    # Collect questions with the given prefix. Otherwise, collect all prefix, assuming that 
-    # the question id follows this format: {prefix}_id.
+    # Get prefix from the id column (anything before the first '_')
+    df["questionaire"] = df[question_id_col].str.split('_').str[0]
     if prefix:
-        if isinstance(prefix, str):
-            
-            temp = df[df[question_id_col].str.startswith(prefix)]
-            return calculate_statistic(temp, prefix, answer_col, group)
-        elif isinstance(prefix, list):
-            
-            for pr in prefix:
-                temp = df[df[question_id_col].str.startswith(pr)]
-                d = calculate_statistic(temp, prefix, answer_col, group)
-                res.update(d)
-        else:
-            raise ValueError('prefix should be either list or string')
+        df = df[df["questionaire"].str.startswith(prefix)]
 
+    if group:
+        res = df.groupby(['questionaire', group]).apply(calculate_statistic)
     else:
-        
-        # Search for all possible prefix (extract everything before the '_' delimimeter)
-        # Then compute statistic as usual
-        prefix_lst = list(set(df[question_id_col].str.split('_').str[0]))
-        for pr in prefix_lst:
-            temp = df[df[question_id_col].str.startswith(pr)]
-            d = calculate_statistic(temp, pr, answer_col, group)
-            res.update(d)
+        res = df.groupby(['questionaire']).apply(calculate_statistic)
     return res
 
 
