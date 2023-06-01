@@ -11,7 +11,7 @@ def audio_count_silent(df_u, config=None):
     df_u: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
+        Dictionary keys containing optional arguments for the computation of screen
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
