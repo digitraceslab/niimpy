@@ -214,6 +214,7 @@ def survey_statistic(df, config):
     
     def calculate_statistic(df):
 
+        summed = df.groupby("user").sum()
         minimum = df[answer_col].min()
         maximum = df[answer_col].max()
         average = df[answer_col].mean()
