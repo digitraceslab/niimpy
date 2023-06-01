@@ -156,18 +156,16 @@ def convert_survey_to_numerical_answer(df, answer_col, question_id, id_map, use_
     assert isinstance(use_prefix, bool), "use_prefix is not a bool."
     
     # copy original answers
-    result = df.copy()[answer_col]
+    result = df[answer_col].copy()
     
-    for key,value in id_map.items():
-        if use_prefix == True:
-            temp = df[df[question_id].str.startswith(key)][answer_col]
-        
-        else:
-            temp = df[df[question_id] == key][answer_col]
-        
-        temp = temp.replace(value)
-        result.loc[temp.index] = temp[:]
-        del temp
+    for key, map in id_map.items():
+        for answer_text, value in map.items():
+            if use_prefix == True:
+                match_index = df[question_id].str.startswith(key)
+            else:
+                match_index = df[question_id] == key
+            match_index = match_index & (df[answer_col] == answer_text)
+            result[match_index] = value
         
     return result
 
