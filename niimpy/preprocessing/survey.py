@@ -1,7 +1,7 @@
 # Utilities for dealing with survey data
 
 import pandas as pd
-
+import numpy as np
 
 # Below, we provide some mappings between standardized survey raw questions and their respective codes
 # You will need to adjust these mappings to your own needs if your questions do not match with these values.
@@ -113,7 +113,7 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
 
-def convert_survey_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
+def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
     Use answer mapping dictionaries provided by the users to convert the answers.
     Can convert multiple questions having the same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
@@ -150,31 +150,24 @@ def convert_survey_to_numerical_answer(df, answer_col, question_id, id_map, use_
     
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(answer_col, str), "answer_col is not a string."
-    assert isinstance(question_id, str), "question_id is not a string."
     assert isinstance(id_map, dict), "id_map is not a dictionary."
     assert isinstance(use_prefix, bool), "use_prefix is not a bool."
-    
-    # copy original answers
-    result = df[answer_col].copy()
-    
+
     for key, map in id_map.items():
-        for answer_text, value in map.items():
-            if use_prefix == True:
-                match_index = df[question_id].str.startswith(key)
-            else:
-                match_index = df[question_id] == key
-            match_index = match_index & (df[answer_col] == answer_text)
-            result[match_index] = value
-        
-    return result
+        if use_prefix == True:
+            columns  = [c for c in df.columns if c.startswith(key)]
+        else:
+            columns = [c for c in df.columns if c == key]
+        for col in columns:
+            df[col] = df[col].map(map)
+    return df
 
 def survey_statistic(df, config):
-                     #question_id_col = 'id', answer_col = 'answer', prefix=None, group=None):
     '''
-    Return survey statistic. Assuming that the question ids are stored in question_id_col and 
-    the survey answers are stored in answer_col, this function returns all the relevant statistics for each question. 
-    The statistic includes min, max, average and s.d of the scores of each question.
+    Return statistics for a single survey question or a list of questions.
+    Assuming that each of the columns contains numerical values representing
+    answers, this function returns the mean, maximum, minimum and standard
+    deviation for each question in separate columns.
 
     Parameters
     ----------
@@ -185,14 +178,12 @@ def survey_statistic(df, config):
         information
 
         configuration options include:
-            question_id_col: string
-                Column contains question id.
-            answer_col: string
-                Column contains answer in numerical values.
-            prefix: list
-                List contains survey prefix. If not given, search question_id_col for all possible categories.
-            group: string
-                Column contains group factor. If this is given, survey statistics for each group will be returned
+            columns: string or list(string), optional
+                A list of columns to process. If empty, the prefix will be
+                used to identify columns
+            prefix: string or list(string)
+                required unless columns is given. The function will process
+                columns whose name starts with the prefix (QID_0, QID_1, ...)
                 
     Returns
     -------
@@ -200,42 +191,43 @@ def survey_statistic(df, config):
         A dataframe containing summaries of each questionaire.
     '''
 
-    question_id_col = config.get('question_id_col', 'id')
-    answer_col = config.get('answer_col', 'answer')
+    columns = config.get('columns', None)
     prefix = config.get('prefix', None)
-    group = config.get('group', None)
+    resample_args = config.get('resample_args', {"rule":"1D"})    
     
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(answer_col, str), "answer_col is not a string."
-    assert isinstance(question_id_col, str), "question_id is not a string."
+    if columns is not None:
+        assert type(columns) == str or type(columns) == list, "columns is not a string or a list of strings."
+    if prefix is not None:
+        assert type(prefix) == str or type(prefix) == list, "prefix is not a string or a list of strings."
+    if columns is None and prefix is None:
+        raise ValueError("Either columns or prefix must be specified.")
     
+    if columns is None:
+        if type(prefix) == list:
+            columns = []
+            for pref in prefix:
+                columns += [c for c in df.columns if c.startswith(pref)]
+        else:
+            columns = [c for c in df.columns if c.startswith(prefix)]
+    
+    if type(columns) == str:
+        columns = [columns] 
     
     def calculate_statistic(df):
+        result = {}
+        for answer_col in columns:
+            result[answer_col+"_mean"] = df[answer_col].mean()
+            result[answer_col+"_min"] = df[answer_col].min()
+            result[answer_col+"_max"] = df[answer_col].max()
+            result[answer_col+"_std"] = df[answer_col].std()
+        return pd.Series(result)
 
-        summed = df.groupby("user").sum()
-        minimum = df[answer_col].min()
-        maximum = df[answer_col].max()
-        average = df[answer_col].mean()
-        return pd.Series({
-            'min': minimum,
-            'max': maximum,
-            'avg': average,
-            'std': df[answer_col].std()}
-        )
-    
-    # Get prefix from the id column (anything before the first '_')
-    df["questionaire"] = df[question_id_col].str.split('_').str[0]
-    if prefix:
-        df = df[df["questionaire"].str.startswith(prefix)]
-
-    if group:
-        res = df.groupby(['questionaire', group]).apply(calculate_statistic)
-    else:
-        res = df.groupby(['questionaire']).apply(calculate_statistic)
-    return res
+    res = df.groupby(['user']).resample(**resample_args).apply(calculate_statistic)
+    return res.reset_index(['user'])
 
 
-def survey_sum_scores(df, survey_prefix=None, answer_col='answer', id_column='id'):
+def sum_survey_scores(df, survey_prefix=None):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
     Parameters
@@ -258,17 +250,16 @@ def survey_sum_scores(df, survey_prefix=None, answer_col='answer', id_column='id
         DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
 
-    answers = df[df[id_column].str.startswith(survey_prefix)]
-    
-    groupby_columns = [ ]
-    if 'user' in answers.columns:
-        groupby_columns.append(df['user'])
-    groupby_columns.append(df.index)
-    
-    survey_score = answers.groupby(groupby_columns)[answer_col].apply(lambda x: x.sum(skipna=False))
-    
-    survey_score = survey_score.to_frame()
-    survey_score = survey_score.rename({answer_col: 'score'}, axis='columns')
-    return survey_score
+    assert type(survey_prefix) == str or type(survey_prefix) == list, "survey_prefix is not a string or a list of strings."
 
+    result = pd.DataFrame(df["user"])
+
+    if type(survey_prefix) == str:
+        survey_prefix = [survey_prefix]
+
+    for prefix in survey_prefix:
+        columns = [c for c in df.columns if c.startswith(prefix)]
+        result[prefix] = df[columns].sum(axis=1, skipna=False)
+    
+    return result
 
