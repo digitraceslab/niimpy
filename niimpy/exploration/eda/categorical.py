@@ -32,7 +32,7 @@ def get_xticks_(ser):
     text = [str(i) for i in vals]
     return vals,text
     
-def categorize_answers(df, question, answer_column):
+def categorize_answers(df, question):
     """ Extract a question answered and count different answers.
 
     Parameters
@@ -54,9 +54,8 @@ def categorize_answers(df, question, answer_column):
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(question, str), "question is not a string."
-    assert isinstance(answer_column, str), "column is not a string."
 
-    df = df[(df["id"] == question)][answer_column]
+    df = df[question]
     category_counts = df.astype("category").value_counts(sort=False)
     return category_counts
 
@@ -115,7 +114,7 @@ def plot_categories(
     return fig
 
 def questionnaire_summary(
-    df, question, column, title=None, xlabel=None, ylabel=None, user=None, width=900, height=900 
+    df, question, title=None, xlabel=None, ylabel=None, user=None, width=900, height=900 
 ):
     """Plot summary barplot for questionnaire data.
 
@@ -126,9 +125,6 @@ def questionnaire_summary(
 
     question : str
         question id
-
-    column : str
-        column containing the answer
 
     title : str
         Plot title
@@ -151,7 +147,6 @@ def questionnaire_summary(
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(question, str), "question is not a string."
-    assert isinstance(column, str), "column is not a string."
     assert isinstance(user, (str,type(None))), "user is not a boolean or string."
     assert isinstance(title, (str, type(None))), "title is not a string or None type."
     assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
@@ -162,11 +157,11 @@ def questionnaire_summary(
     if user is not None:
         df = df[df['user'] == user]
 
-    df = categorize_answers(df, question, column)
+    df = categorize_answers(df, question)
     fig = plot_categories(df, title, xlabel, ylabel,width,height)
     return fig
 
-def question_by_group(df, question, id_column = 'id', answer_column = 'answer', group='group'):
+def question_by_group(df, question, group='group'):
     """Plot summary barplot for questionnaire data.
 
     Parameters
@@ -191,12 +186,12 @@ def question_by_group(df, question, id_column = 'id', answer_column = 'answer', 
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(question, str), "question is not a string."
-    assert isinstance(id_column, str), "question is not a string."
-    assert isinstance(answer_column, str), "column is not a string."
     assert isinstance(group, (type(None), str)), "group is not a boolean or string."
     
-    grouped = df[df[id_column] == question][[answer_column, group]].reset_index(drop=True)
-    grouped = grouped.groupby([group,answer_column]).agg({answer_column:'count'}).rename(columns={answer_column:'count'}).reset_index()
+    grouped = df[[question, group]].reset_index(drop=True)
+    grouped = grouped.groupby([group,question]).agg({question:'count'})
+    grouped = grouped.rename(columns={question:'count'}).reset_index()
+    grouped = grouped.rename(columns={question:'answer'})
     return grouped
 
 def plot_grouped_categories(df, group, title=None, xlabel=None, ylabel=None, width=900, height=900):
@@ -255,7 +250,7 @@ def plot_grouped_categories(df, group, title=None, xlabel=None, ylabel=None, wid
     return fig
 
 def questionnaire_grouped_summary(
-    df, question, id_column ='id', answer_column = 'answer', group = 'group', title=None, xlabel=None, ylabel=None, width=900, height=900
+    df, question, group = 'group', title=None, xlabel=None, ylabel=None, width=900, height=900
 ):
     """ Create a barplot of categorical data
 
@@ -266,9 +261,6 @@ def questionnaire_grouped_summary(
 
     question : str
         question id
-
-    column : str
-        column containing the answer
 
     title : str
         Plot title
@@ -293,8 +285,6 @@ def questionnaire_grouped_summary(
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     assert isinstance(question, str), "question is not a string."
-    assert isinstance(id_column, str), "id column is not a string."
-    assert isinstance(answer_column, str), "column is not a string."
     assert isinstance(group, str), "group is not a string."
     assert isinstance(title, (str,type(None))), "title is not a string or None type."
     assert isinstance(xlabel, (str,type(None))), "xlabel is not a string or None type."
@@ -302,7 +292,7 @@ def questionnaire_grouped_summary(
     assert isinstance(width, int), "width is not an integer."
     assert isinstance(height, int), "height is not an integer."
     
-    df_filt = question_by_group(df, question, id_column, answer_column, group)
+    df_filt = question_by_group(df, question, group)
 
     fig = plot_grouped_categories(df_filt,
                                   group=group,
