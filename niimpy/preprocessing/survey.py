@@ -1,7 +1,7 @@
 # Utilities for dealing with survey data
 
 import pandas as pd
-
+import numpy as np
 
 # Below, we provide some mappings between standardized survey raw questions and their respective codes
 # You will need to adjust these mappings to your own needs if your questions do not match with these values.
@@ -113,7 +113,7 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
 
-def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_prefix=False):
+def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
     Use answer mapping dictionaries provided by the users to convert the answers.
     Can convert multiple questions having the same prefix (e.g., PSS10_1, PSS10_2, ...,PSS10_9)
@@ -150,114 +150,84 @@ def survey_convert_to_numerical_answer(df, answer_col, question_id, id_map, use_
     
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(answer_col, str), "answer_col is not a string."
-    assert isinstance(question_id, str), "question_id is not a string."
     assert isinstance(id_map, dict), "id_map is not a dictionary."
     assert isinstance(use_prefix, bool), "use_prefix is not a bool."
-    
-    # copy original answers
-    result = df.copy()[answer_col]
-    
-    for key,value in id_map.items():
-        if use_prefix == True:
-            temp = df[df[question_id].str.startswith(key)][answer_col]
-        
-        else:
-            temp = df[df[question_id] == key][answer_col]
-        
-        temp = temp.replace(value)
-        result.loc[temp.index] = temp[:]
-        del temp
-        
-    return result
 
-def survey_print_statistic(df, question_id_col = 'id', answer_col = 'answer', prefix=None, group=None):
+    for key, map in id_map.items():
+        if use_prefix == True:
+            columns  = [c for c in df.columns if c.startswith(key)]
+        else:
+            columns = [c for c in df.columns if c == key]
+        for col in columns:
+            df[col] = df[col].map(map)
+    return df
+
+def survey_statistic(df, config):
     '''
-    Return survey statistic. Assuming that the question ids are stored in question_id_col and 
-    the survey answers are stored in answer_col, this function returns all the relevant statistics for each question. 
-    The statistic includes min, max, average and s.d of the scores of each question.
+    Return statistics for a single survey question or a list of questions.
+    Assuming that each of the columns contains numerical values representing
+    answers, this function returns the mean, maximum, minimum and standard
+    deviation for each question in separate columns.
 
     Parameters
     ----------
     df: pandas.DataFrame
         Input data frame
-    question_id_col: string. 
-        Column contains question id.
-    answer_col: string
-        Column contains answer in numerical values.
-    prefix: list, optional
-        List contains survey prefix. If None is given, search question_id_col for all possible categories.
-    group: string, optional
-        Column contains group factor. If this is given, survey statistics for each group will be returned
+    config: dict
+        Dictionary keys containing optional arguments for the computation of screen
+        information
+
+        configuration options include:
+            columns: string or list(string), optional
+                A list of columns to process. If empty, the prefix will be
+                used to identify columns
+            prefix: string or list(string)
+                required unless columns is given. The function will process
+                columns whose name starts with the prefix (QID_0, QID_1, ...)
+                
     Returns
     -------
-    dict: dictionary
-        A dictionary contains summary of each questionaire category.
-        Example: {'PHQ9': {'min': 3, 'max': 8, 'avg': 4.5, 'std': 2}}
+    dict: pandas.DataFrame
+        A dataframe containing summaries of each questionaire.
     '''
+
+    columns = config.get('columns', None)
+    prefix = config.get('prefix', None)
+    resample_args = config.get('resample_args', {"rule":"1D"})    
     
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    assert isinstance(answer_col, str), "answer_col is not a string."
-    assert isinstance(question_id_col, str), "question_id is not a string."
+    if columns is not None:
+        assert type(columns) == str or type(columns) == list, "columns is not a string or a list of strings."
+    if prefix is not None:
+        assert type(prefix) == str or type(prefix) == list, "prefix is not a string or a list of strings."
+    if columns is None and prefix is None:
+        raise ValueError("Either columns or prefix must be specified.")
     
-    
-    def calculate_statistic(df, prefix, answer_col, group=None):
-        
-        d = {}
-        if group:
-            assert isinstance(group, str),"group is not given in string format"
-            
-            # Groupby, aggregate and extract statistic from answer column 
-            agg_df = df.groupby(['user', group]) \
-                         .agg({answer_col: sum}) \
-                         .groupby(group) \
-                         .agg({answer_col: ['mean', 'min', 'max','std']})
-            agg_df.columns = agg_df.columns.get_level_values(1) #flatten columns 
-            agg_df = agg_df.rename(columns={'': group}).reset_index() # reassign group column 
-            lst = []
-
-            for index, row in agg_df.iterrows():
-                temp = {'min': row['min'], 'max': row['max'], 
-                        'avg': row['mean'], 'std': row['std']}
-                d[(prefix,row[group])] = temp
+    if columns is None:
+        if type(prefix) == list:
+            columns = []
+            for pref in prefix:
+                columns += [c for c in df.columns if c.startswith(pref)]
         else:
-            
-            agg_df = df.groupby('user').agg({answer_col: sum})
-            d[prefix] = {'min': agg_df[answer_col].min(), 'max': agg_df[answer_col].max(), 
-                         'avg': agg_df[answer_col].mean(), 'std': agg_df[answer_col].std()}
-        return d
+            columns = [c for c in df.columns if c.startswith(prefix)]
     
-    res = {}
+    if type(columns) == str:
+        columns = [columns] 
     
-    # Collect questions with the given prefix. Otherwise, collect all prefix, assuming that 
-    # the question id follows this format: {prefix}_id.
-    if prefix:
-        if isinstance(prefix, str):
-            
-            temp = df[df[question_id_col].str.startswith(prefix)]
-            return calculate_statistic(temp, prefix, answer_col, group)
-        elif isinstance(prefix, list):
-            
-            for pr in prefix:
-                temp = df[df[question_id_col].str.startswith(pr)]
-                d = calculate_statistic(temp, prefix, answer_col, group)
-                res.update(d)
-        else:
-            raise ValueError('prefix should be either list or string')
+    def calculate_statistic(df):
+        result = {}
+        for answer_col in columns:
+            result[answer_col+"_mean"] = df[answer_col].mean()
+            result[answer_col+"_min"] = df[answer_col].min()
+            result[answer_col+"_max"] = df[answer_col].max()
+            result[answer_col+"_std"] = df[answer_col].std()
+        return pd.Series(result)
 
-    else:
-        
-        # Search for all possible prefix (extract everything before the '_' delimimeter)
-        # Then compute statistic as usual
-        prefix_lst = list(set(df[question_id_col].str.split('_').str[0]))
-        for pr in prefix_lst:
-            temp = df[df[question_id_col].str.startswith(pr)]
-            d = calculate_statistic(temp, pr, answer_col, group)
-            res.update(d)
-    return res
+    res = df.groupby(['user']).resample(**resample_args).apply(calculate_statistic)
+    return res.reset_index(['user'])
 
 
-def survey_sum_scores(df, survey_prefix=None, answer_col='answer', id_column='id'):
+def sum_survey_scores(df, survey_prefix=None):
     """Sum all columns (like ``PHQ9_*``) to get a survey score.
 
     Parameters
@@ -280,71 +250,16 @@ def survey_sum_scores(df, survey_prefix=None, answer_col='answer', id_column='id
         DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
 
-    answers = df[df[id_column].str.startswith(survey_prefix)]
+    assert type(survey_prefix) == str or type(survey_prefix) == list, "survey_prefix is not a string or a list of strings."
+
+    result = pd.DataFrame(df["user"])
+
+    if type(survey_prefix) == str:
+        survey_prefix = [survey_prefix]
+
+    for prefix in survey_prefix:
+        columns = [c for c in df.columns if c.startswith(prefix)]
+        result[prefix] = df[columns].sum(axis=1, skipna=False)
     
-    groupby_columns = [ ]
-    if 'user' in answers.columns:
-        groupby_columns.append(df['user'])
-    groupby_columns.append(df.index)
-    
-    survey_score = answers.groupby(groupby_columns)[answer_col].apply(lambda x: x.sum(skipna=False))
-    
-    survey_score = survey_score.to_frame()
-    survey_score = survey_score.rename({answer_col: 'score'}, axis='columns')
-    return survey_score
+    return result
 
-
-# Move to analysis layer
-def daily_affect_variability(questions, subject=None):
-    """ Returns two DataFrames corresponding to the daily affect variability and
-    mean daily affect, both measures defined in the OLO paper available in
-    10.1371/journal.pone.0110907. In brief, the mean daily affect computes the
-    mean of each of the 7 questions (e.g. sad, cheerful, tired) asked in a
-    likert scale from 0 to 7. Conversely, the daily affect viariability computes
-    the standard deviation of each of the 7 questions.
-
-    NOTE: This function aggregates data by day.
-
-    Parameters
-    ----------
-    questions: DataFrame with subject data (or database for backwards compatibility)
-    subject: string, optional (backwards compatibility only, in the future do filtering before).
-
-    Returns
-    -------
-    DLA_mean: mean of the daily affect
-    DLA_std: standard deviation of the daily affect
-    """
-    # TODO: The daily summary (mean/std) seems useful, can we generalize?
-    # Backwards compatibilty if a database was passed
-    if isinstance(questions, niimpy.database.Data1):
-        questions = questions.raw(table='AwareHyksConverter', user=subject)
-    # Maintain backwards compatibility in the case subject was passed and
-    # questions was *not* a dataframe.
-    elif isinstance(subject, string):
-        questions = questions[questions['user'] == subject]
-
-    questions=questions[(questions['id']=='olo_1_1') | (questions['id']=='olo_1_2') | (questions['id']=='olo_1_3') | (questions['id']=='olo_1_4') | (questions['id']=='olo_1_5') | (questions['id']=='olo_1_6') | (questions['id']=='olo_1_7') | (questions['id']=='olo_1_8')]
-    questions['answer']=pd.to_numeric(questions['answer'])
-    questions = questions.drop(['device', 'time', 'user'], axis=1)
-
-    if (pd.Timestamp.tzname(questions.index[0]) != 'EET'):
-        if pd.Timestamp.tzname(questions.index[0]) != 'EEST':
-            questions.index = pd.to_datetime(questions.index).tz_localize('Europe/Helsinki')
-
-    questions=questions.drop_duplicates(subset=['datetime','id'],keep='first')
-    questions=questions.pivot_table(index='datetime', columns='id', values='answer')
-    questions=questions.rename(columns={'olo_1_1': 'cheerful', 'olo_1_2': 'tired','olo_1_3': 'content', 'olo_1_4': 'nervous','olo_1_5': 'tranquil', 'olo_1_6': 'sad', 'olo_1_7': 'excited', 'olo_1_8': 'active'})
-    questions = questions.reset_index()
-
-    DLA = questions.copy()
-    questions['date_minus_time'] = questions['datetime'].apply( lambda questions : datetime.datetime(year=questions.year, month=questions.month, day=questions.day))
-    questions.set_index(questions["date_minus_time"],inplace=True)
-    DLA_std = questions.resample('D').std()#), how='std')
-    DLA_std=DLA_std.rename(columns={'date_minus_time': 'datetime'})
-    DLA_std.index = pd.to_datetime(DLA_std.index).tz_localize('Europe/Helsinki')
-
-    DLA_mean = questions.resample('D').mean()
-    DLA_mean=DLA_mean.rename(columns={'date_minus_time': 'datetime'})
-    DLA_mean.index = pd.to_datetime(DLA_mean.index).tz_localize('Europe/Helsinki')
-    return DLA_std, DLA_mean

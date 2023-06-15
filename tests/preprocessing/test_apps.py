@@ -18,10 +18,12 @@ def test_audio_features():
     test = app.extract_features_app(data, battery, screen, features=None)    
     time = "2019-08-05 14:00:00+03:00"
     
-    assert test.loc["iGyXetHE3S8u", "comm", time]["count"] == 86
-    assert test.loc["iGyXetHE3S8u", "work", time]["count"] == 7
-    assert test.loc["iGyXetHE3S8u", "comm", time]["duration"] == 37
-    assert test.loc["iGyXetHE3S8u", "work", time]["duration"] == 6
+    user_comm = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "comm")]
+    user_work = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "work")]
+    assert user_comm.loc[time]["count"] == 86
+    assert user_work.loc[time]["count"] == 7
+    assert user_comm.loc[time]["duration"] == 37
+    assert user_work.loc[time]["duration"] == 6
        
     features ={app.app_count:{"app_column_name":"application_name", "screen_column_name":"screen_status","resample_args":{"rule":"30S"}},
                app.app_duration:{"resample_args":{"rule":"1T"}}}
@@ -29,7 +31,9 @@ def test_audio_features():
     
     time = "2019-08-05 14:03:00+03:00"
     
-    assert test.loc["iGyXetHE3S8u", "comm", time]["count"] == 34
-    assert test.loc["iGyXetHE3S8u", "work", time]["count"] == 3
-    assert test.loc["iGyXetHE3S8u", "comm", time]["duration"] == 26
-    assert test.loc["iGyXetHE3S8u", "work", time]["duration"] == 5
+    user_comm = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "comm")]
+    user_work = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "work")]
+    assert user_comm.loc[time]["count"] == 34
+    assert user_work.loc[time]["count"] == 3
+    assert user_comm.loc[time]["duration"] == 26
+    assert user_work.loc[time]["duration"] == 5

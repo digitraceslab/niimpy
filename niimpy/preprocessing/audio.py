@@ -1,6 +1,6 @@
 import pandas as pd
 
-def audio_count_silent(df_u, feature_functions=None): 
+def audio_count_silent(df_u, config=None): 
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound in the environment. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number 
@@ -10,8 +10,8 @@ def audio_count_silent(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
-        Dictionary keys containing optional arguments for the computation of scrren
+    config: dict
+        Dictionary keys containing optional arguments for the computation of screen
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
@@ -24,23 +24,26 @@ def audio_count_silent(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "is_silent"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     df_u[col_name] = pd.to_numeric(df_u[col_name])
         
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).sum()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_count_speech(df_u, feature_functions=None): 
+def audio_count_speech(df_u, config=None): 
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound between 65Hz and 255Hz in the environment that could
     be specified as speech. If there is no specified timeframe, the function sets a 
@@ -50,7 +53,7 @@ def audio_count_speech(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -64,18 +67,18 @@ def audio_count_speech(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "is_silent"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "audio_freq_name" in feature_functions:
+        col_name = config["audio_column_name"]
+    if not "audio_freq_name" in config:
         freq_name = "double_frequency"
     else:
-        freq_name = feature_functions["audio_freq_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        freq_name = config["audio_freq_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
@@ -83,11 +86,14 @@ def audio_count_speech(df_u, feature_functions=None):
         df_s = df_u[df_u[freq_name].between(65, 255)]
         df_s = df_s[df_s[col_name]==0] #check if there was a conversation. 0 is not silent, 1 is silent
         df_s.loc[:,col_name] = 1
-        result = df_s.groupby('user')[col_name].resample(**feature_functions["resample_args"]).sum()
+        result = df_s.groupby('user')[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_speech')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_count_loud(df_u, feature_functions=None): 
+def audio_count_loud(df_u, config=None): 
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound louder than 70dB in the environment. If there 
     is no specified timeframe, the function sets a 30 min default time window. 
@@ -97,7 +103,7 @@ def audio_count_loud(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -111,24 +117,27 @@ def audio_count_loud(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
     if len(df_u)>0:
         df_s = df_u[df_u[col_name]>70] #check if environment was noisy
-        result = df_s.groupby('user')[col_name].resample(**feature_functions["resample_args"]).count()
+        result = df_s.groupby('user')[col_name].resample(**config["resample_args"]).count()
         result = result.to_frame(name='audio_count_loud')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_min_freq(df_u, feature_functions=None): 
+def audio_min_freq(df_u, config=None): 
     """ This function returns the minimum frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -137,7 +146,7 @@ def audio_min_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -151,21 +160,24 @@ def audio_min_freq(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).min()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_max_freq(df_u, feature_functions=None): 
+def audio_max_freq(df_u, config=None): 
     """ This function returns the maximum frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -174,7 +186,7 @@ def audio_max_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -188,21 +200,24 @@ def audio_max_freq(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).max()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_mean_freq(df_u, feature_functions=None): 
+def audio_mean_freq(df_u, config=None): 
     """ This function returns the mean frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -211,7 +226,7 @@ def audio_mean_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -225,21 +240,24 @@ def audio_mean_freq(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).mean()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_median_freq(df_u, feature_functions=None):
+def audio_median_freq(df_u, config=None):
     """ This function returns the median frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -248,7 +266,7 @@ def audio_median_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -262,21 +280,24 @@ def audio_median_freq(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).median()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_std_freq(df_u, feature_functions=None): 
+def audio_std_freq(df_u, config=None): 
     """ This function returns the standard deviation of the frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -285,7 +306,7 @@ def audio_std_freq(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -299,21 +320,24 @@ def audio_std_freq(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_frequency"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).std()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_freq')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_min_db(df_u, feature_functions=None): 
+def audio_min_db(df_u, config=None): 
     """ This function returns the minimum decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -322,7 +346,7 @@ def audio_min_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -336,21 +360,24 @@ def audio_min_db(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).min()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_max_db(df_u, feature_functions=None): 
+def audio_max_db(df_u, config=None): 
     """ This function returns the maximum decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -359,7 +386,7 @@ def audio_max_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -373,21 +400,24 @@ def audio_max_db(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).max()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_mean_db(df_u, feature_functions=None): 
+def audio_mean_db(df_u, config=None): 
     """ This function returns the mean decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -396,7 +426,7 @@ def audio_mean_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -410,21 +440,24 @@ def audio_mean_db(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).mean()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_median_db(df_u, feature_functions=None): 
+def audio_median_db(df_u, config):
     """ This function returns the median decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -433,7 +466,7 @@ def audio_median_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -447,21 +480,24 @@ def audio_median_db(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).median()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
-def audio_std_db(df_u, feature_functions=None): 
+def audio_std_db(df_u, config=None): 
     """ This function returns the standard deviation of the decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -470,7 +506,7 @@ def audio_std_db(df_u, feature_functions=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    feature_functions: dict
+    config: dict
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -484,19 +520,22 @@ def audio_std_db(df_u, feature_functions=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
-    assert isinstance(feature_functions, dict), "feature_functions is not a dictionary"
+    assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in feature_functions:
+    if not "audio_column_name" in config:
         col_name = "double_decibels"
     else:
-        col_name = feature_functions["audio_column_name"]
-    if not "resample_args" in feature_functions.keys():
-        feature_functions["resample_args"] = {"rule":"30T"}
+        col_name = config["audio_column_name"]
+    if not "resample_args" in config.keys():
+        config["resample_args"] = {"rule":"30T"}
     
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**feature_functions["resample_args"]).std()
+        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_db')
-    return result
+        result = result.reset_index("user")
+        result.index.rename("datetime", inplace=True)
+        return result
+    return None
 
 ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('audio_')]
 ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
@@ -536,8 +575,13 @@ def extract_features_audio(df, features=None):
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
         computed_feature = feature(df, feature_arg)
+        index_by = [c for c in ["user","device"] if c in computed_feature.columns]
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
-        
+
     computed_features = pd.concat(computed_features, axis=1)
+    # index the result only by the original index (datetime)
+    computed_features = computed_features.reset_index()
+    computed_features = computed_features.set_index("datetime")
     return computed_features
             
