@@ -49,7 +49,6 @@ def util_screen(df, bat, config):
         if not shutdown.empty:
             df = pd.concat([df, shutdown])
             df.fillna(0, inplace=True)
-            print(df.columns)
             df = df[["user","device","time",col_name]]
 
     #Sort the dataframe
