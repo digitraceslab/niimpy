@@ -263,3 +263,49 @@ def sum_survey_scores(df, survey_prefix=None):
     
     return result
 
+
+ALL_FEATURES = [globals()[name] for name in globals()
+                         if name.startswith('survey_')]
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
+
+def extract_features_survey(df, features=None):
+    """Calculates survey features
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        dataframe of survey data. Must follow Niimpy format. In additions,
+        each survey question must be in a single column and the column name
+        must be formatted as survey-id_question-number (for example PHQ9_3).
+    features : map (dictionary) of functions that compute features.
+        it is a map of map, where the keys to the first map is the name of
+        functions that compute features and the nested map contains the keyword
+        arguments to that function. If there is no arguments use an empty map.
+        Default is None. If None, all the available functions are used.
+        Those functions are in the dict `survey.ALL_FEATURES`.
+        You can implement your own function and use it instead or add it
+        to the mentioned map.
+
+    Returns
+    -------
+    features : pd.DataFrame
+        Dataframe of computed features where the index is users and columns
+        are the the features.
+    """
+    if features is None:
+        features = ALL_FEATURES
+    else:
+        assert isinstance(features, dict), "Please input the features as a dictionary"
+
+    computed_features = []
+    for features, feature_arg in features.items():
+        computed_feature = features(df, feature_arg)
+        computed_features.append(computed_feature)
+    
+    computed_features = pd.concat(computed_features, axis=1)
+    computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
+
+    if 'group' in df:
+        computed_features['group'] = df.groupby('user')['group'].first()
+
+    return computed_features

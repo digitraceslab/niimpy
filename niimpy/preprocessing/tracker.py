@@ -97,9 +97,10 @@ def tracker_daily_step_distribution(steps_df):
 
     return df
 
-ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
+
+ALL_FEATURES = [globals()[name] for name in globals()
                          if name.startswith('tracker_')]
-ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 def extract_features_tracker(df, features=None):
     """ This function computes and organizes the selected features for tracker data
@@ -125,8 +126,8 @@ def extract_features_tracker(df, features=None):
 
     computed_features = []
     if features is None:
-        features = ALL_FEATURE_FUNCTIONS
-    print(ALL_FEATURE_FUNCTIONS)
+        features = ALL_FEATURES
+    print(ALL_FEATURES)
     for feature_function, kwargs in features.items():
         computed_feature = feature_function(df, **kwargs)
         computed_features.append(computed_feature)
