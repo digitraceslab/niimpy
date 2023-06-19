@@ -8,6 +8,9 @@ from niimpy.preprocessing import screen as s
 _group_by_columns = set(["user", "device", "app_group"])
 
 def group_by_columns(df):
+    """ Return a list of columns to the groub input dataframe by. If
+    the dataframe contains a column in the _group_by_columns list, it
+    should be grouped by that column."""
     return list(_group_by_columns & set(df.columns))
 
 MAP_APP = {'CrossCycle':'sports',
