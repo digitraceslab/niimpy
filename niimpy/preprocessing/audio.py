@@ -44,9 +44,9 @@ def audio_count_silent(df_u, config=None):
     df_u[col_name] = pd.to_numeric(df_u[col_name])
         
     if len(df_u)>0:
-        result = df_u.groupby('user')[col_name].resample(**config["resample_args"]).sum()
+        result = df_u.groupby(group_by_columns(df_u))[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
-        result = result.reset_index("user")
+        result = result.reset_index(group_by_columns(df_u))
         result.index.rename("datetime", inplace=True)
         return result
     return None
