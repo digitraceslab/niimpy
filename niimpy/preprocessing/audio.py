@@ -14,6 +14,7 @@ def reset_groups(df):
     columns = list(group_by_columns & set(df.index.names))
     return df.reset_index(columns)
 
+
 def audio_count_silent(df_u, config=None): 
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound in the environment. If there is no specified timeframe,
@@ -594,7 +595,6 @@ def extract_features_audio(df, features=None):
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
-    # index the result only by the original index (datetime)
     computed_features = reset_groups(computed_features)
     return computed_features
             

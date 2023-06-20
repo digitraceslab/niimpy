@@ -11,6 +11,21 @@ import niimpy
 
 default_freq = "1M"
 
+group_by_columns = set(["user", "device"])
+
+def group_data(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.columns))
+    return df.groupby(columns)
+
+def reset_groups(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.index.names))
+    return df.reset_index(columns)
+
+
 def distance_matrix(lats, lons):
     """Compute distance matrix using great-circle distance formula
 
@@ -279,7 +294,8 @@ def location_number_of_significant_places(df, config={}):
         })
         return row
     
-    result = df.groupby('user').resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = reset_groups(result)
     return result
 
 
@@ -408,7 +424,8 @@ def location_significant_place_features(df, config={}):
         })
         return row
 
-    result = df.groupby('user').resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = reset_groups(result)
     return result
 
 
@@ -469,7 +486,8 @@ def location_distance_features(df, config={}):
         })
         return row
 
-    result = df.groupby('user').resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = reset_groups(result)
     return result
 
 ALL_FEATURES = [globals()[name] for name in globals()
@@ -513,12 +531,14 @@ def extract_features_location(df, features=None):
     computed_features = []
     for features, feature_arg in features.items():
         computed_feature = features(df, feature_arg)
+        index_by = list(group_by_columns & set(computed_feature.columns))
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
-    computed_features = computed_features.loc[:,~computed_features.columns.duplicated()]
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
+    computed_features = reset_groups(computed_features)
     return computed_features
