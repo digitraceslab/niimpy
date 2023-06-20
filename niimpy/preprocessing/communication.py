@@ -1,5 +1,19 @@
 import pandas as pd
 
+group_by_columns = set(["user", "device"])
+
+def group_data(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.columns))
+    return df.groupby(columns)
+
+def reset_groups(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.index.names))
+    return df.reset_index(columns)
+
 def call_duration_total(df, config=None):  
     """ This function returns the total duration of each call type, within the 
     specified timeframe. The call types are incoming, outgoing, and missed. If 
@@ -36,14 +50,15 @@ def call_duration_total(df, config=None):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**config["resample_args"]).sum()
+        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).sum()
         outgoing.rename("outgoing_duration_total", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**config["resample_args"]).sum()
+        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).sum()
         incoming.rename("incoming_duration_total", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**config["resample_args"]).sum()
+        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).sum()
         missed.rename("missed_duration_total", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
+        result = reset_groups(result)
     return result
     
 def call_duration_mean(df, config=None):
@@ -82,14 +97,15 @@ def call_duration_mean(df, config=None):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**config["resample_args"]).mean()
+        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).mean()
         outgoing.rename("outgoing_duration_mean", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**config["resample_args"]).mean()
+        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).mean()
         incoming.rename("incoming_duration_mean", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**config["resample_args"]).mean()
+        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).mean()
         missed.rename("missed_duration_mean", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
+        result = reset_groups(result)
     return result
 
 def call_duration_median(df, config=None):
@@ -130,14 +146,15 @@ def call_duration_median(df, config=None):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**config["resample_args"]).median()
+        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).median()
         outgoing.rename("outgoing_duration_median", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**config["resample_args"]).median()
+        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).median()
         incoming.rename("incoming_duration_median", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**config["resample_args"]).median()
+        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).median()
         missed.rename("missed_duration_median", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
+        result = reset_groups(result)
     return result
 
 def call_duration_std(df, config=None):
@@ -177,14 +194,15 @@ def call_duration_std(df, config=None):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**config["resample_args"]).std()
+        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).std()
         outgoing.rename("outgoing_duration_std", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**config["resample_args"]).std()
+        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).std()
         incoming.rename("incoming_duration_std", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**config["resample_args"]).std()
+        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).std()
         missed.rename("missed_duration_std", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
+        result = reset_groups(result)
     return result
 
 def call_count(df, config=None):
@@ -223,14 +241,15 @@ def call_count(df, config=None):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = df[df.call_type=="outgoing"].groupby("user")[col_name].resample(**config["resample_args"]).count()
+        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).count()
         outgoing.rename("outgoing_count", inplace=True)
-        incoming = df[df.call_type=="incoming"].groupby("user")[col_name].resample(**config["resample_args"]).count()
+        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).count()
         incoming.rename("incoming_count", inplace=True)
-        missed = df[df.call_type=="missed"].groupby("user")[col_name].resample(**config["resample_args"]).count()
+        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).count()
         missed.rename("missed_count", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
+        result = reset_groups(result)
     return result
 
 def call_outgoing_incoming_ratio(df, config=None):
@@ -267,11 +286,12 @@ def call_outgoing_incoming_ratio(df, config=None):
         config["resample_args"] = {"rule":"30T"}
         
     df2 = call_count(df, config)
+    df2 = df2.set_index(list(group_by_columns & set(df2.columns)), append=True)
     df2["outgoing_incoming_ratio"] = df2["outgoing_count"]/df2["incoming_count"]
     df2 = df2["outgoing_incoming_ratio"]
     df2.fillna(0, inplace=True)
     result = df2.to_frame(name='outgoing_incoming_ratio')
-    
+    result = reset_groups(result)
     return result
 
 def sms_count(df, config=None):
@@ -307,12 +327,13 @@ def sms_count(df, config=None):
     if not "resample_args" in config.keys():
         config["resample_args"] = {"rule":"30T"}
         
-    outgoing = df[df.message_type=="outgoing"].groupby("user")[col_name].resample(**config["resample_args"]).count()
+    outgoing = group_data(df[df.message_type=="outgoing"])[col_name].resample(**config["resample_args"]).count()
     outgoing.rename("outgoing_count", inplace=True)
-    incoming = df[df.message_type=="incoming"].groupby("user")[col_name].resample(**config["resample_args"]).count()
+    incoming = group_data(df[df.message_type=="incoming"])[col_name].resample(**config["resample_args"]).count()
     incoming.rename("incoming_count", inplace=True)
     result = pd.concat([outgoing, incoming], axis=1)
     result.fillna(0, inplace=True)
+    result = reset_groups(result)
     
     return result
 
@@ -353,7 +374,10 @@ def extract_features_comms(df, features=None):
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
         computed_feature = feature(df, feature_arg)
+        index_by = list(group_by_columns & set(computed_feature.columns))
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
         
     computed_features = pd.concat(computed_features, axis=1)
+    computed_features = reset_groups(computed_features)
     return computed_features
