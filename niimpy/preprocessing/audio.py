@@ -537,8 +537,8 @@ def audio_std_db(df_u, config=None):
         return result
     return None
 
-ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('audio_')]
-ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('audio_')]
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 def extract_features_audio(df, features=None):
     """ This function computes and organizes the selected features for audio snippets 
@@ -567,7 +567,7 @@ def extract_features_audio(df, features=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     
     if features is None:
-        features = ALL_FEATURE_FUNCTIONS
+        features = ALL_FEATURES
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
     

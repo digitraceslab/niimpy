@@ -589,8 +589,8 @@ def screen_first_unlock(df, bat, config):
     result = result.index.to_series()
     return result
 
-ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('screen_')]
-ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('screen_')]
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 def extract_features_screen(df, bat, features=None):
     """ This function computes and organizes the selected features for screen events
@@ -618,7 +618,7 @@ def extract_features_screen(df, bat, features=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     
     if features is None:
-        features = ALL_FEATURE_FUNCTIONS
+        features = ALL_FEATURES
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
     

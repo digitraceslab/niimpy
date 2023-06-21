@@ -437,9 +437,9 @@ def find_battery_gaps(battery_df, other_df, config):
 
     return gaps
 
-ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals()
+ALL_FEATURES = [globals()[name] for name in globals()
                          if name.startswith('battery_')]
-ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 
 def extract_features_battery(df, features=None):
@@ -455,7 +455,7 @@ def extract_features_battery(df, features=None):
         functions that compute features and the nested map contains the keyword
         arguments to that function. If there is no arguments use an empty map.
         Default is None. If None, all the available functions are used.
-        Those functions are in the dict `battery.ALL_FEATURE_FUNCTIONS`.
+        Those functions are in the dict `battery.ALL_FEATURES`.
         You can implement your own function and use it instead or add it
         to the mentioned map.
 
@@ -467,7 +467,7 @@ def extract_features_battery(df, features=None):
     """
     computed_features = []
     if features is None:
-        features = ALL_FEATURE_FUNCTIONS
+        features = ALL_FEATURES
     for features, kwargs in features.items():
         print(features, kwargs)
         computed_feature = features(df, kwargs)

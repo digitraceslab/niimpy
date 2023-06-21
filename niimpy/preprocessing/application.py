@@ -499,8 +499,8 @@ def app_duration(df, bat, screen, config=None):
         return result.reset_index(["user", "app_group"])
     return None
 
-ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('app_')]
-ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('app_')]
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 def extract_features_app(df, bat, screen, features=None):
     """ This function computes and organizes the selected features for application
@@ -528,7 +528,7 @@ def extract_features_app(df, bat, screen, features=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     
     if features is None:
-        features = ALL_FEATURE_FUNCTIONS
+        features = ALL_FEATURES
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
 

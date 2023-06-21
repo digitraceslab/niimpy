@@ -316,8 +316,8 @@ def sms_count(df, config=None):
     
     return result
 
-ALL_FEATURE_FUNCTIONS = [globals()[name] for name in globals() if name.startswith('call_')]
-ALL_FEATURE_FUNCTIONS = {x: {} for x in ALL_FEATURE_FUNCTIONS}
+ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]
+ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 def extract_features_comms(df, features=None):
     """ This function computes and organizes the selected features for calls 
@@ -345,7 +345,7 @@ def extract_features_comms(df, features=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     
     if features is None:
-        features = ALL_FEATURE_FUNCTIONS
+        features = ALL_FEATURES
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
     
