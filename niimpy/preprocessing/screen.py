@@ -48,10 +48,7 @@ def util_screen(df, bat, config):
     assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
+    col_name = config.get("screen_column_name", "screen_status")
     
     df[col_name]=pd.to_numeric(df[col_name]) #convert to numeric in case it is not
 
