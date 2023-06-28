@@ -8,47 +8,47 @@ import numpy as np
 
 # PHQ2: Patient Health Questionnaire. Link: https://en.wikipedia.org/wiki/Patient_Health_Questionnaire
 PHQ2_MAP = {
-    'Little interest or pleasure in doing things.' : 'PHQ2_1',
-    'Feeling down; depressed or hopeless.' : 'PHQ2_2',
+    'Little interest or pleasure in doing things' : 'PHQ2_1',
+    'Feeling down depressed or hopeless' : 'PHQ2_2',
 }
 
 # PHQ9: Patient Health Questionnaire. Link: https://en.wikipedia.org/wiki/PHQ-9
-PHQ9_MAP = {'Little interest or pleasure in doing things.' : "PHQ9_1",
-            'Feeling down, depressed, or hopeless.' : "PHQ9_2",
-            'Trouble falling or staying asleep, or sleeping too much.' : "PHQ9_3",
-            'Feeling tired or having little energy.' : "PHQ9_4",
-            'Poor appetite or overeating.' : "PHQ9_5",
-            'Feeling bad about yourself or that you are a failure or have let yourself or your family down.' : "PHQ9_6",
-            'Trouble concentrating on things, such as reading the newspaper or watching television.' : "PHQ9_7",
-            'Moving or speaking so slowly that other people could have noticed. Or the opposite being so fidgety or restless that you have been moving around a lot more than usual.' : "PHQ9_8",
-            'Thoughts that you would be better off dead, or of hurting yourself.' : "PHQ9_9",
+PHQ9_MAP = {'Little interest or pleasure in doing things' : "PHQ9_1",
+            'Feeling down depressed or hopeless' : "PHQ9_2",
+            'Trouble falling or staying asleep or sleeping too much' : "PHQ9_3",
+            'Feeling tired or having little energy' : "PHQ9_4",
+            'Poor appetite or overeating' : "PHQ9_5",
+            'Feeling bad about yourself or that you are a failure or have let yourself or your family down' : "PHQ9_6",
+            'Trouble concentrating on things such as reading the newspaper or watching television' : "PHQ9_7",
+            'Moving or speaking so slowly that other people could have noticed. Or the opposite being so fidgety or restless that you have been moving around a lot more than usual' : "PHQ9_8",
+            'Thoughts that you would be better off dead or of hurting yourself' : "PHQ9_9",
             }
 
 # PSQI: Pittsburgh Sleep Quality Index. Link: https://en.wikipedia.org/wiki/Pittsburgh_Sleep_Quality_Index
 PSQI_MAP = {
-    'Currently; is your sleep typically interrupted? (For example; for attending to a child or due to loud neighbours or medical reasons.)' : 'PSQI_1',
-    'During the past month; how often have you taken medicine (prescribed or “over the counter”) to help you sleep?' : 'PSQI_2',
-    'During the past month; how often have you had trouble staying awake while driving; eating meals; or engaging in social activity?' : 'PSQI_3',
-    'During the past month; how much of a problem has it been for you to keep up enthusiasm to get things done?' : 'PSQI_4',
-    'During the past month; how would you rate your sleep quality overall?' : 'PSQI_5',
+    'Currently is your sleep typically interrupted? (For example for attending to a child or due to loud neighbours or medical reasons.)' : 'PSQI_1',
+    'During the past month how often have you taken medicine (prescribed or “over the counter”) to help you sleep' : 'PSQI_2',
+    'During the past month how often have you had trouble staying awake while driving eating meals or engaging in social activity' : 'PSQI_3',
+    'During the past month how much of a problem has it been for you to keep up enthusiasm to get things done' : 'PSQI_4',
+    'During the past month how would you rate your sleep quality overall' : 'PSQI_5',
     'When have you usually gone to bed? (hh:mm)' : 'PSQI_6',
     'What time have you usually gotten up in the morning? (hh:mm)' : 'PSQI_7',
-    'How long (in minutes) has it taken you to fall asleep each night?' : 'PSQI_8',
-    'How many hours of actual sleep did you get at night?' : 'PSQI_9',
+    'How long (in minutes) has it taken you to fall asleep each night' : 'PSQI_8',
+    'How many hours of actual sleep did you get at night' : 'PSQI_9',
 }
 
 # PSS-10: Perceived Stress Scale. Link: https://en.wikipedia.org/wiki/Perceived_Stress_Scale
 PSS10_MAP = {
-    'In the last month; how often have you been upset because of something that happened unexpectedly?' : 'PSS10_1',
-    'In the last month; how often have you felt that you were unable to control the important things in your life?' : 'PSS10_2',
-    'In the last month; how often have you felt nervous and “stressed”?' : 'PSS10_3',
-    'In the last month; how often have you felt confident about your ability to handle your personal problems?' : 'PSS10_4',
-    'In the last month; how often have you felt that things were going your way?' : 'PSS10_5',
-    'In the last month; how often have you been able to control irritations in your life?' : 'PSS10_6',
-    'In the last month; how often have you felt that you were on top of things?' : 'PSS10_7',
-    'In the last month; how often have you been angered because of things that were outside of your control?' : 'PSS10_8',
-    'In the last month; how often have you felt difficulties were piling up so high that you could not overcome them?' : 'PSS10_9',
-    'In the last month, how often have you found that you could not cope with all the things that you had to do?': 'PSS10_10'
+    'In the last month how often have you been upset because of something that happened unexpectedly' : 'PSS10_1',
+    'In the last month how often have you felt that you were unable to control the important things in your life' : 'PSS10_2',
+    'In the last month how often have you felt nervous and “stressed”' : 'PSS10_3',
+    'In the last month how often have you felt confident about your ability to handle your personal problems' : 'PSS10_4',
+    'In the last month how often have you felt that things were going your way' : 'PSS10_5',
+    'In the last month how often have you been able to control irritations in your life' : 'PSS10_6',
+    'In the last month how often have you felt that you were on top of things' : 'PSS10_7',
+    'In the last month how often have you been angered because of things that were outside of your control' : 'PSS10_8',
+    'In the last month how often have you felt difficulties were piling up so high that you could not overcome them' : 'PSS10_9',
+    'In the last month how often have you found that you could not cope with all the things that you had to do': 'PSS10_10'
 }
 
 # PANAS: Positive and Negative Affect Schedule. Link: https://en.wikipedia.org/wiki/Positive_and_Negative_Affect_Schedule
@@ -67,25 +67,25 @@ PANAS_MAP = {
 
 # GAD: Generalized anxiety disorder. Link: https://en.wikipedia.org/wiki/Generalized_anxiety_disorder
 GAD2_MAP = {
-    'Feeling nervous; anxious or on edge.': 'GAD2_1',
-    'Not being able to stop or control worrying.': 'GAD2_2'
+    'Feeling nervous anxious or on edge': 'GAD2_1',
+    'Not being able to stop or control worrying': 'GAD2_2'
 }
 
 # The below mappings map between answers to the questionnaires and their numerical values
 # You will need to adjust these mappings to your own needs if the answers do not match with these values.
 PSS_ANSWER_MAP = {
     'never': 0,
-    'almost-never': 1,
+    'almost never': 1,
     'sometimes': 2,
-    'fairly-often': 3,
-    'very-often': 4
+    'fairly often': 3,
+    'very often': 4
 }
 
 PHQ2_ANSWER_MAP = {
-    'not-at-all': 0,
-    'several-days': 1,
-    'more-than-half-the-days': 2,
-    'nearly-every-day': 3
+    'not at all': 0,
+    'several days': 1,
+    'more than half the days': 2,
+    'nearly every day': 3
 }
 
 PHQ9_ANSWER_MAP = {
@@ -112,6 +112,28 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_8' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
+
+def clean_survey_column_names(df):
+    """
+    This function takes a pandas DataFrame as input and cleans the column names
+    by removing or replacing specified characters. It helps to ensure standardized
+    and clean column names for further analysis or processing.
+    
+    Parameters
+    ----------
+        df : pandas dataframe
+          The input DataFrame with column names to be cleaned.
+    
+    Returns
+    -------
+        df : pandas.DataFrame
+          The DataFrame with cleaned column names.
+    """
+    for char in ['.', ',', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}']:
+        df.columns = df.columns.str.replace(char, "")
+    for char in ['-', '_', '—']:
+        df.columns = df.columns.str.replace(char, " ")
+    return df
 
 def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
@@ -159,6 +181,10 @@ def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
         else:
             columns = [c for c in df.columns if c == key]
         for col in columns:
+            for char in [',', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}']:
+                df[col] = df[col].str.replace(char, "")
+            for char in ['-', '_', '—']:
+                df[col] = df[col].str.replace(char, " ")
             df[col] = df[col].map(map)
     return df
 
