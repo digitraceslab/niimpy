@@ -3,6 +3,7 @@
 import pandas as pd
 import numpy as np
 
+
 # Below, we provide some mappings between standardized survey raw questions and their respective codes
 # You will need to adjust these mappings to your own needs if your questions do not match with these values.
 
@@ -113,6 +114,21 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
 
+group_by_columns = set(["user", "device"])
+
+def group_data(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.columns))
+    return df.groupby(columns)
+
+def reset_groups(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.index.names))
+    return df.reset_index(columns)
+
+
 def clean_survey_column_names(df):
     """
     This function takes a pandas DataFrame as input and cleans the column names
@@ -134,6 +150,7 @@ def clean_survey_column_names(df):
     for char in ['-', '_', '—']:
         df.columns = df.columns.str.replace(char, " ")
     return df
+
 
 def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
     """Convert text answers into numerical value (assuming a long dataframe).
@@ -249,8 +266,9 @@ def survey_statistic(df, config):
             result[answer_col+"_std"] = df[answer_col].std()
         return pd.Series(result)
 
-    res = df.groupby(['user']).resample(**resample_args).apply(calculate_statistic)
-    return res.reset_index(['user'])
+    res = group_data(df).resample(**resample_args).apply(calculate_statistic)
+    res = reset_groups(res)
+    return res
 
 
 def sum_survey_scores(df, survey_prefix=None):
@@ -326,6 +344,8 @@ def extract_features_survey(df, features=None):
     computed_features = []
     for features, feature_arg in features.items():
         computed_feature = features(df, feature_arg)
+        index_by = list(group_by_columns & set(computed_feature.columns))
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
@@ -334,4 +354,5 @@ def extract_features_survey(df, features=None):
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
+    computed_features = reset_groups(computed_features)
     return computed_features

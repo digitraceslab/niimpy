@@ -1,7 +1,22 @@
 import pandas as pd
 
+group_by_columns = ["user", "device"]
 
-def step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
+def group_data(df, columns = group_by_columns):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    found_columns = list(set(columns) & set(df.columns))
+    return df.groupby(found_columns)
+
+def reset_groups(df, columns = group_by_columns):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    found_columns = list(set(columns) & set(df.index.names))
+    return df.reset_index(found_columns)
+
+
+def step_summary(df, config={}):
+    # value_col='values', user_id=None, start_date=None, end_date=None):
     """Return the summary of step count in a time range. The summary includes the following information
     of step count per day: mean, standard deviation, min, max
 
@@ -9,14 +24,17 @@ def step_summary(df, value_col='values', user_id=None, start_date=None, end_date
     ----------
     df : Pandas Dataframe
         Dataframe containing the hourly step count of an individual. The dataframe must be date time index.
-    value_col: str.
-        Column contains step values. Default value is "values".
-    user_id: list. Optional
-        List of user id. If none given, returns summary for all users.
-    start_date: string. Optional
-        Start date of time segment used for computing the summary. If not given, acquire summary for the whole time range.
-    end_date: string.  Optional
-        End date of time segment used for computing the summary. If not given, acquire summary for the whole time range.
+    config: dict
+        Dictionary keys containing optional arguments. These can be:
+
+        value_col: str.
+            Column contains step values. Default value is "values".
+        user_id: list. Optional
+            List of user id. If none given, returns summary for all users.
+        start_date: string. Optional
+            Start date of time segment used for computing the summary. If not given, acquire summary for the whole time range.
+        end_date: string.  Optional
+            End date of time segment used for computing the summary. If not given, acquire summary for the whole time range.
         
     Returns
     -------
@@ -26,6 +44,11 @@ def step_summary(df, value_col='values', user_id=None, start_date=None, end_date
 
     assert 'user' in df.columns, 'User column does not exist'
     assert df.index.inferred_type == 'datetime64', "Dataframe must have a datetime index"
+
+    value_col = config.get("value_col", "values")
+    user_id = config.get("user_id", None)
+    start_date = config.get("start_date", None)
+    end_date = config.get("end_date", None)
 
     if user_id is not None:
         assert isinstance(user_id, list), 'User id must be a list'
@@ -38,24 +61,30 @@ def step_summary(df, value_col='values', user_id=None, start_date=None, end_date
     elif start_date is not None and end_date is None:
         df = df[start_date:]
 
-    # Calculate sum of step
-    df['daily_sum'] = df.groupby(by=[df.index.day, df.index.month, 'user'])[value_col].transform(
-        'sum')  # stores sum of daily step
+    df['month'] = df.index.month
+    df['day'] = df.index.day
+
+    # Calculate sum of steps for each date
+    df['daily_sum'] = group_data( df,
+        columns = ['day', 'month'] + group_by_columns
+    )[value_col].transform('sum')
 
     # Under the assumption that a user cannot have zero steps per day, we remove rows where daily_sum are zero
     df = df[~(df.daily_sum == 0)]
 
     summary_df = pd.DataFrame()
-    summary_df['median_sum_step'] = df.groupby('user')['daily_sum'].median()
-    summary_df['avg_sum_step'] = df.groupby('user')['daily_sum'].mean()
-    summary_df['std_sum_step'] = df.groupby('user')['daily_sum'].std()
-    summary_df['min_sum_step'] = df.groupby('user')['daily_sum'].min()
-    summary_df['max_sum_step'] = df.groupby('user')['daily_sum'].max()
+    
+    summary_df['median_sum_step'] = group_data(df)['daily_sum'].median()
+    summary_df['avg_sum_step'] = group_data(df)['daily_sum'].mean()
+    summary_df['std_sum_step'] = group_data(df)['daily_sum'].std()
+    summary_df['min_sum_step'] = group_data(df)['daily_sum'].min()
+    summary_df['max_sum_step'] = group_data(df)['daily_sum'].max()
 
-    return summary_df.reset_index()
+    summary_df = reset_groups(summary_df)
+    return summary_df
 
 
-def tracker_daily_step_distribution(steps_df):
+def tracker_daily_step_distribution(steps_df, config={}):
     """Return distribution of steps within each day. 
     Assuming the step count is recorded at hourly resolution, this function will compute
     the contribution of each hourly step count into the daily count (percentage wise).
@@ -86,7 +115,9 @@ def tracker_daily_step_distribution(steps_df):
 
     # Convert the absolute values into distribution. This can be understood as the portion of steps the users took
     # during each hour
-    df['daily_sum'] = df.groupby(by=['day', 'month', 'user'])['steps'].transform('sum')  # stores sum of daily step
+    df['daily_sum'] = group_data( df,
+        columns = ['day', 'month'] + group_by_columns
+    )['steps'].transform('sum')  # stores sum of daily step
 
     # Divide hourly steps by daily sum to get the distribution
     df['daily_distribution'] = df['steps'] / df['daily_sum']
@@ -127,20 +158,18 @@ def extract_features_tracker(df, features=None):
     computed_features = []
     if features is None:
         features = ALL_FEATURES
-    print(ALL_FEATURES)
     for feature_function, kwargs in features.items():
+        print(features, kwargs)
         computed_feature = feature_function(df, **kwargs)
+        index_by = list(set(group_by_columns) & set(computed_feature.columns))
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
 
-
-    assert len(computed_features) > 0, "Computed features cannot be empty"
-    if len(computed_features) > 1:
-        computed_features = pd.concat(computed_features, axis=1)
-    else:
-        computed_features = computed_features[0]
+    computed_features = pd.concat(computed_features, axis=1)
 
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
+    computed_features = reset_groups(computed_features)
     return computed_features
 

@@ -5,6 +5,20 @@ import niimpy
 from niimpy.preprocessing import battery as b
 from niimpy.preprocessing import screen as s
 
+group_by_columns = set(["user", "device", "app_group"])
+
+def group_data(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.columns))
+    return df.groupby(columns)
+
+def reset_groups(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.index.names))
+    return df.reset_index(columns)
+
 MAP_APP = {'CrossCycle':'sports',
              'Runtastic':'sports',
              'Polar Flow':'sports',
@@ -323,7 +337,7 @@ def classify_app(df, config):
         df.app_group[df[col_name] == key]=value
     return df
 
-def app_count(df, bat, screen, config=None):
+def app_count(df, bat, screen, config={}):
     """ This function returns the number of times each app group has been used, 
     within the specified timeframe. The app groups are defined as a dictionary 
     within the config variable. Examples of app groups are social 
@@ -380,7 +394,7 @@ def app_count(df, bat, screen, config=None):
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+        df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
     
     if (screen.empty and not bat.empty):
         shutdown = b.shutdown_info(bat, config)
@@ -391,20 +405,20 @@ def app_count(df, bat, screen, config=None):
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+        df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
         
     if (screen.empty and bat.empty):
-        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+        df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
     
     df2.dropna(inplace=True)
     
     if len(df2)>0:
         df2['datetime'] = pd.to_datetime(df2['datetime'])
         df2.set_index('datetime', inplace=True)
-        result = df2.groupby(["user","app_group"]).resample(**config["resample_args"]).count()
-        result.rename(columns={"device": "count"}, inplace=True)
-        result = result["count"].to_frame()
-        return result.reset_index(["user", "app_group"])
+        result = group_data(df2)["app_group"].resample(**config["resample_args"]).count()
+        result = pd.DataFrame(result).rename(columns={"app_group": "count"})
+        result = reset_groups(result)
+        return result
     return None
 
 def app_duration(df, bat, screen, config=None):
@@ -495,8 +509,10 @@ def app_duration(df, bat, screen, config=None):
     if len(df2)>0:
         df2['datetime'] = pd.to_datetime(df2['datetime'])
         df2.set_index('datetime', inplace=True)
-        result = df2.groupby(["user","app_group"])["duration"].resample(**config["resample_args"]).sum()
-        return result.reset_index(["user", "app_group"])
+        result = group_data(df2)["duration"].resample(**config["resample_args"]).sum()
+        result = pd.DataFrame(result).rename(columns={"app_group": "count"})
+        return reset_groups(result)
+
     return None
 
 ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('app_')]
@@ -536,13 +552,11 @@ def extract_features_app(df, bat, screen, features=None):
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
         computed_feature = feature(df, bat, screen, feature_arg)
-        # index by app_group, user and device to make each row index unique. Otherwise concat will fail.
-        index_by = [c for c in ["app_group","user","device"] if c in computed_feature.columns]
+        index_by = list(group_by_columns & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
     # index the result only by the original index (datetime)
-    computed_features = computed_features.reset_index()
-    computed_features = computed_features.set_index("datetime")
+    computed_features = reset_groups(computed_features)
     return computed_features

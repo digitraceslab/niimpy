@@ -4,6 +4,20 @@ import pandas as pd
 import niimpy
 from niimpy.preprocessing import battery as b
 
+group_by_columns = set(["user", "device"])
+
+def group_data(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.columns))
+    return df.groupby(columns)
+
+def reset_groups(df):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(group_by_columns & set(df.index.names))
+    return df.reset_index(columns)
+
 def util_screen(df, bat, config):
     """ This function is a helper function for all other screen preprocessing.
     The function has the option to merge information from the battery sensors to
@@ -34,10 +48,7 @@ def util_screen(df, bat, config):
     assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
+    col_name = config.get("screen_column_name", "screen_status")
     
     df[col_name]=pd.to_numeric(df[col_name]) #convert to numeric in case it is not
 
@@ -49,7 +60,6 @@ def util_screen(df, bat, config):
         if not shutdown.empty:
             df = pd.concat([df, shutdown])
             df.fillna(0, inplace=True)
-            print(df.columns)
             df = df[["user","device","time",col_name]]
 
     #Sort the dataframe
@@ -195,10 +205,9 @@ def screen_off(df, bat, config):
     df = util_screen(df, bat, config)
     df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
     df["screen_status"] = 1
-    df = df[["user","screen_status"]]
+    df = df[["user","device","screen_status"]]
     df.rename(columns={"screen_status":"screen_off"}, inplace=True)
-    df.reset_index(inplace=True)
-    df.set_index(["user", "index"], inplace=True)
+    df = reset_groups(df)
     return df
 
 def screen_count(df, bat, config=None):
@@ -241,13 +250,14 @@ def screen_count(df, bat, config=None):
     df2 = event_classification_screen(df2, config)
     
     if len(df2)>0:
-        on = df2.groupby("user")["on"].resample(**config["resample_args"]).sum()
+        on = group_data(df2)["on"].resample(**config["resample_args"]).sum()
         on = on.to_frame(name='screen_on_count')
-        off = df2.groupby("user")["off"].resample(**config["resample_args"]).sum()
+        off = group_data(df2)["off"].resample(**config["resample_args"]).sum()
         off = off.to_frame(name='screen_off_count')
-        use = df2.groupby("user")["use"].resample(**config["resample_args"]).sum()
+        use = group_data(df2)["use"].resample(**config["resample_args"]).sum()
         use = use.to_frame(name='screen_use_count')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_duration(df, bat, config=None):
@@ -291,13 +301,14 @@ def screen_duration(df, bat, config=None):
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = df2[df2.on==1].groupby("user")["duration"].resample(**config["resample_args"]).sum()
+        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).sum()
         on = on.to_frame(name='screen_on_durationtotal')
-        off = df2[df2.off==1].groupby("user")["duration"].resample(**config["resample_args"]).sum()
+        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).sum()
         off = off.to_frame(name='screen_off_durationtotal')
-        use = df2[df2.use==1].groupby("user")["duration"].resample(**config["resample_args"]).sum()
+        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).sum()
         use = use.to_frame(name='screen_use_durationtotal')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_duration_min(df, bat, config=None):
@@ -341,13 +352,14 @@ def screen_duration_min(df, bat, config=None):
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = df2[df2.on==1].groupby("user")["duration"].resample(**config["resample_args"]).min()
+        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).min()
         on = on.to_frame(name='screen_on_durationminimum')
-        off = df2[df2.off==1].groupby("user")["duration"].resample(**config["resample_args"]).min()
+        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).min()
         off = off.to_frame(name='screen_off_durationminimum')
-        use = df2[df2.use==1].groupby("user")["duration"].resample(**config["resample_args"]).min()
+        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).min()
         use = use.to_frame(name='screen_use_durationminimum')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_duration_max(df, bat, config=None):
@@ -391,13 +403,14 @@ def screen_duration_max(df, bat, config=None):
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = df2[df2.on==1].groupby("user")["duration"].resample(**config["resample_args"]).max()
+        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).max()
         on = on.to_frame(name='screen_on_durationmaximum')
-        off = df2[df2.off==1].groupby("user")["duration"].resample(**config["resample_args"]).max()
+        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).max()
         off = off.to_frame(name='screen_off_durationmaximum')
-        use = df2[df2.use==1].groupby("user")["duration"].resample(**config["resample_args"]).max()
+        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).max()
         use = use.to_frame(name='screen_use_durationmaximum')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_duration_mean(df, bat, config=None):
@@ -441,13 +454,14 @@ def screen_duration_mean(df, bat, config=None):
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = df2[df2.on==1].groupby("user")["duration"].resample(**config["resample_args"]).mean()
+        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).mean()
         on = on.to_frame(name='screen_on_durationmean')
-        off = df2[df2.off==1].groupby("user")["duration"].resample(**config["resample_args"]).mean()
+        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).mean()
         off = off.to_frame(name='screen_off_durationmean')
-        use = df2[df2.use==1].groupby("user")["duration"].resample(**config["resample_args"]).mean()
+        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).mean()
         use = use.to_frame(name='screen_use_durationmean')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_duration_median(df, bat, config=None):
@@ -491,13 +505,14 @@ def screen_duration_median(df, bat, config=None):
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = df2[df2.on==1].groupby("user")["duration"].resample(**config["resample_args"]).median()
+        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).median()
         on = on.to_frame(name='screen_on_durationmedian')
-        off = df2[df2.off==1].groupby("user")["duration"].resample(**config["resample_args"]).median()
+        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).median()
         off = off.to_frame(name='screen_off_durationmedian')
-        use = df2[df2.use==1].groupby("user")["duration"].resample(**config["resample_args"]).median()
+        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).median()
         use = use.to_frame(name='screen_use_durationmedian')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_duration_std(df, bat, config=None):
@@ -541,13 +556,14 @@ def screen_duration_std(df, bat, config=None):
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = df2[df2.on==1].groupby("user")["duration"].resample(**config["resample_args"]).std()
+        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).std()
         on = on.to_frame(name='screen_on_durationstd')
-        off = df2[df2.off==1].groupby("user")["duration"].resample(**config["resample_args"]).std()
+        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).std()
         off = off.to_frame(name='screen_off_durationstd')
-        use = df2[df2.use==1].groupby("user")["duration"].resample(**config["resample_args"]).std()
+        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).std()
         use = use.to_frame(name='screen_use_durationstd')
         result = pd.concat([on, off, use], axis=1)
+        result = reset_groups(result)
     return result
 
 def screen_first_unlock(df, bat, config):
@@ -584,9 +600,11 @@ def screen_first_unlock(df, bat, config):
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)
-    
-    result = df2[df2.on==1].groupby("user").resample(rule='1D').min()
-    result = result.index.to_series()
+
+    df2["time"] = df2.index
+    result = group_data(df2[df2.on==1])["time"].resample(rule='1D').min()
+    result = result.to_frame(name="first_unlock")
+    result = reset_groups(result)
     return result
 
 ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('screen_')]
@@ -624,10 +642,11 @@ def extract_features_screen(df, bat, features=None):
     
     computed_features = []
     for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
         computed_feature = feature(df, bat, feature_arg)
+        index_by = list(group_by_columns & set(computed_feature.columns))
+        computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
-        
+    
     computed_features = pd.concat(computed_features, axis=1)
-        
+    computed_features = reset_groups(computed_features)
     return computed_features
