@@ -1,7 +1,12 @@
 How to cite
 ===========
 
+Ikäheimonen, A., Triana, A. M., Luong, N., Ziaei, A., Rantaharju, J., Darst, R., & Aledavood, T. (2023). Niimpy: a toolbox for behavioral data analysis. SoftwareX, 23, 101472.
+
+bibtex format:
+
 @article{niimpy,
+
          title = {Niimpy: A toolbox for behavioral data analysis},
          journal = {SoftwareX},
          volume = {23},
