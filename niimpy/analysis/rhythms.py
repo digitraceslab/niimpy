@@ -114,10 +114,11 @@ def _compute_distribution(data: pd.DataFrame,  cols: list, groupby_cols: list, f
 def compute_rhythms(df: pd.DataFrame, 
                     timebin: str, 
                     cols: list,
-                    groupby_cols: list
+                    groupby_cols: list,
                     period: int,
                     freq: str,
                     group: str = None) -> pd.DataFrame:
+
     """
     Computes rhythms of the input data for a single group based on the provided frequency.
 
