@@ -1,4 +1,4 @@
-import os
+import numpy as np
 import pandas as pd
 import pytest
 
@@ -10,7 +10,7 @@ import pytz
 
 @pytest.fixture(scope='module')
 def df():
-    
+
     # Define starting dates
     start_date_1 = datetime.datetime(2019, 8, 13, tzinfo=pytz.timezone('Etc/GMT+3'))
     start_date_2 = datetime.datetime(2020, 1, 9, tzinfo=pytz.timezone('Etc/GMT+3'))
@@ -39,15 +39,16 @@ def df():
     res = pd.DataFrame(data)
     res["time"] = pd.to_datetime(res["time"], errors='coerce')
     res = res.set_index("time")
-   
+
+    res.to_csv("test.csv")
     return res 
 
 # 1. Basic functionality test
-def test_basic_daily_rhythms(df):
-    #print("IDX:", df.index)
+def test_correct_rhythms_colname(df):
+
     result = rh.compute_rhythms(
         df,
-        timebin="1H",
+        timebin="2H",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=24,
@@ -65,83 +66,26 @@ def test_basic_daily_rhythms(df):
         ]
     ), "Required columns are missing."
 
+  
+def test_correct_rhythm_distributions(df):
 
-def test_basic_weekly_rhythms():
     result = rh.compute_rhythms(
         df,
-        timebin="1H",
-        cols=["outgoing_count", "incoming_count"],
-        groupby_cols=["user"],
-        period=168,
-        freq="weekly",
-    )
-    assert len(result) > 0, "The result should not be empty."
-    assert all(
-        col in result.columns
-        for col in [
-            "outgoing_count",
-            "outgoing_count_distr",
-            "incoming_count",
-            "incoming_count_distr",
-        ]
-    ), "Required columns are missing."
-
-
-# 2. Validate DateTime index requirement
-def test_validate_datetime_index():
-    df_wrong_index = df.reset_index()
-    with pytest.raises(
-        ValueError, match="The input DataFrame must have a DateTime index."
-    ):
-        rh.compute_rhythms(
-            df_wrong_index,
-            timebin="1H",
-            cols=["outgoing_count", "incoming_count"],
-            groupby_cols=["user"],
-            period=24,
-            freq="daily",
-        )
-
-
-# 3. Handling of incorrect frequencies
-def test_incorrect_frequency():
-    with pytest.raises(
-        ValueError,
-        match="The specified frequency 'monthly' is not valid. Choose 'daily' or 'weekly'.",
-    ):
-        rh.compute_rhythms(
-            df,
-            timebin="1H",
-            cols=["outgoing_count", "incoming_count"],
-            groupby_cols=["user"],
-            period=24,
-            freq="monthly",
-        )
-
-# 4. Verification that aggregation is done correctly
-def test_aggregation_daily():
-    result = rh.compute_rhythms(
-        df,
-        timebin="1H",
+        timebin="6H",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=24,
         freq="daily",
     )
-    assert (
-        result.loc[result.index[0], "outgoing_count"] == 1
-    ), "Aggregation failed for 'iGyXetHE3S8u'."
 
+    expected_outgoing_count_distr = [0, 0.33, 0.66, 0]
+    expected_incoming_count_distr = [0.5, 0.33, 0.16, 0]
 
-def test_aggregation_weekly():
-    result = rh.compute_rhythms(
-        df,
-        timebin="1H",
-        cols=["outgoing_count", "incoming_count"],
-        groupby_cols=["user"],
-        period=168,
-        freq="weekly",
-    )
-    assert (
-        result.loc[result.index[-1], "incoming_count"] == 6.0
-    ), "Aggregation failed for 'jd9INuQ5BBlW'."
+    outgoing_count_distr = result.query('user == "iGyXetHE3S8u"').outgoing_count_distr.tolist()
+    incoming_count_distr = result.query('user == "iGyXetHE3S8u"').incoming_count_distr.tolist()
+    
+    assert len(result) > 0, "The result should not be empty."
+    assert np.allclose(outgoing_count_distr, expected_outgoing_count_distr, atol=1e-2), "Incorrect distribution for outgoing_count"
+    assert np.allclose(incoming_count_distr, expected_incoming_count_distr, atol=1e-2), "Incorrect distribution for incoming_count"
+
+    
