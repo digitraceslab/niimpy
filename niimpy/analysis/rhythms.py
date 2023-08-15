@@ -3,19 +3,26 @@ import datetime
 
 def _align_data(data: pd.DataFrame, period: int, freq: str) -> pd.DataFrame:
     """
-    Align user records by timestamp ensuring the first record starts either at 00:00 
-    daily or 00:00 of a Monday weekly.
+    Returns a pandas DataFrame aligned by timestamp, starting either at 00:00 daily or 00:00 of a Monday weekly.
 
-    Parameters:
-    - data (pd.DataFrame): Input dataframe with a Timestamp index.
-    - period (int): Number of hours for the time span (e.g., 24 for 1 day, 168 for 1 week).
-    - type (str): Type of alignment, either 'daily' or 'weekly'.
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        Input dataframe with a Timestamp index.
+    period : int
+        Number of hours for the desired time span (e.g., 24 for daily, 168 for weekly).
+    type : str
+        Type of alignment to perform, can be 'daily' or 'weekly'.
 
-    Returns:
-    - pd.DataFrame: Aligned data based on the provided type.
+    Returns
+    -------
+    aligned_data : pandas.DataFrame
+        Dataframe aligned based on the provided alignment type.
 
-    Raises:
-    - ValueError: If an incorrect type is provided.
+    Raises
+    ------
+    ValueError:
+        Raised if an invalid alignment type is provided.
     """
     
     if freq not in ["daily", "weekly"]:
@@ -50,17 +57,24 @@ def _align_data(data: pd.DataFrame, period: int, freq: str) -> pd.DataFrame:
 
 def _aggregate(data: pd.DataFrame, groupby_cols: list, freq: str) -> pd.DataFrame:
     """
-    Aggregates the data based on the specified frequency either 'daily' or 'weekly'.
-    
-    Parameters:
-    - data (pd.DataFrame): Input dataframe with a Timestamp index and 'user' column.
-    - freq (str): Frequency for aggregation. Options: 'daily' or 'weekly'.
-    
-    Returns:
-    - pd.DataFrame: Aggregated data based on the given frequency.
-    
-    Raises:
-    - ValueError: If an incorrect frequency is provided.
+    Returns a pandas DataFrame aggregated based on the given frequency ('daily' or 'weekly').
+
+    Parameters
+    ----------
+    data : pandas.DataFrame
+        Input dataframe with a Timestamp index and 'user' column.
+    freq : str
+        Desired frequency for aggregation, either 'daily' or 'weekly'.
+
+    Returns
+    -------
+    aggregated_data : pandas.DataFrame
+        Dataframe aggregated by the specified frequency.
+
+    Raises
+    ------
+    ValueError:
+        Raised if an invalid aggregation frequency is provided.
     """
     
     if freq not in ["daily", "weekly"]:
@@ -85,18 +99,26 @@ def _aggregate(data: pd.DataFrame, groupby_cols: list, freq: str) -> pd.DataFram
 
 def _compute_distribution(data: pd.DataFrame,  cols: list, groupby_cols: list, freq: str) -> pd.DataFrame:
     """
-    Computes the count distribution for each unique value in a specified column based on frequency.
+    Returns a pandas DataFrame with count distribution for each unique value in specified columns, aggregated by frequency.
 
-    Args:
-        data (pd.DataFrame): The input dataframe with a Timestamp index.
-        cols (list): The name(s) of the column(s) to compute distribution.
-        frequency (str): The frequency for aggregation - "daily" or "weekly".
+    Parameters
+    -------
+    data : pandas.DataFrame
+        Input dataframe with a Timestamp index.
+    cols : list
+        List of column name(s) for which to compute distribution.
+    frequency : str
+        Aggregation frequency, either 'daily' or 'weekly'.
 
-    Returns:
-        pd.DataFrame: A dataframe with count distribution for the specified column(s).
+    Returns
+    -------
+    distribution : pandas.DataFrame
+        Dataframe with count distribution for specified columns.
 
-    Raises:
-        ValueError: If the specified column does not exist in the input dataframe.
+    Raises
+    -------
+    ValueError:
+        Raised if a specified column is not present in the input dataframe.
     """
     
     # Validate frequency
@@ -120,30 +142,41 @@ def compute_rhythms(df: pd.DataFrame,
                     group: str = None) -> pd.DataFrame:
 
     """
-    Computes rhythms of the input data for a single group based on the provided frequency.
+    Returns a pandas DataFrame containing rhythm computations for the input data based on specified frequency.
 
-    Steps:
-    1. Aligns the data based on the given frequency:
-       - 'daily': starts sampling from the first occurrence of 00 hour.
-       - 'weekly': starts sampling from the first occurrence of Monday 00 hour.
-    2. Resamples data based on the provided timebin.
-    3. Aggregates columns by summing values within the same bin.
-    4. Normalizes the data to compute the percentage each bin contributes to the total.
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input dataframe with a Timestamp index and 'user' column.
+    timebin : str
+        Time bin for grouping, using pandas frequency string (e.g., '1H', '2H', '4H', '6H').
+    cols : list
+        List of columns to compute the count distribution for.
+    groupby_cols : list
+        Columns by which to group the data.
+    period : int
+        Duration in hours for which rhythm is computed. E.g., 8 weeks would be 8*7*24 hours.
+    freq : str
+        Sampling frequency, either 'daily' or 'weekly'.
 
-    Args:
-        df (pd.DataFrame): The input dataframe with a Timestamp index and 'user' column.
-        timebin (str): Time bin for grouping, in pandas frequency string format. Possible values: '1H', '2H', '4H', '6H'
-        cols (list): Columns to compute the count distribution for.
-        groupby_cols (list): Columns to group. 
-        period (int): Hours, defines the length for which rhythm is computed. 
-                      For instance, 8 weeks would be 8*7*24 hours.
-        freq (str): Frequency for sampling, options are 'daily' or 'weekly'.
+    Steps
+    -----
+    1. Data alignment based on the given frequency: 
+        - 'daily' starts at the first 00 hour.
+        - 'weekly' starts at the first Monday 00 hour.
+    2. Resample data based on the given timebin.
+    3. Aggregate columns by summing values within each bin.
+    4. Normalize data to compute bin's percentage contribution to the total.
 
-    Returns:
-        pd.DataFrame: A dataframe with call count distribution rhythms.
+    Returns
+    -------
+    rhythms : pandas.DataFrame
+        Dataframe detailing call count distribution rhythms.
 
-    Raises:
-        ValueError: If an incorrect frequency is provided or if any of the specified columns are not in the input dataframe.
+    Raises
+    ------
+    ValueError:
+        If provided frequency is incorrect or a specified column isn't in the dataframe.
     """
 
     # Check if index is a DateTime index
