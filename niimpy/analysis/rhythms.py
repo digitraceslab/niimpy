@@ -185,7 +185,6 @@ def compute_rhythms(df: pd.DataFrame,
 
     aligned_df = _align_data(df, period=period, freq=freq)
 
-
     resampled_df = aligned_df.groupby(groupby_cols).resample(timebin).sum().drop(groupby_cols, axis=1).reset_index(level=0) # keep time index
     
     agg_data = _aggregate(resampled_df, groupby_cols=groupby_cols, freq=freq)
