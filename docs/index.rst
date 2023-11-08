@@ -19,6 +19,7 @@ provides many high-level functions for various types of data.
    architecture
    input-formats
    schema
+   contribution_guide
    How-to-cite
    see-also 
 
