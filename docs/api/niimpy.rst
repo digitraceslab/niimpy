@@ -12,14 +12,6 @@ Subpackages
    niimpy.preprocessing
    niimpy.reading
 
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 4
-
-   niimpy.demo
-
 Module contents
 ---------------
 
