@@ -8,6 +8,7 @@ Submodules
    :maxdepth: 4
 
    niimpy.reading.database
+   niimpy.reading.mhealth
    niimpy.reading.read
 
 Module contents

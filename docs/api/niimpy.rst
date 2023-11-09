@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    niimpy.analysis
+   niimpy.config
    niimpy.exploration
    niimpy.preprocessing
    niimpy.reading

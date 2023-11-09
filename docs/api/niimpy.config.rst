@@ -1,5 +1,5 @@
-niimpy.analysis package
-=======================
+niimpy.config package
+=====================
 
 Submodules
 ----------
@@ -7,12 +7,12 @@ Submodules
 .. toctree::
    :maxdepth: 4
 
-   niimpy.analysis.rhythms
+   niimpy.config.config
 
 Module contents
 ---------------
 
-.. automodule:: niimpy.analysis
+.. automodule:: niimpy.config
    :members:
    :undoc-members:
    :show-inheritance:
