@@ -15,7 +15,6 @@ Submodules
    niimpy.preprocessing.location
    niimpy.preprocessing.sampledata
    niimpy.preprocessing.screen
-   niimpy.preprocessing.subject_selection
    niimpy.preprocessing.survey
    niimpy.preprocessing.tracker
    niimpy.preprocessing.util

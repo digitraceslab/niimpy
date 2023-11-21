@@ -8,17 +8,10 @@ Subpackages
    :maxdepth: 4
 
    niimpy.analysis
+   niimpy.config
    niimpy.exploration
    niimpy.preprocessing
    niimpy.reading
-
-Submodules
-----------
-
-.. toctree::
-   :maxdepth: 4
-
-   niimpy.demo
 
 Module contents
 ---------------
