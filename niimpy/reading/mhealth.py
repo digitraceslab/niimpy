@@ -10,6 +10,23 @@ import pandas as pd
 import warnings
 import json
 
+
+mHealth_duration_units = {
+    "ps": "picoseconds",
+    "ns": "nanoseconds",
+    "us": "microseconds",
+    "ms": "milliseconds",
+    "sec": "seconds",
+    "min": "minutes",
+    "h": "hours",
+    "d": "days",
+    "wk": "weeks",
+    "Mo": "months",
+    "yr": "years",
+}
+
+
+
 def format_part_of_day(df, prefix):
     ''' Format columns with mHealth formatted part of day. Returns a dataframe
     with date stored in the column "date" and "part_of_day". Options for
@@ -29,6 +46,36 @@ def format_part_of_day(df, prefix):
     df.loc[rows, "timestamp"] = df.loc[rows, "date"]
     return df
 
+def mHealth_duration_to_timedelta(df, duration_col):
+    ''' Format a duration entry in the mHealth format. Duration
+    is a dictionary that contains a value and a unit. The 
+    dataframe should contain two columns, DURATION_COL_NAME.value
+    and DURATION_COL_NAME.unit.
+
+    Returns a dataframe with a DURATION_COL_NAME column containing a
+    a timedelta object. The original columns will be dropped.
+    '''
+    duration_value_col = f'{duration_col}.value'
+    duration_unit_col = f'{duration_col}.unit'
+
+    def format_duration_row(row):
+        unit = mHealth_duration_units[row[duration_unit_col]]
+        value = row[duration_value_col]
+
+        if unit == "picoseconds": # DateOffset doesn't support picoseconds
+            unit = "nanoseconds"
+            value *= 0.001
+
+        return pd.to_timedelta(value, unit=unit)
+
+    if duration_value_col in df.columns:
+        # Format duration as DateOffset. We use this below to calculate either start of end
+        rows = ~df[duration_value_col].isnull()
+        df.loc[rows, duration_col] = df.loc[rows].apply(format_duration_row, axis=1)
+
+    df = df.drop([duration_value_col, duration_unit_col], axis=1)
+    return df
+
 
 def format_time_interval(df, prefix):
     ''' Format a database containing columns in the mHealth time interval.
@@ -42,7 +89,8 @@ def format_time_interval(df, prefix):
 
     In the second case, the formatted database will contain two columns:
     start and end.
-    '''    
+    '''
+    
     # Create any of the result columns thay may not exist
     for col in ["start", "end"]:
         if col not in df.columns:
@@ -54,6 +102,7 @@ def format_time_interval(df, prefix):
     # Construct column names from the prefix
     start_col = f'{prefix}.start_date_time'
     end_col = f'{prefix}.end_date_time'
+    duration_col = f'{prefix}.duration'
     duration_value_col = f'{prefix}.duration.value'
     duration_unit_col = f'{prefix}.duration.unit'
 
@@ -63,45 +112,20 @@ def format_time_interval(df, prefix):
             rows = ~df[mHealth_col].isnull()
             df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col])
 
-    if duration_value_col in df.columns:
-        # Format duration as DateOffset. We use this below to calculate either start of end
-        mHealth_DateOffset = {
-            "ns": "nanoseconds",
-            "us": "microseconds",
-            "ms": "milliseconds",
-            "sec": "seconds",
-            "min": "minutes",
-            "h": "hours",
-            "d": "days",
-            "wk": "weeks",
-            "Mo": "months",
-            "yr": "years",
-        }
-        
-        def mHealth_to_DateOffset(row):
-            unit = mHealth_DateOffset[row[duration_unit_col]]
-            value = row[duration_value_col]
-
-            if unit == "picoseconds": # DateOffset doesn't support picoseconds
-                unit = "nanoseconds"
-                value *= 0.001
-            
-            return pd.tseries.offsets.DateOffset(**{unit: value})
-
-        rows = ~df[duration_value_col].isnull()
-        df.loc[rows, duration_value_col] = df.loc[rows].apply(mHealth_to_DateOffset, axis=1)
+    # Format duration as DateOffset. We use this below to calculate either start of end
+    df = mHealth_duration_to_timedelta(df, duration_col)
 
     # If duration is provided, we calculate either start or end
-    if start_col in df.columns and duration_value_col in df.columns:
-        rows = ~df[duration_value_col].isnull() & ~df[start_col].isnull()
-        df.loc[rows, "end"] = df.loc[rows, "start"] + df.loc[rows, duration_value_col]
+    if start_col in df.columns and duration_col in df.columns:
+        rows = ~df[duration_col].isnull() & ~df[start_col].isnull()
+        df.loc[rows, "end"] = df.loc[rows, "start"] + df.loc[rows, duration_col]
 
-    if start_col in df.columns and duration_value_col in df.columns:
-        rows = ~df[end_col].isnull() & ~df[duration_value_col].isnull()
-        df.loc[rows, "start"] = df.loc[rows, "end"] - df.loc[rows, duration_value_col]
+    if start_col in df.columns and duration_col in df.columns:
+        rows = ~df[end_col].isnull() & ~df[duration_col].isnull()
+        df.loc[rows, "start"] = df.loc[rows, "end"] - df.loc[rows, duration_col]
 
     # Drop the original columns
-    df = df.drop([start_col, end_col, duration_value_col, duration_unit_col], axis=1)
+    df = df.drop([start_col, end_col, duration_col], axis=1)
     rows = ~df["start"].isnull()
     df.loc[rows, "timestamp"] = df.loc[rows, "start"]
 
@@ -127,19 +151,15 @@ def total_sleep_time(data_list):
     
     The descriptive statistics columns would be
         - descriptive_statistics : Describes how the measurement is calculated
-        - descriptive_statistics_denomirator : Time interval the above desciption refers to.
+        - descriptive_statistics_denominator : Time interval the above desciption refers to.
 
     The dataframe is indexed by "timestamp", which is either the "start" or the "date".
     '''
     
     df = pd.json_normalize(data_list)
-    total_sleep_time_columns = {
-        "total_sleep_time.value": "total_sleep_time",
-        "total_sleep_time.unit": "total_sleep_time_unit",
-    }
 
+    df = mHealth_duration_to_timedelta(df, "total_sleep_time")
     df = format_time_interval(df, "effective_time_frame.time_interval")
-    df = df.rename(columns=total_sleep_time_columns)
 
     df.set_index('timestamp', inplace=True)
     return df
