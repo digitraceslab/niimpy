@@ -2,7 +2,49 @@ import pandas as pd
 from zipfile import ZipFile
 import json
 
-from niimpy.preprocessing import util
+
+
+def format_inferred_activity(data, inferred_activity, activity_threshold):
+    # Format the activity type column into activity type and
+    # activity inference confidence. The data is nested a few
+    # layers deep, so we first need to flatten it.
+    row_index = ~data["activity"].isna()
+    activities = data.loc[row_index, "activity"]
+    activities = activities.str[0].str["activity"]
+
+    if inferred_activity == "highest":
+        # Get the first in the list of activity types
+        activity_type = activities.str[0].str["type"]
+        activity_confidence = activities.str[0].str["confidence"]
+        data.loc[row_index, "activity_type"] = activity_type
+        data.loc[row_index, "activity_inference_confidence"] = activity_confidence
+    
+    elif inferred_activity == "all" or inferred_activity == "threshold":
+        # Explode the list of activity types into multiple rows
+        # and get the new index
+        data.loc[row_index, "activity"] = activities
+        data = data.explode("activity")
+        row_index = ~data["activity"].isna()
+        activities = data.loc[row_index, "activity"]
+        
+        # Extract type and confidence into columns
+        activity_type = activities.str["type"]
+        activity_confidence = activities.str["confidence"]
+        data.loc[row_index, "activity_type"] = activity_type
+        data.loc[row_index, "activity_inference_confidence"] = activity_confidence
+
+    if inferred_activity == "threshold":
+        # remove rows with no activity type
+        data.dropna(subset=["activity_type"], inplace=True)
+        # remove rows with confidence below the threshold
+        rows = data["activity_inference_confidence"] < activity_threshold
+        data = data.loc[~rows, :]
+    
+    # Drop the original activity column
+    data.drop(["activity"], axis=1, inplace=True)
+    return data
+
+
 
 
 def location_history(
@@ -78,52 +120,19 @@ def location_history(
     data.drop(["latitudeE7", "longitudeE7"], axis=1, inplace=True)
 
     # Extract inferred location and convert
-    row_index = ~data["inferredLocation"].isna()
-    inferred_location = data.loc[row_index, "inferredLocation"].str[0]
-    data.loc[row_index, "inferred_latitude"] = inferred_location.str["latitudeE7"] / 10000000
-    data.loc[row_index, "inferred_longitude"] = inferred_location.str["longitudeE7"] / 10000000
-    data.drop("inferredLocation", axis=1, inplace=True)
+    if "inferredLocation" in data.columns:
+        row_index = ~data["inferredLocation"].isna()
+        inferred_location = data.loc[row_index, "inferredLocation"].str[0]
+        data.loc[row_index, "inferred_latitude"] = inferred_location.str["latitudeE7"] / 10000000
+        data.loc[row_index, "inferred_longitude"] = inferred_location.str["longitudeE7"] / 10000000
+        data.drop("inferredLocation", axis=1, inplace=True)
 
-    # Format the activity type column into activity type and
-    # activity inference confidence. The data is nested a few
-    # layers deep, so we first need to flatten it.
-    row_index = ~data["activity"].isna()
-    activities = data.loc[row_index, "activity"]
-    activities = activities.str[0].str["activity"]
-
-    if inferred_activity == "highest":
-        # Get the first in the list of activity types
-        activity_type = activities.str[0].str["type"]
-        activity_confidence = activities.str[0].str["confidence"]
-        data.loc[row_index, "activity_type"] = activity_type
-        data.loc[row_index, "activity_inference_confidence"] = activity_confidence
     
-    elif inferred_activity == "all" or inferred_activity == "threshold":
-        # Explode the list of activity types into multiple rows
-        # and get the new index
-        data.loc[row_index, "activity"] = activities
-        data = data.explode("activity")
-        row_index = ~data["activity"].isna()
-        activities = data.loc[row_index, "activity"]
-        
-        # Extract type and confidence into columns
-        activity_type = activities.str["type"]
-        activity_confidence = activities.str["confidence"]
-        data.loc[row_index, "activity_type"] = activity_type
-        data.loc[row_index, "activity_inference_confidence"] = activity_confidence
-
-    if inferred_activity == "threshold":
-        # remove rows with no activity type
-        data.dropna(subset=["activity_type"], inplace=True)
-        # remove rows with confidence below the threshold
-        rows = data["activity_inference_confidence"] < activity_threshold
-        data = data.loc[~rows, :]
+    if "activity" in data.columns:
+        data = format_inferred_activity(data, inferred_activity, activity_threshold)
     
-    # Drop the original activity column
-    data.drop(["activity"], axis=1, inplace=True)
-
     data.set_index("timestamp", inplace=True)
-    data.drop(drop_columns, axis=1, inplace=True)
+    data.drop(drop_columns, axis=1, inplace=True,  errors='ignore')
     data.rename(columns=column_name_map, inplace=True)
     return data
 

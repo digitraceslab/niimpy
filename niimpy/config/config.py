@@ -21,4 +21,7 @@ SURVEY_PATH = os.path.join(ROOT, config['sample_paths']['survey'])
 SL_ACTIVITY_PATH = os.path.join(ROOT, config['sample_paths']['studentlife_activity'])
 SQLITE_SINGLEUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_singleuser']) 
 SQLITE_MULTIUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_multiuser']) 
+
 MHEALTH_TOTAL_SLEEP_TIME_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_total_sleep_time'])
+
+GOOGLE_TAKEOUT_PATH = os.path.join(ROOT, config['sample_paths']['google_takeout'])
