@@ -8,23 +8,36 @@ from niimpy.preprocessing import util
 def location_history(
         zip_filename,
         inferred_activity="highest",
+        activity_threshold=0,
     ):
     """  Read the location history from a google takeout zip file.
+
+    The returned dataframe contains the expected latitude, longitude,
+    altitude, velocity, heading, accuracy and verticalAccuracy. 
+    Additionally, it contains
+    an inferred location (latitude and longitude) and a placeId.
+    the returned dataframe contains an inferred activity type
+    and confidence in the inference. 
     
     Parameters
     ----------
 
     zip_filename : str
         The filename of the zip file.
-    keep_activity : str, optional
-        How to choose the inferred activity type to keep. If "highest",
-        only one activity with the highest confidence value is kept.
-        If "all", all activity types with non-zero confidence values are
-        kept as separate rows.
-        IF an integer is provided, it is used as a threshold for the confidence.
-        If "none" or any other value, no activity is kept.
 
+    keep_activity : str, optional
+        How to choose the inferred activity type to keep.
+        - "highest": Only one activity with the highest confidence value 
+          is kept. This is the default.
+        - "all": All activity types with non-zero confidence values are
+          kept as separate rows. Also keeps rows with no activity type.
+        - "threshold": Set an confidence threshold for keeping an 
+          inferred activity type. Measurements with no activity type are dropped.
     
+    activity_threshold: int, optional
+        Used when keep_activity is "threshold". The threshold for 
+        keeping an inferred activity type.
+
     Returns
     -------
 
@@ -42,13 +55,20 @@ def location_history(
     data = pd.json_normalize(json_data["locations"])
     data = pd.DataFrame(data)
 
+    # Convert timestamp to datetime
+    data["timestamp"] = pd.to_datetime(data["timestamp"], format='ISO8601')
+
     # Format latitude and longitude as floating point numbers
     data["latitude"] = data["latitudeE7"] / 10000000
     data["longitude"] = data["longitudeE7"] / 10000000
     data.drop(["latitudeE7", "longitudeE7"], axis=1, inplace=True)
 
-    # Convert timestamp to datetime
-    data["timestamp"] = pd.to_datetime(data["timestamp"], format='ISO8601')
+    # Extract inferred location and convert
+    row_index = ~data["inferredLocation"].isna()
+    inferred_location = data.loc[row_index, "inferredLocation"].str[0]
+    data.loc[row_index, "inferred_latitude"] = inferred_location.str["latitude"] / 10000000
+    data.loc[row_index, "inferred_longitude"] = inferred_location.str["longitude"] / 10000000
+    data.drop("inferredLocation", axis=1, inplace=True)
 
     # Format the activity type column into activity type and
     # activity inference confidence. The data is nested a few
@@ -64,7 +84,7 @@ def location_history(
         data.loc[row_index, "activity_type"] = activity_type
         data.loc[row_index, "activity_inference_confidence"] = activity_confidence
     
-    elif inferred_activity == "all" or type(inferred_activity) == int:
+    elif inferred_activity == "all" or inferred_activity == "threshold":
         # Explode the list of activity types into multiple rows
         # and get the new index
         data.loc[row_index, "activity"] = activities
@@ -78,13 +98,16 @@ def location_history(
         data.loc[row_index, "activity_type"] = activity_type
         data.loc[row_index, "activity_inference_confidence"] = activity_confidence
 
-    if type(inferred_activity) == int:
+    if inferred_activity == "threshold":
+        # remove rows with no activity type
+        data.dropna(subset=["activity_type"], inplace=True)
         # remove rows with confidence below the threshold
-        rows = data["activity_inference_confidence"] < inferred_activity
+        rows = data["activity_inference_confidence"] < activity_threshold
         data = data.loc[~rows, :]
-        
+    
+    # Drop the original activity column
+    data.drop(["activity"], axis=1, inplace=True)
 
     data.set_index("timestamp", inplace=True)
-    data.drop(["activity"], axis=1, inplace=True)
     return data
 
