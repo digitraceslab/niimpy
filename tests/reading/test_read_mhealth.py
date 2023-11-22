@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 import niimpy
 from niimpy import config
@@ -8,8 +7,7 @@ from niimpy import config
 def test_read_mhealth_total_sleep_time():
     """test reading mixed mhealth data from the example file."""
     data = niimpy.reading.mhealth.total_sleep_time_from_file(config.MHEALTH_TOTAL_SLEEP_TIME_PATH)
-    assert data['total_sleep_time'][0] == 465.0
-    assert data['total_sleep_time_unit'][0] == "min"
+    assert data['total_sleep_time'][0] == pd.Timedelta(465, unit="minutes")
     assert data['descriptive_statistic'][1] == "average"
     assert data['descriptive_statistic_denominator'][1] == "d"
     assert data['date'][3] == pd.to_datetime("2013-02-05")
