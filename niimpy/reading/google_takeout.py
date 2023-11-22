@@ -50,6 +50,7 @@ def location_history(
     """
     
     column_name_map = {
+        'verticalAccuracy': "vertical_accuracy",
         'deviceTag': "device",
         'platformType': "platform_type",
         'formFactor': "form_factor",
