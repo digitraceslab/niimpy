@@ -81,7 +81,7 @@ def location_history(
     inferred_location = data.loc[row_index, "inferredLocation"].str[0]
     data.loc[row_index, "inferred_latitude"] = inferred_location.str["latitudeE7"] / 10000000
     data.loc[row_index, "inferred_longitude"] = inferred_location.str["longitudeE7"] / 10000000
-    #data.drop("inferredLocation", axis=1, inplace=True)
+    data.drop("inferredLocation", axis=1, inplace=True)
 
     # Format the activity type column into activity type and
     # activity inference confidence. The data is nested a few
