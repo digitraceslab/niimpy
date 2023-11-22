@@ -9,6 +9,7 @@ def location_history(
         zip_filename,
         inferred_activity="highest",
         activity_threshold=0,
+        drop_columns=True
     ):
     """  Read the location history from a google takeout zip file.
 
@@ -38,15 +39,27 @@ def location_history(
         Used when keep_activity is "threshold". The threshold for 
         keeping an inferred activity type.
 
+    drop_columns: bool, optional
+        Whether all raw data columns should be kept. This includes lists of
+        wifi check points and mostly null device and OS data.
+
     Returns
     -------
 
     data : pandas.DataFrame
     """
     
-    column_map = {
-
+    column_name_map = {
+        'deviceTag': "device",
+        'platformType': "platform_type",
+        'formFactor': "form_factor",
+        'serverTimestamp': "server_timestamp",
+        'deviceTimestamp': "device_timestamp",
+        'batteryCharging': "battery_charging",
+        'placeId': "place_id"
     }
+    drop_columns = ['deviceDesignation', 'activeWifiScan.accessPoints', 'locationMetadata', 'osLevel']
+
 
     # Read json data from the zip file and convert to pandas DataFrame.
     zip_file = ZipFile(zip_filename)
@@ -66,9 +79,9 @@ def location_history(
     # Extract inferred location and convert
     row_index = ~data["inferredLocation"].isna()
     inferred_location = data.loc[row_index, "inferredLocation"].str[0]
-    data.loc[row_index, "inferred_latitude"] = inferred_location.str["latitude"] / 10000000
-    data.loc[row_index, "inferred_longitude"] = inferred_location.str["longitude"] / 10000000
-    data.drop("inferredLocation", axis=1, inplace=True)
+    data.loc[row_index, "inferred_latitude"] = inferred_location.str["latitudeE7"] / 10000000
+    data.loc[row_index, "inferred_longitude"] = inferred_location.str["longitudeE7"] / 10000000
+    #data.drop("inferredLocation", axis=1, inplace=True)
 
     # Format the activity type column into activity type and
     # activity inference confidence. The data is nested a few
@@ -109,5 +122,7 @@ def location_history(
     data.drop(["activity"], axis=1, inplace=True)
 
     data.set_index("timestamp", inplace=True)
+    data.drop(drop_columns, axis=1, inplace=True)
+    data.rename(columns=column_name_map, inplace=True)
     return data
 
