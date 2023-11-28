@@ -121,6 +121,15 @@ def to_datetime(value):
         return times.dt.tz_convert(TZ)
     else:
         return times.tz_convert(TZ)
+    
+
+def format_column_names(df):
+    column_map = {}
+    for column in df.columns:
+        formatted_name = column.replace(" ", "_").lower()
+        column_map[column] = formatted_name
+    df.rename(columns=column_map, inplace=True)
+
 
 def occurrence(series, bin_width=720, grouping_width=3600):
     """Number of 12-minute

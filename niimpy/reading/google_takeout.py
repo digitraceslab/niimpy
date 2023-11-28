@@ -3,6 +3,7 @@ from zipfile import ZipFile
 import json
 import os
 import datetime
+from niimpy.preprocessing import util
 
 
 
@@ -135,7 +136,7 @@ def location_history(
     
     data.set_index("timestamp", inplace=True)
     data.drop(drop_columns, axis=1, inplace=True,  errors='ignore')
-    data.rename(columns=column_name_map, inplace=True)
+    util.format_column_names(data)
     return data
 
 
@@ -185,5 +186,7 @@ def activity(zip_filename):
     row_index = data["end_time"].dt.time == datetime.time(0)
     data.loc[row_index, "end_time"] = data.loc[row_index, "end_time"] + datetime.timedelta(days=1)
 
+    # Format column names
+    util.format_column_names(data)
     
     return data
