@@ -1,6 +1,8 @@
 import pandas as pd
 from zipfile import ZipFile
 import json
+import os
+import datetime
 
 
 
@@ -136,3 +138,52 @@ def location_history(
     data.rename(columns=column_name_map, inplace=True)
     return data
 
+
+def activity(zip_filename):
+    """ Read activity data from a Google Takeout zip file. 
+    
+    Parameters
+    ----------
+
+    zip_filename : str
+        The filename of the zip file.
+
+
+    Returns
+    -------
+
+    data : pandas.DataFrame
+    """
+
+    # Read the csv files in the activity directory and concatenate
+    dfs = []
+    with ZipFile(zip_filename) as zip_file:
+        for filename in zip_file.namelist():
+            # Skip the file with daily agregated data for now.
+            if filename.endswith('Daily activity metrics.csv'):
+                continue
+
+            # Read the more finegrained data for each date
+            if filename.startswith("Takeout/Fit/Daily activity metrics/") and filename.endswith(".csv"):
+                with zip_file.open(filename) as csv_file:
+                    data = pd.read_csv(csv_file)
+                    date = os.path.basename(filename).replace(".csv", "")
+                    data["date"] = date
+                    dfs.append(data)
+
+    data = pd.concat(dfs)
+
+    # Format start time and end time columns with date. Set start time as the
+    # timestamp
+    data["start_time"] = pd.to_datetime(data["date"] + ' ' + data["Start time"])
+    data["end_time"] = pd.to_datetime(data["date"] + ' ' + data["End time"])
+    data["timestamp"] = data["start_time"]
+    data.set_index('timestamp', inplace=True)
+    data.drop(["Start time", "End time", "date"], axis=1, inplace=True)
+
+    # Fix date where end time is midnight
+    row_index = data["end_time"].dt.time == datetime.time(0)
+    data.loc[row_index, "end_time"] = data.loc[row_index, "end_time"] + datetime.timedelta(days=1)
+
+    
+    return data
