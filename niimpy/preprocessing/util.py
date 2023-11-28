@@ -3,6 +3,7 @@ from dateutil.tz import tzlocal
 import numpy as np
 import os
 import pandas as pd
+import re
 import sys
 import warnings
 
@@ -127,6 +128,7 @@ def format_column_names(df):
     column_map = {}
     for column in df.columns:
         formatted_name = column.replace(" ", "_").lower()
+        formatted_name = re.sub(r'(?<!^)(?=[A-Z])', '_', formatted_name)
         column_map[column] = formatted_name
     df.rename(columns=column_map, inplace=True)
 

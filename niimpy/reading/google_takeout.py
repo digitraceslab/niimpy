@@ -94,16 +94,7 @@ def location_history(
     data : pandas.DataFrame
     """
     
-    column_name_map = {
-        'verticalAccuracy': "vertical_accuracy",
-        'deviceTag': "device",
-        'platformType': "platform_type",
-        'formFactor': "form_factor",
-        'serverTimestamp': "server_timestamp",
-        'deviceTimestamp': "device_timestamp",
-        'batteryCharging': "battery_charging",
-        'placeId': "place_id"
-    }
+    column_name_map = {'deviceTag': "device"}
     drop_columns = ['deviceDesignation', 'activeWifiScan.accessPoints', 'locationMetadata', 'osLevel']
 
 
@@ -136,6 +127,7 @@ def location_history(
     
     data.set_index("timestamp", inplace=True)
     data.drop(drop_columns, axis=1, inplace=True,  errors='ignore')
+    data.rename(columns=column_name_map, inplace=True)
     util.format_column_names(data)
     return data
 
