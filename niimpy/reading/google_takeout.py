@@ -184,8 +184,6 @@ def activity(zip_filename):
             new_name = col.replace(" (ms)", "")
             data[new_name] = pd.to_timedelta(data[col], unit="microseconds")
             data.drop(col, axis=1, inplace=True)
-            data.info()
-
 
     # Format column names
     util.format_column_names(data)

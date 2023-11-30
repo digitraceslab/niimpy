@@ -23,6 +23,7 @@ def test_read_google_takeout_location():
     assert data['activity_type'][1] == "STILL"
     assert data['activity_inference_confidence'][1] == 62
 
+
 def test_read_google_takeout_activity():
     """test reading activity data form a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(config.GOOGLE_TAKEOUT_PATH)
