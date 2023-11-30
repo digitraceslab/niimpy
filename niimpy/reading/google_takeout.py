@@ -178,6 +178,15 @@ def activity(zip_filename):
     row_index = data["end_time"].dt.time == datetime.time(0)
     data.loc[row_index, "end_time"] = data.loc[row_index, "end_time"] + datetime.timedelta(days=1)
 
+    # Format durations as timedelta
+    for col in data.columns:
+        if col.endswith("duration (ms)"):
+            new_name = col.replace(" (ms)", "")
+            data[new_name] = pd.to_timedelta(data[col], unit="microseconds")
+            data.drop(col, axis=1, inplace=True)
+            data.info()
+
+
     # Format column names
     util.format_column_names(data)
     
