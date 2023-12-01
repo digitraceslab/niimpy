@@ -7,7 +7,6 @@ authoritative information on how incoming data is converted to dataframes.
 """
 
 import pandas as pd
-import warnings
 import json
 
 
@@ -103,12 +102,12 @@ def format_time_interval(df, prefix):
     start_col = f'{prefix}.start_date_time'
     end_col = f'{prefix}.end_date_time'
     duration_col = f'{prefix}.duration'
-    duration_value_col = f'{prefix}.duration.value'
-    duration_unit_col = f'{prefix}.duration.unit'
 
     # Format the date-like columns. All the mHealth columns might exist if the formatting in the data is mixed
     for col, mHealth_col in [("start", start_col), ("end", end_col)]:
-        if col in df.columns:
+        if mHealth_col in df.columns:
+            print(mHealth_col)
+            df.info()
             rows = ~df[mHealth_col].isnull()
             df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col])
 
@@ -125,7 +124,11 @@ def format_time_interval(df, prefix):
         df.loc[rows, "start"] = df.loc[rows, "end"] - df.loc[rows, duration_col]
 
     # Drop the original columns
-    df = df.drop([start_col, end_col, duration_col], axis=1)
+    for col in [start_col, end_col, duration_col]:
+        if col in df.columns:
+            df = df.drop(col, axis=1)
+
+    # Set timestamp to the start time
     rows = ~df["start"].isnull()
     df.loc[rows, "timestamp"] = df.loc[rows, "start"]
 
@@ -154,6 +157,19 @@ def total_sleep_time(data_list):
         - descriptive_statistics_denominator : Time interval the above desciption refers to.
 
     The dataframe is indexed by "timestamp", which is either the "start" or the "date".
+
+    Parameters
+    ----------
+
+    data_list: list of dictionaries
+        MHealth formatted sleep duration data loaded with json.load()
+    
+    Returns
+    -------
+
+    data: A pandas.DataFrame containing sleep duration data
+
+    
     '''
     
     df = pd.json_normalize(data_list)
@@ -183,13 +199,129 @@ def total_sleep_time_from_file(filename):
     
     The descriptive statistics columns would be
         - descriptive_statistics : Describes how the measurement is calculated
-        - descriptive_statistics_denomirator : Time interval the above desciption refers to.
+        - descriptive_statistics_denomirator : Time interval the above 
+          description refers to.
 
     The dataframe is indexed by "timestamp", which is either the "start" or the "date".
+
+    Parameters
+    ----------
+
+    filename: string
+        Path to the file containing mhealth formatted sleep duration data.
+    
+    Returns
+    -------
+
+    data: A pandas.DataFrame containing sleep duration data
+    
     '''
     with open(filename) as f:
         data = json.load(f)
 
     df = total_sleep_time(data)
+
+    return df
+
+def heart_rate(data_list):
+    ''' Format the heart rate json data into a niimpy dataframe.
+
+    The dataframe contains the columns
+        - heart_rate : Heart rate measurement in beats per minute
+        - (optional) time interval columns
+        - (optional) descriptive statistics column, a string
+        - (optional) temporal relationship to sleep column, a string
+        - (optional) temporal relationship to physical activity column, a 
+           string
+
+    Measurement time or interval columns. If exact time is given, only the
+    index is set. If a time interval is given, we set two additional columns
+        - start : start time of the measurement interval
+        - end : end time of the measurement interval
+    and set the index to the start time.
+    
+    The descriptive statistics column describes how the value is calculated
+    over the given time interval. For example, "average" would denote a mean
+    over the time period.
+
+    The temporal relationship to sleep is one of "before sleeping", "during 
+    sleep" or "on waking".
+
+    The temporal relationship to physical activity is one of "at rest", 
+    "active", "before exercise", "after exercise" or "during exercise".
+
+    Parameters
+    ----------
+
+    data_list: list of dictionaries
+        MHealth formatted heart rate data loaded using json.load().
+
+    Returns
+    -------
+
+    '''
+    df = pd.json_normalize(data_list)
+
+    # The mhealth standard specifies the unit is always beats per minute.
+    # We can drop the unit column without converting the value
+    df.drop("heart_rate.unit", axis=1, inplace=True)
+    df = df.rename(columns={
+        "heart_rate.value": "heart_rate",
+    })
+
+    # Each sample contains a time_frame, which is either a duration or a
+    # date-time string
+    rows = ~df["effective_time_frame.date_time"].isna()
+    df.loc[rows, "timestamp"] = pd.to_datetime(df["effective_time_frame.date_time"])
+
+    df = format_time_interval(df, "effective_time_frame.time_interval")
+
+    return df
+
+
+def heart_rate_from_file(filename):
+    '''Read mHealth formatted heart rate data from a file and convert it to
+    a Niimpy compatible dataframe.  
+
+    The dataframe contains the columns
+        - heart_rate : Heart rate measurement in beats per minute
+        - (optional) time interval columns
+        - (optional) descriptive statistics column, a string
+        - (optional) temporal relationship to sleep column, a string
+        - (optional) temporal relationship to physical activity column, a 
+           string
+
+    Measurement time or interval columns. If exact time is given, only the
+    index is set. If a time interval is given, we set two additional columns
+        - start : start time of the measurement interval
+        - end : end time of the measurement interval
+    and set the index to the start time.
+    
+    The descriptive statistics column describes how the value is calculated
+    over the given time interval. For example, "average" would denote a mean
+    over the time period.
+
+    The temporal relationship to sleep is one of "before sleeping", "during 
+    sleep" or "on waking".
+
+    The temporal relationship to physical activity is one of "at rest", 
+    "active", "before exercise", "after exercise" or "during exercise".
+
+    Parameters
+    ----------
+
+    filename: string
+        Path to the file containing mhealth formatted heart rate data.
+    
+    Returns
+    -------
+
+    data: A pandas.DataFrame containing heart rate data
+    '''
+
+    with open(filename) as f:
+        data = json.load(f)
+
+    df = heart_rate(data)
 
     return df
