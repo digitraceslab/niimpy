@@ -40,12 +40,13 @@ def format_part_of_day(df, prefix):
         part_of_day_col: "part_of_day",
     })
 
-    rows = ~df["date"].isnull()
+    rows = ~df["part_of_day"].isnull()
     df.loc[rows, "date"] = pd.to_datetime(df.loc[rows, "date"])
     df.loc[rows, "timestamp"] = df.loc[rows, "date"]
     return df
 
-def mHealth_duration_to_timedelta(df, duration_col):
+
+def duration_to_timedelta(df, duration_col):
     ''' Format a duration entry in the mHealth format. Duration
     is a dictionary that contains a value and a unit. The 
     dataframe should contain two columns, DURATION_COL_NAME.value
@@ -110,7 +111,7 @@ def format_time_interval(df, prefix):
             df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col])
 
     # Format duration as DateOffset. We use this below to calculate either start of end
-    df = mHealth_duration_to_timedelta(df, duration_col)
+    df = duration_to_timedelta(df, duration_col)
 
     # If duration is provided, we calculate either start or end
     if start_col in df.columns and duration_col in df.columns:
@@ -172,7 +173,7 @@ def total_sleep_time(data_list):
     
     df = pd.json_normalize(data_list)
 
-    df = mHealth_duration_to_timedelta(df, "total_sleep_time")
+    df = duration_to_timedelta(df, "total_sleep_time")
     df = format_time_interval(df, "effective_time_frame.time_interval")
 
     df.set_index('timestamp', inplace=True)
