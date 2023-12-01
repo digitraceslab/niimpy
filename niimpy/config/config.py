@@ -22,3 +22,4 @@ SL_ACTIVITY_PATH = os.path.join(ROOT, config['sample_paths']['studentlife_activi
 SQLITE_SINGLEUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_singleuser']) 
 SQLITE_MULTIUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_multiuser']) 
 MHEALTH_TOTAL_SLEEP_TIME_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_total_sleep_time'])
+MHEALTH_HEART_RATE_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_heart_rate'])

@@ -106,8 +106,6 @@ def format_time_interval(df, prefix):
     # Format the date-like columns. All the mHealth columns might exist if the formatting in the data is mixed
     for col, mHealth_col in [("start", start_col), ("end", end_col)]:
         if mHealth_col in df.columns:
-            print(mHealth_col)
-            df.info()
             rows = ~df[mHealth_col].isnull()
             df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col])
 
@@ -119,7 +117,7 @@ def format_time_interval(df, prefix):
         rows = ~df[duration_col].isnull() & ~df[start_col].isnull()
         df.loc[rows, "end"] = df.loc[rows, "start"] + df.loc[rows, duration_col]
 
-    if start_col in df.columns and duration_col in df.columns:
+    if end_col in df.columns and duration_col in df.columns:
         rows = ~df[end_col].isnull() & ~df[duration_col].isnull()
         df.loc[rows, "start"] = df.loc[rows, "end"] - df.loc[rows, duration_col]
 
