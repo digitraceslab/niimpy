@@ -67,7 +67,6 @@ def test_format_time_interval():
 
 
 def test_read_mhealth_total_sleep_time():
-    """test reading mixed mhealth data from the example file."""
     data = niimpy.reading.mhealth.total_sleep_time_from_file(config.MHEALTH_TOTAL_SLEEP_TIME_PATH)
     assert data['total_sleep_time'][0] == pd.Timedelta(465, unit="minutes")
     assert data['descriptive_statistic'][1] == "average"
@@ -81,7 +80,6 @@ def test_read_mhealth_total_sleep_time():
 
 
 def test_read_mhealth_heart_rate():
-    """test reading mixed mhealth data from the example file."""
     data = niimpy.reading.mhealth.heart_rate_from_file(config.MHEALTH_HEART_RATE_PATH)
     assert data['heart_rate'][0] == 70
     assert data['heart_rate'][1] == 65
@@ -90,4 +88,12 @@ def test_read_mhealth_heart_rate():
     assert data['temporal_relationship_to_sleep'][0] == "on waking"
     assert data['start'][2] == pd.to_datetime("2023-12-20T01:50:00-02:00")
 
+
+def test_read_mhealth_geolocation():
+    data = niimpy.reading.mhealth.geolocation_from_file(config.MHEALTH_GEOLOCATION_PATH)
+
+    assert data['latitude'][0] == 60.1867
+    assert data['longitude'][0] == 24.8283
+    assert data['latitude'][1] == 60.1867
+    assert data['longitude'][1] == 24.8283
 

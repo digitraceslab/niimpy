@@ -23,3 +23,4 @@ SQLITE_SINGLEUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_single
 SQLITE_MULTIUSER_PATH =os.path.join(ROOT, config['sample_paths']['sqlite_multiuser']) 
 MHEALTH_TOTAL_SLEEP_TIME_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_total_sleep_time'])
 MHEALTH_HEART_RATE_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_heart_rate'])
+MHEALTH_GEOLOCATION_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_geolocation'])

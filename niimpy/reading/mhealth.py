@@ -258,6 +258,7 @@ def heart_rate(data_list):
     Returns
     -------
 
+    data: A pandas.DataFrame containing geolocation data
     '''
     df = pd.json_normalize(data_list)
 
@@ -325,3 +326,56 @@ def heart_rate_from_file(filename):
     df = heart_rate(data)
 
     return df
+
+
+
+def geolocation(data_list):
+    ''' Format the geolocation json data into a niimpy dataframe.
+
+    Parameters
+    ----------
+
+    data_list: list of dictionaries
+        MHealth formatted geolocation data loaded using json.load().
+
+    Returns
+    -------
+
+    data: A pandas.DataFrame containing geolocation data
+    '''
+    df = pd.json_normalize(data_list)
+
+    # Keep rows where latitude and longitude are given correctly
+    df = df[df["latitude.unit"] == "deg"]
+    df = df[df["longitude.unit"] == "deg"]
+    df.rename(columns={
+        "latitude.value": "latitude",
+        "longitude.value": "longitude",
+    }, inplace=True)
+
+    return df
+
+
+def geolocation_from_file(filename):
+    '''Read mHealth formatted geolocation data from a file and convert it to
+    a Niimpy compatible dataframe.  
+
+    Parameters
+    ----------
+
+    filename: string
+        Path to the file containing mhealth formatted geolocation data.
+    
+    Returns
+    -------
+
+    data: A pandas.DataFrame containing geolocation data
+    '''
+
+    with open(filename) as f:
+        data = json.load(f)
+
+    df = geolocation(data)
+
+    return df
+
