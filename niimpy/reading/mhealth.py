@@ -275,6 +275,7 @@ def heart_rate(data_list):
 
     df = format_time_interval(df, "effective_time_frame.time_interval")
 
+    df.set_index('timestamp', inplace=True)
     return df
 
 
