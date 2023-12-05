@@ -3,8 +3,8 @@ from zipfile import ZipFile
 import json
 import os
 import datetime
+import uuid
 from niimpy.preprocessing import util
-
 
 
 def format_inferred_activity(data, inferred_activity, activity_threshold):
@@ -54,7 +54,8 @@ def location_history(
         zip_filename,
         inferred_activity="highest",
         activity_threshold=0,
-        drop_columns=True
+        drop_columns=True,
+        user = None
     ):
     """  Read the location history from a google takeout zip file.
 
@@ -129,6 +130,10 @@ def location_history(
     data.drop(drop_columns, axis=1, inplace=True,  errors='ignore')
     data.rename(columns=column_name_map, inplace=True)
     util.format_column_names(data)
+
+    if user is None:
+        user = uuid.uuid1()
+    data["user"] = user
     return data
 
 
@@ -187,5 +192,9 @@ def activity(zip_filename):
 
     # Format column names
     util.format_column_names(data)
+    
+    if user is None:
+        user = uuid.uuid1()
+    data["user"] = user
     
     return data
