@@ -137,7 +137,7 @@ def location_history(
     return data
 
 
-def activity(zip_filename):
+def activity(zip_filename, user=None):
     """ Read activity data from a Google Takeout zip file. 
     
     Parameters
@@ -196,5 +196,5 @@ def activity(zip_filename):
     if user is None:
         user = uuid.uuid1()
     data["user"] = user
-    
+
     return data
