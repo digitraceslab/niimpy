@@ -203,11 +203,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     assert method_numerical in ['mean', 'sum', 'median'], \
         'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
     if method_numerical == 'sum':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).sum()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).sum(numeric_only=True)
     elif method_numerical == 'mean':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).mean()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).mean(numeric_only=True)
     elif method_numerical == 'median':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).median()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).median(numeric_only=True)
     else:
         print("Can't recognize sampling method")
 
