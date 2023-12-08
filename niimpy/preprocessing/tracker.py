@@ -127,7 +127,7 @@ def tracker_daily_step_distribution(steps_df, config={}):
     # Set timestamp index
     df = df.set_index("time")
 
-    return df[["daily_distribution", "daily_sum", "month", "day", "hour"]]
+    return df[["daily_distribution", "daily_sum", "month", "day", "hour", "user"]]
 
 
 ALL_FEATURES = [globals()[name] for name in globals()
