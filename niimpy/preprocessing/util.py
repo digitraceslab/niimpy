@@ -220,4 +220,7 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     sub_df2 = sub_df2.drop(groups, axis=1, errors='ignore')
     final_df = sub_df1.join(sub_df2)
 
+    # Reset the user index, user should be a column
+    final_df.reset_index("user", inplace=True)
+
     return final_df
