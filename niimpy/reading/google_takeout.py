@@ -3,8 +3,10 @@ from zipfile import ZipFile
 import json
 import os
 import datetime
+import email
 import uuid
 from niimpy.preprocessing import util
+from niimpy.reading.email import MailboxReader, parse_email_list
 
 
 def format_inferred_activity(data, inferred_activity, activity_threshold):
@@ -198,3 +200,78 @@ def activity(zip_filename, user=None):
     data["user"] = user
 
     return data
+
+
+def email_activity(zip_filename, user=None, pseudonymize=True):
+    """ Extract message header data from the GMail inbox in
+    a Google Takeout zip file.
+    
+    Parameters
+    ----------
+
+    zip_filename : str
+        The filename of the zip file.
+    user: str (optiona)
+        A user ID that is added as a column to the dataframe. In not
+        provided, a random user UI is generated.
+    pseudonymize: bool
+        Replace senders and receivers with ID numbers
+
+    Returns
+    -------
+
+    data : pandas.DataFrame
+    """
+
+    zip_file = ZipFile(zip_filename)
+    file_name = "Takeout/Mail/All mail Including Spam and Trash.mbox"
+    data = []
+
+    with zip_file.open(file_name) as mailbox_file:
+        mailbox = MailboxReader(mailbox_file)
+        for message in mailbox.messages:
+            # We use the date entry as the timestamp
+            try:
+                timestamp = message["Date"]
+                if timestamp is not None:
+                    timestamp = email.utils.parsedate_to_datetime(timestamp)
+                else:
+                    timestamp = ""
+                timestamp = pd.to_datetime(timestamp)
+            except:
+                raise BaseException("Could not parse message timestamp")
+
+            # Extract received time and convert to datetime.
+            # Entries are separated by ";" and the date is the last 
+            # one
+            received = message.get("received", "").split(";")[-1].strip()
+            try:
+                if received:    
+                    received = email.utils.parsedate_to_datetime(received)
+                pd.to_datetime(received)
+            except Exception as e:
+                raise BaseException("Could not parse message received time")
+
+            in_reply_to = message.get("In-Reply-To", "")
+
+            # CC and BCC?
+            row = {
+                "timestamp": timestamp,
+                "received": received,
+                "from": parse_email_list(str(message["From"])),
+                "to": parse_email_list(str(message["To"])),
+                "message_id": message["Message-ID"],
+                "in_reply_to": in_reply_to,
+            }
+            data.append(row)
+
+    df = pd.DataFrame(data)
+
+    #if pseudonymize:
+    #    addresses = set(df["from"].unique()) | set(df["to"].unique())
+    #    addresses = list(addresses)
+    #    for i, k in enumerate(addresses):
+    #        print(i)
+    #        print(k)
+    return df
+

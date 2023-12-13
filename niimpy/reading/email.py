@@ -1,4 +1,5 @@
 import email
+import re
 
 class MailboxReader():
     def __init__(self, file_handle):
@@ -17,6 +18,7 @@ class MailboxReader():
             self.local_handle = True
         else:
             self.file = file_handle
+            self.local_handle = False
 
     @property
     def messages(self):
@@ -53,3 +55,29 @@ class MailboxReader():
            opened by this object."""
         if self.local_handle:
             self.close()
+
+
+def parse_email_list(email_list_string):
+    """ Parse a string containing a list of email addresses.
+    
+    Arguments
+    ---------
+      email_list_string: str
+        A string of comma separated email addresses formatted as "name <address>"
+
+    Returns
+    ------
+      List[str]
+    """
+    email_list = email_list_string.split(',')
+    email_list = [strip_email_address(email) for email in email_list]
+    return email_list
+
+
+def strip_email_address(address_string):
+    """ Strip the name part of an email address"""
+    embedded_emails = re.findall(r'<(.*?)>', address_string)
+    if len(embedded_emails):
+        return embedded_emails[0]
+    return address_string
+
