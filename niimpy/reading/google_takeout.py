@@ -5,8 +5,9 @@ import os
 import datetime
 import email
 import uuid
+import warnings
 from niimpy.preprocessing import util
-from niimpy.reading.email import MailboxReader, parse_email_list
+from niimpy.reading.email import MailboxReader, parse_email_list, strip_email_address
 
 
 def format_inferred_activity(data, inferred_activity, activity_threshold):
@@ -202,21 +203,66 @@ def activity(zip_filename, user=None):
     return data
 
 
-def email_activity(zip_filename, user=None, pseudonymize=True):
+def pseudonymize_addresses(df, user_email = None):
+    address_dict = {}
+    if user_email is not None:
+        address_dict[user_email] = 0
+        
+    addresses = set(df["from"].explode().unique())
+    addresses |= set(df["to"].explode().unique())
+    addresses = list(addresses)
+    for i, k in enumerate(addresses):
+        if k not in address_dict:
+            address_dict[k] = i+1
+
+    def replace_to_list(addresses):
+        return [address_dict[address] for address in addresses]
+        
+    df["to"] = df["to"].apply(replace_to_list)
+    df["from"] = df["from"].apply(lambda x: address_dict[x])
+    return df
+
+
+def infer_user_email(df):
+    """Try to infer the user email. Since the user appears on
+    every row, their address should be the most common.
+    
+    df: pandas.DataFrame
+        A dataframe with "from" column containing a single email
+        address and a "to" column containing a list of addresses.
+    """
+    
+    addresses = df.apply(lambda row: row["to"] + [row["from"]], axis=1)
+    address_counts = addresses.explode().value_counts()
+    if address_counts[1] == address_counts[0]:
+        warnings.warn("Could not infer user email address.")
+        return None
+    return address_counts.keys()[0]
+
+
+
+def email_activity(
+        zip_filename,
+        pseudonymize=True,
+        user=None, 
+    ):
     """ Extract message header data from the GMail inbox in
     a Google Takeout zip file.
+
+    Note: there are several alternate spellings of email fields below.
+    Most of these have
     
     Parameters
     ----------
 
     zip_filename : str
         The filename of the zip file.
+    pseudonymize: bool (optional)
+        Replace senders and receivers with ID numbers. Defaults to True.
     user: str (optiona)
         A user ID that is added as a column to the dataframe. In not
         provided, a random user UI is generated.
-    pseudonymize: bool
-        Replace senders and receivers with ID numbers
-
+        
     Returns
     -------
 
@@ -230,48 +276,82 @@ def email_activity(zip_filename, user=None, pseudonymize=True):
     with zip_file.open(file_name) as mailbox_file:
         mailbox = MailboxReader(mailbox_file)
         for message in mailbox.messages:
+            # Several fields have different alternate spellings.
+            # We use message.get to check all we have encountered
+            # so far.
+
             # We use the date entry as the timestamp
             try:
-                timestamp = message["Date"]
-                if timestamp is not None:
+                timestamp = message.get("Date", "")
+                timestamp = message.get("date", timestamp)
+                if timestamp:
                     timestamp = email.utils.parsedate_to_datetime(timestamp)
-                else:
-                    timestamp = ""
                 timestamp = pd.to_datetime(timestamp)
             except:
-                raise BaseException("Could not parse message timestamp")
+                warnings.warn(f"Could not parse message timestamp: {received}")
 
             # Extract received time and convert to datetime.
             # Entries are separated by ";" and the date is the last 
             # one
-            received = message.get("received", "").split(";")[-1].strip()
+            received = message.get("received", "")
+            received = message.get("received", received)
+            received = received.split(";")[-1].strip()
             try:
                 if received:    
                     received = email.utils.parsedate_to_datetime(received)
                 pd.to_datetime(received)
-            except Exception as e:
-                raise BaseException("Could not parse message received time")
+            except:
+                warnings.warn(f"Failed to format received time: {received}")
 
             in_reply_to = message.get("In-Reply-To", "")
+            in_reply_to = message.get("In-reply-to", in_reply_to)
+            in_reply_to = message.get("in-reply-to", in_reply_to)
+            in_reply_to = message.get("Reply-To", in_reply_to)
+            in_reply_to = message.get("Reply-to", in_reply_to)
+            in_reply_to = message.get("Mail-Reply-To", in_reply_to)
+            in_reply_to = message.get("Mail-Followup-To", in_reply_to)
 
-            # CC and BCC?
+            cc = str(message.get("CC", ""))
+            cc = str(message.get("Cc", cc))
+            cc = str(message.get("cc", cc))
+            bcc = str(message.get("Bcc", ""))
+            bcc = str(message.get("BCC", bcc))
+            bcc = str(message.get("BCc", bcc))
+            bcc = str(message.get("bcc", bcc))
+
+            message_id = str(message.get("Message-ID", ""))
+            message_id = str(message.get("Message-Id", message_id))
+            message_id = str(message.get("Message-id", message_id))
+            message_id = str(message.get("message-id", message_id))
+
+            from_address = str(message.get("From", ""))
+            from_address = str(message.get("FROM", from_address))
+            from_address = str(message.get("from", from_address))
+
+            to_address = str(message.get("To", ""))
+            to_address = str(message.get("TO", to_address))
+            to_address = str(message.get("to", to_address))
+            to_address = str(message.get("Sender", to_address))
+            to_address = str(message.get("sender", to_address))
+
+
             row = {
                 "timestamp": timestamp,
                 "received": received,
-                "from": parse_email_list(str(message["From"])),
-                "to": parse_email_list(str(message["To"])),
-                "message_id": message["Message-ID"],
+                "from": strip_email_address(from_address),
+                "to": parse_email_list(to_address),
+                "cc": parse_email_list(cc),
+                "bcc": parse_email_list(bcc),
+                "message_id": message_id,
                 "in_reply_to": in_reply_to,
             }
             data.append(row)
 
     df = pd.DataFrame(data)
 
-    #if pseudonymize:
-    #    addresses = set(df["from"].unique()) | set(df["to"].unique())
-    #    addresses = list(addresses)
-    #    for i, k in enumerate(addresses):
-    #        print(i)
-    #        print(k)
+    if pseudonymize:
+        user_email = infer_user_email(df)
+        df = pseudonymize_addresses(df, user_email)
+        
     return df
 
