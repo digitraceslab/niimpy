@@ -1,13 +1,17 @@
 import pandas as pd
 import numpy as np
 import pytest
-import datetime
+import os
+import mailbox
+import tempfile
+import zipfile
+from email.message import EmailMessage
 
 import niimpy
 from niimpy import config
 
 
-def test_read_google_takeout_location():
+def test_read_location():
     """test reading location data form a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(config.GOOGLE_TAKEOUT_PATH)
     
@@ -24,7 +28,7 @@ def test_read_google_takeout_location():
     assert data['activity_inference_confidence'][1] == 62
 
 
-def test_read_google_takeout_activity():
+def test_read_activity():
     """test reading activity data form a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(config.GOOGLE_TAKEOUT_PATH)
     
@@ -50,4 +54,59 @@ def test_read_google_takeout_activity():
     assert data.iloc[75]["start_time"] == pd.to_datetime("2023-11-20 18:45:00+02:00")
     assert data.iloc[75]["end_time"] == pd.to_datetime("2023-11-20 19:00:00+02:00")
     assert data.iloc[75]["walking_duration"] == pd.to_timedelta("0 days 00:00:00.337365")
+
+
+def test_read_email_activity():
+
+    with tempfile.TemporaryDirectory() as ddir:
+        filename = os.path.join(ddir, "test.mbox")
+
+        messages = """From MAILER-DAEMON Sat, 15 Dec 2023 12:19:43 0000
+        From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+        To: example <example@example.com>
+        Message-ID: 1
+        Subject: Hello
+        date: Sat, 15 Dec 2023 12:19:43 0000
+        Content-Type: text/plain; charset="utf-8"
+        Content-Transfer-Encoding: 7bit
+        MIME-Version: 1.0
+
+        Hello! This is a happy message!
+
+        From MAILER-DAEMON Sat, 15 Dec 2023 12:29:43 0000
+        Message-ID: 2
+        Subject: Hello
+        To: example <example@example.com>, example2 <example2@example.com>
+        From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+        date: Sat, 15 Dec 2023 12:29:43 0000
+        Content-Type: text/plain; charset="utf-8"
+        Content-Transfer-Encoding: 7bit
+        MIME-Version: 1.0
+
+        Hello! This is a happy message!
+
+        From MAILER-DAEMON Sat, 15 Dec 2023 12:39:43 0000
+        Message-ID: 3
+        In-Reply-To: 1
+        Subject: Hello
+        From: example <example|example.com>
+        To: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+        date: Sat, 15 Dec 2023 12:39:43 0000
+        received: Other information; Sat, 15 Dec 2023 12:19:43 0000
+        Content-Type: text/plain; charset="utf-8"
+        Content-Transfer-Encoding: 7bit
+        MIME-Version: 1.0
+
+        Hello! This is a happy message!
+
+        """
+
+        with open(filename, "w") as mbox:
+            mbox.write(messages)
+
+        print(type(ddir))
+        zip_filename = os.path.join(ddir, "test.zip")
+        test_zip = zipfile.ZipFile(zip_filename, mode="w")
+        test_zip.write(filename, arcname="Takeout/Mail/All mail Including Spam and Trash.mbox")
+
 
