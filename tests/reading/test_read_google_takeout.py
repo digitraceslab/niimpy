@@ -11,6 +11,19 @@ import niimpy
 from niimpy import config
 
 
+def create_zip(zip_filename):
+    """ Compress the google takeout folder into a zip file"""
+    test_zip = zipfile.ZipFile(zip_filename, mode="w")
+
+    for dirpath,dirs,files in os.walk(config.GOOGLE_TAKEOUT_DIR):
+        for f in files:
+            filename = os.path.join(dirpath, f)
+            filename_in_zip = filename.replace(config.GOOGLE_TAKEOUT_DIR, "")
+            test_zip.write(filename, filename_in_zip)
+
+    test_zip.close()
+
+
 def test_read_location():
     """test reading location data form a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(config.GOOGLE_TAKEOUT_PATH)
@@ -59,54 +72,9 @@ def test_read_activity():
 def test_read_email_activity():
 
     with tempfile.TemporaryDirectory() as ddir:
-        filename = os.path.join(ddir, "test.mbox")
-
-        messages = """From MAILER-DAEMON Sat, 15 Dec 2023 12:19:43 0000
-        From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
-        To: example <example@example.com>
-        Message-ID: 1
-        Subject: Hello
-        date: Sat, 15 Dec 2023 12:19:43 0000
-        Content-Type: text/plain; charset="utf-8"
-        Content-Transfer-Encoding: 7bit
-        MIME-Version: 1.0
-
-        Hello! This is a happy message!
-
-        From MAILER-DAEMON Sat, 15 Dec 2023 12:29:43 0000
-        Message-ID: 2
-        Subject: Hello
-        To: example <example@example.com>, example2 <example2@example.com>
-        From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
-        date: Sat, 15 Dec 2023 12:29:43 0000
-        Content-Type: text/plain; charset="utf-8"
-        Content-Transfer-Encoding: 7bit
-        MIME-Version: 1.0
-
-        Hello! This is a happy message!
-
-        From MAILER-DAEMON Sat, 15 Dec 2023 12:39:43 0000
-        Message-ID: 3
-        In-Reply-To: 1
-        Subject: Hello
-        From: example <example|example.com>
-        To: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
-        date: Sat, 15 Dec 2023 12:39:43 0000
-        received: Other information; Sat, 15 Dec 2023 12:19:43 0000
-        Content-Type: text/plain; charset="utf-8"
-        Content-Transfer-Encoding: 7bit
-        MIME-Version: 1.0
-
-        Hello! This is a happy message!
-
-        """
-
-        with open(filename, "w") as mbox:
-            mbox.write(messages)
-
-        print(type(ddir))
         zip_filename = os.path.join(ddir, "test.zip")
-        test_zip = zipfile.ZipFile(zip_filename, mode="w")
-        test_zip.write(filename, arcname="Takeout/Mail/All mail Including Spam and Trash.mbox")
+        create_zip(zip_filename)
+        data = niimpy.reading.google_takeout.email_activity(zip_filename)
+
 
 
