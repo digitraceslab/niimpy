@@ -1,6 +1,18 @@
 import email
 import re
 
+'''
+Contains a reader for mailbox files, MailboxReader, and utility functions for parsing
+email addresses. Read from the mailbox.
+
+The MailboxReader class functions as a context manager that opens a mailbox file. The
+messages property returns an iterator of email.message objects.
+
+The strip_address function returns the first actual email address contained in a string
+and the parse_address_list returns a list of addresses in a comma separated list.
+
+'''
+
 class MailboxReader():
     def __init__(self, file_handle):
         """A reader for mailbox files.
@@ -57,7 +69,7 @@ class MailboxReader():
             self.close()
 
 
-def parse_email_list(email_list_string):
+def parse_address_list(email_list_string):
     """ Parse a string containing a list of email addresses.
     
     Arguments
@@ -70,11 +82,11 @@ def parse_email_list(email_list_string):
       List[str]
     """
     email_list = email_list_string.split(',')
-    email_list = [strip_email_address(email) for email in email_list]
+    email_list = [strip_address(email) for email in email_list]
     return email_list
 
 
-def strip_email_address(address_string):
+def strip_address(address_string):
     """ Strip the name part of an email address"""
     embedded_emails = re.findall(r'<(.*?)>', address_string)
     if len(embedded_emails):
