@@ -49,7 +49,7 @@ def test_read_location(zipped_data):
 
 def test_read_activity(zipped_data):
     """test reading activity data form a Google takeout file."""
-    data = niimpy.reading.google_takeout.activity(zipped_data)
+    data = niimpy.reading.google_takeout.activity(zipped_data).sort_index()
     
     assert data.index[0] == pd.to_datetime("2023-11-20 00:00:00+0200")
     assert np.isnan(data.iloc[4]["move_minutes_count"])
