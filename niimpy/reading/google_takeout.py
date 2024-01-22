@@ -7,7 +7,7 @@ import email
 import uuid
 import warnings
 from niimpy.preprocessing import util
-import niimpy.reading.email as email
+import niimpy.reading.email as email_utils
 
 
 def format_inferred_activity(data, inferred_activity, activity_threshold):
@@ -274,7 +274,7 @@ def email_activity(
     data = []
 
     with zip_file.open(file_name) as mailbox_file:
-        mailbox = email.MailboxReader(mailbox_file)
+        mailbox = email_utils.MailboxReader(mailbox_file)
         for message in mailbox.messages:
             # Several fields have different alternate spellings.
             # We use message.get to check all we have encountered
@@ -338,10 +338,10 @@ def email_activity(
             row = {
                 "timestamp": timestamp,
                 "received": received,
-                "from": email.strip_address(from_address),
-                "to": email.parse_address_list(to_address),
-                "cc": email.parse_address_list(cc),
-                "bcc": email.parse_address_list(bcc),
+                "from": email_utils.strip_address(from_address),
+                "to": email_utils.parse_address_list(to_address),
+                "cc": email_utils.parse_address_list(cc),
+                "bcc": email_utils.parse_address_list(bcc),
                 "message_id": message_id,
                 "in_reply_to": in_reply_to,
             }
