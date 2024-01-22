@@ -43,12 +43,18 @@ class MailboxReader():
         while True:
             line = self.file.readline()
             
-            if line.startswith(b'From ') or line == b'':
+            # decode if written as a byte string
+            try:
+                line = line.decode('ASCII', errors='surrogateescape')
+            except (UnicodeDecodeError, AttributeError):
+                pass
+
+            if line.startswith('From ') or line == '':
                 if lines:
-                    message = email.message_from_bytes(b''.join(lines))
+                    message = email.message_from_string(''.join(lines))
                     yield(message)
                 
-                if line == b'':
+                if line == '':
                     break
                 
                 lines = [line]
