@@ -1,0 +1,182 @@
+{
+    "locations": [
+        {
+            "latitudeE7": 359974880,
+            "longitudeE7": -789221943,
+            "accuracy": 25,
+            "source": "WIFI",
+            "deviceTag": -577680260,
+            "timestamp": "2016-08-12T19:29:43.821Z"
+        },
+        {
+            "latitudeE7": 359975588,
+            "longitudeE7": -789225036,
+            "accuracy": 21,
+            "activity": [
+                {
+                    "activity": [
+                        {
+                            "type": "STILL",
+                            "confidence": 62
+                        },
+                        {
+                            "type": "IN_VEHICLE",
+                            "confidence": 31
+                        },
+                        {
+                            "type": "UNKNOWN",
+                            "confidence": 8
+                        }
+                    ],
+                    "timestamp": "2016-08-12T19:30:45.738Z"
+                }
+            ],
+            "source": "WIFI",
+            "deviceTag": -577680260,
+            "timestamp": "2016-08-12T19:30:49.531Z"
+        },
+        {
+            "latitudeE7": 359975588,
+            "longitudeE7": -789225036,
+            "accuracy": 21,
+            "activity": [
+                {
+                    "activity": [
+                        {
+                            "type": "STILL",
+                            "confidence": 62
+                        },
+                        {
+                            "type": "IN_VEHICLE",
+                            "confidence": 31
+                        },
+                        {
+                            "type": "UNKNOWN",
+                            "confidence": 8
+                        }
+                    ],
+                    "timestamp": "2016-08-12T19:30:45.738Z"
+                }
+            ],
+            "source": "WIFI",
+            "deviceTag": -577680260,
+            "timestamp": "2016-08-12T19:31:49.531Z",
+            "locationMetadata": [{
+                "wifiScan": {"accessPoints": [
+                    {"mac": "124103876652832", "strength": -63, "frequencyMhz": 2412},
+                    {"mac": "124103876652833", "strength": -63, "frequencyMhz": 2412},
+                    {"mac": "124103876652834", "strength": -64, "frequencyMhz": 2412},
+                    {"mac": "124103876653230", "strength": -90, "frequencyMhz": 5240}
+                ]},
+                "timestamp": "2023-11-21T10:40:35.320Z"
+            }],
+            "activeWifiScan": {"accessPoints": [
+                {"mac": "124103876652832", "strength": -63, "frequencyMhz": 2412},
+                {"mac": "124103876652833", "strength": -63, "frequencyMhz": 2412},
+                {"mac": "124103876652834", "strength": -64, "frequencyMhz": 2412},
+                {"mac": "124103876653230", "strength": -90, "frequencyMhz": 5240}
+            ]},
+            "placeId": "ChIJS_5Nmuz1jUYRGYf3QiiZco4",
+            "formFactor": "PHONE",
+            "inferredLocation": [{
+                "timestamp": "2023-11-21T10:40:35.320Z",
+                "latitudeE7": 601871348,
+                "longitudeE7": 248244780,
+                "accuracy": 20
+            }]
+        },
+        {
+            "latitudeE7": 360008703,
+            "longitudeE7": -789233433,
+            "accuracy": 1500,
+            "activity": [
+                {
+                    "activity": [
+                        {
+                            "type": "ON_FOOT",
+                            "confidence": 54
+                        },
+                        {
+                            "type": "WALKING",
+                            "confidence": 54
+                        },
+                        {
+                            "type": "IN_VEHICLE",
+                            "confidence": 23
+                        },
+                        {
+                            "type": "ON_BICYCLE",
+                            "confidence": 23
+                        }
+                    ],
+                    "timestamp": "2016-08-12T21:16:03.506Z"
+                }
+            ],
+            "source": "CELL",
+            "deviceTag": -577680260,
+            "timestamp": "2016-08-12T21:15:55.295Z"
+        },
+        {
+            "latitudeE7": 359972502,
+            "longitudeE7": -789239894,
+            "accuracy": 8,
+            "source": "GPS",
+            "deviceTag": -577680260,
+            "timestamp": "2016-08-12T21:16:33Z"
+        },
+        {
+            "latitudeE7": 359972362,
+            "longitudeE7": -789241237,
+            "accuracy": 3,
+            "source": "GPS",
+            "deviceTag": -577680260,
+            "timestamp": "2016-08-12T21:16:48Z"
+        },
+        {
+            "latitudeE7": 601868177,
+            "longitudeE7": 248212883,
+            "accuracy": 13,
+            "activity": "",
+            "source":  "WIFI",
+            "deviceTag": 1832214273,
+            "timestamp": "2023-11-21T11:29:21.730Z",
+            "deviceDesignation": "",
+            "altitude": 28.0,
+            "verticalAccuracy": 2.0,
+            "platformType": "ANDROID",
+            "osLevel": 33.0,
+            "serverTimestamp": "2023-11-21T11:29:24.747Z",
+            "deviceTimestamp": "2023-11-21T11:29:24.350Z",
+            "formFactor": "PHONE",
+            "locationMetadata": [
+                {
+                    "wifiScan": {
+                        "accessPoints": [
+                            {
+                                "mac": "268615936393260"
+                            }
+                        ]
+                    }
+                }
+            ],
+            "batteryCharging": "False",
+            "inferredLocation":  [
+                {
+                    "timestamp": "2023-11-21T11:29:21.729Z",
+                    "latitudeE7": 601868161,
+                    "longitudeE7": 248212879,
+                    "accuracy": 13
+                }
+            ],
+            "velocity": "",
+            "heading": "",
+            "placeId": "ChIJw1WKQev1jUYRCdZmYR-HCiI",
+            "activeWifiScan.accessPoints": [
+                {
+                    "mac": "268615936393260",
+                    "strength": -46
+                }
+            ]
+        }
+    ]
+}

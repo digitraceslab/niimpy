@@ -2,10 +2,8 @@ import pandas as pd
 import numpy as np
 import pytest
 import os
-import mailbox
 import tempfile
 import zipfile
-from email.message import EmailMessage
 
 import niimpy
 from niimpy import config
@@ -24,9 +22,17 @@ def create_zip(zip_filename):
     test_zip.close()
 
 
-def test_read_location():
+@pytest.fixture
+def zipped_data():
+    with tempfile.TemporaryDirectory() as ddir:
+        zip_filename = os.path.join(ddir, "test.zip")
+        create_zip(zip_filename)
+        yield zip_filename
+
+
+def test_read_location(zipped_data):
     """test reading location data form a Google takeout file."""
-    data = niimpy.reading.google_takeout.location_history(config.GOOGLE_TAKEOUT_PATH)
+    data = niimpy.reading.google_takeout.location_history(zipped_data)
     
     assert data['latitude'][0] == 35.9974880
     assert data['longitude'][0] == -78.9221943
@@ -41,9 +47,9 @@ def test_read_location():
     assert data['activity_inference_confidence'][1] == 62
 
 
-def test_read_activity():
+def test_read_activity(zipped_data):
     """test reading activity data form a Google takeout file."""
-    data = niimpy.reading.google_takeout.activity(config.GOOGLE_TAKEOUT_PATH)
+    data = niimpy.reading.google_takeout.activity(zipped_data)
     
     assert data.index[0] == pd.to_datetime("2023-11-20 00:00:00+0200")
     assert np.isnan(data.iloc[4]["move_minutes_count"])
@@ -69,12 +75,8 @@ def test_read_activity():
     assert data.iloc[75]["walking_duration"] == pd.to_timedelta("0 days 00:00:00.337365")
 
 
-def test_read_email_activity():
-
-    with tempfile.TemporaryDirectory() as ddir:
-        zip_filename = os.path.join(ddir, "test.zip")
-        create_zip(zip_filename)
-        data = niimpy.reading.google_takeout.email_activity(zip_filename)
+def test_read_email_activity(zipped_data):
+    data = niimpy.reading.google_takeout.email_activity(zipped_data)
 
 
 
