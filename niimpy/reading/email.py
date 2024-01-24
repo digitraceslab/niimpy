@@ -89,6 +89,7 @@ def parse_address_list(email_list_string):
     """
     email_list = email_list_string.split(',')
     email_list = [strip_address(email) for email in email_list]
+    email_list = [email for email in email_list if email != ""]
     return email_list
 
 
