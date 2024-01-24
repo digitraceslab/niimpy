@@ -379,10 +379,13 @@ def email_activity(
     if pseudonymize:
         user_email = infer_user_email(df)
         df = pseudonymize_addresses(df, user_email)
+        df = pseudonymize_message_id(df)
 
     if user is None:
         user = uuid.uuid1()
     df["user"] = user
+
+    df.set_index("timestamp", inplace=True)
         
     return df
 
