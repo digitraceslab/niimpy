@@ -324,9 +324,9 @@ def email_activity(
             received = message.get("received", received)
             received = received.split(";")[-1].strip()
             try:
-                if received:    
+                if received:
                     received = email.utils.parsedate_to_datetime(received)
-                pd.to_datetime(received)
+                received = pd.to_datetime(received)
             except:
                 warnings.warn(f"Failed to format received time: {received}")
 
