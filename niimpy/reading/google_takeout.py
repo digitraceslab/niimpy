@@ -231,6 +231,22 @@ def pseudonymize_addresses(df, user_email = None):
     df["bcc"] = df["bcc"].apply(replace_to_list)
     return df
 
+
+def pseudonymize_message_id(df):
+    """ Replace message ID strings with numerical IDs. The IDs
+    start from 0 and run in order encountered.
+    """
+    message_id_dict = {"": pd.NA}
+        
+    message_ids = set(df["message_id"].explode().unique())
+    message_ids |= set(df["in_reply_to"].explode().unique())
+    message_ids = list(message_ids)
+    for i, k in enumerate(message_ids):
+        if k not in message_id_dict:
+            message_id_dict[k] = i
+
+    df["message_id"] = df["message_id"].apply(lambda x: message_id_dict[x])
+    df["in_reply_to"] = df["in_reply_to"].apply(lambda x: message_id_dict[x])
     return df
 
 
