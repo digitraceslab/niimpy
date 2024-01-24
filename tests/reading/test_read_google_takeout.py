@@ -78,5 +78,22 @@ def test_read_activity(zipped_data):
 def test_read_email_activity(zipped_data):
     data = niimpy.reading.google_takeout.email_activity(zipped_data)
 
+    assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
+    assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
+    assert data.index[2] == pd.to_datetime("2023-12-15 12:39:43+00:00")
+
+    assert pd.isnull(data.iloc[0]["received"])
+    assert pd.isnull(data.iloc[1]["received"])
+    assert data.iloc[2]["received"] == pd.to_datetime("2023-12-15 12:19:43+00:00")
+
+    assert pd.isnull(data.iloc[0]["in_reply_to"])
+    assert pd.isnull(data.iloc[1]["in_reply_to"])
+    assert data.iloc[2]["in_reply_to"] == data.iloc[0]["message_id"]
+
+    assert pd.isnull(data.iloc[0]["from"]) == 0
+    assert pd.isnull(data.iloc[1]["from"]) == 0
+    assert data.iloc[2]["from"] == data.iloc[1]["to"][0]
+    assert data.iloc[2]["cc"] == data.iloc[2]["bcc"]
+    assert data.iloc[0]["to"][0] == data.iloc[1]["to"][1]
 
 
