@@ -204,12 +204,19 @@ def activity(zip_filename, user=None):
 
 
 def pseudonymize_addresses(df, user_email = None):
-    address_dict = {}
+    """ Replace email address strings with numerical IDs. The IDs
+    start from 1 and run in order encountered.
+    
+    If user_email is provided, that email is labeled as 0.
+    """
+    address_dict = {"": pd.NA}
     if user_email is not None:
         address_dict[user_email] = 0
         
     addresses = set(df["from"].explode().unique())
     addresses |= set(df["to"].explode().unique())
+    addresses |= set(df["cc"].explode().unique())
+    addresses |= set(df["bcc"].explode().unique())
     addresses = list(addresses)
     for i, k in enumerate(addresses):
         if k not in address_dict:
@@ -220,6 +227,10 @@ def pseudonymize_addresses(df, user_email = None):
         
     df["to"] = df["to"].apply(replace_to_list)
     df["from"] = df["from"].apply(lambda x: address_dict[x])
+    df["cc"] = df["cc"].apply(replace_to_list)
+    df["bcc"] = df["bcc"].apply(replace_to_list)
+    return df
+
     return df
 
 
