@@ -361,6 +361,7 @@ def email_activity(
             to_address = str(message.get("Sender", to_address))
             to_address = str(message.get("sender", to_address))
 
+            content = str(message.get_payload())
 
             row = {
                 "timestamp": timestamp,
@@ -371,6 +372,8 @@ def email_activity(
                 "bcc": email_utils.parse_address_list(bcc),
                 "message_id": message_id,
                 "in_reply_to": in_reply_to,
+                "character_count": len(content),
+                "word_count": len(content.split())
             }
             data.append(row)
 

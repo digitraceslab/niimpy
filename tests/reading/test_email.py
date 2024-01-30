@@ -4,7 +4,6 @@ from niimpy import config
 import niimpy.reading.email as email_utils
 
 
-
 def test_MailboxReader():
     filename = os.path.join(config.GOOGLE_TAKEOUT_DIR, "Takeout/Mail/All mail Including Spam and Trash.mbox")
 
