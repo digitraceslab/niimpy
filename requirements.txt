@@ -10,3 +10,5 @@ coverage
 geopy
 kaleido
 scipy
+git+https://github.com/AaltoRSE/multi-language-sentiment.git
+tqdm
