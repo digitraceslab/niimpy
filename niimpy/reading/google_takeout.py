@@ -6,6 +6,8 @@ import datetime
 import email
 import uuid
 import warnings
+from tqdm import tqdm
+from multi_language_sentiment import sentiment as get_sentiment
 from niimpy.preprocessing import util
 import niimpy.reading.email as email_utils
 
@@ -267,11 +269,12 @@ def infer_user_email(df):
     return address_counts.keys()[0]
 
 
-
 def email_activity(
         zip_filename,
         pseudonymize=True,
-        user=None, 
+        user=None,
+        sentiment=False,
+        sentiment_batch_size = 10,
     ):
     """ Extract message header data from the GMail inbox in
     a Google Takeout zip file.
@@ -289,6 +292,8 @@ def email_activity(
     user: str (optiona)
         A user ID that is added as a column to the dataframe. In not
         provided, a random user UI is generated.
+    sentiment: Bool (optiona)
+        Include sentiment analysis of the message content
         
     Returns
     -------
@@ -389,6 +394,30 @@ def email_activity(
     df["user"] = user
 
     df.set_index("timestamp", inplace=True)
-        
+
+    # Run sentiment analysis if requested. This might take some time.
+    if sentiment:
+        print(f"Running sentiment analysis on {len(df)} messages.")
+        content_batch = []
+        sentiments = []
+        with zip_file.open(file_name) as mailbox_file:
+            mailbox = email_utils.MailboxReader(mailbox_file)
+            with tqdm(total=len(df)) as pbar:
+                for message in mailbox.messages:
+                    content_batch.append(email_utils.extract_content(message))
+                    if len(content_batch) >= sentiment_batch_size:
+                        sentiments += get_sentiment(content_batch)
+                        content_batch = []
+                        pbar.update(sentiment_batch_size)
+            if len(content_batch) >= 0:
+                sentiments += get_sentiment(content_batch)
+
+        labels = [s["label"] for s in sentiments]
+        scores = [s["score"] for s in sentiments]
+        df["sentiment"] = labels
+        df["sentiment_score"] = scores
+
     return df
+
+
 
