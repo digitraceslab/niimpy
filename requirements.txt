@@ -11,5 +11,5 @@ geopy
 kaleido
 scipy
 tqdm
-multi-language-sentiment @ git+https://github.com/AaltoRSE/multi-language-sentiment.git
+multi_language_sentiment
 google_takeout_email
