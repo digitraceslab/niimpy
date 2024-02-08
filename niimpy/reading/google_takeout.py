@@ -263,7 +263,7 @@ def infer_user_email(df):
     
     addresses = df.apply(lambda row: row["to"] + [row["from"]], axis=1)
     address_counts = addresses.explode().value_counts()
-    if address_counts[1] == address_counts[0]:
+    if address_counts.iloc[1] == address_counts.iloc[0]:
         warnings.warn("Could not infer user email address.")
         return None
     return address_counts.keys()[0]
@@ -411,6 +411,8 @@ def email_activity(
                         pbar.update(sentiment_batch_size)
             if len(content_batch) >= 0:
                 sentiments += get_sentiment(content_batch)
+
+        print(sentiments)
 
         labels = [s["label"] for s in sentiments]
         scores = [s["score"] for s in sentiments]

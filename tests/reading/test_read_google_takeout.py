@@ -34,17 +34,17 @@ def test_read_location(zipped_data):
     """test reading location data form a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(zipped_data)
     
-    assert data['latitude'][0] == 35.9974880
-    assert data['longitude'][0] == -78.9221943
-    assert data['source'][0] == "WIFI"
-    assert data['accuracy'][0] == 25
-    assert data['device'][0] == -577680260
+    assert data['latitude']["2016-08-12T19:29:43.821Z"] == 35.9974880
+    assert data['longitude']["2016-08-12T19:29:43.821Z"] == -78.9221943
+    assert data['source']["2016-08-12T19:29:43.821Z"] == "WIFI"
+    assert data['accuracy']["2016-08-12T19:29:43.821Z"] == 25
+    assert data['device']["2016-08-12T19:29:43.821Z"] == -577680260
     assert data.index[0] == pd.to_datetime("2016-08-12T19:29:43.821Z")
     
     assert len(data[data["source"] == "GPS"]) == 2
 
-    assert data['activity_type'][1] == "STILL"
-    assert data['activity_inference_confidence'][1] == 62
+    assert data['activity_type']["2016-08-12T19:30:49.531Z"] == "STILL"
+    assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"] == 62
 
 
 def test_read_activity(zipped_data):
@@ -76,7 +76,7 @@ def test_read_activity(zipped_data):
 
 
 def test_read_email_activity(zipped_data):
-    data = niimpy.reading.google_takeout.email_activity(zipped_data)
+    data = niimpy.reading.google_takeout.email_activity(zipped_data, sentiment=True)
 
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
@@ -98,4 +98,9 @@ def test_read_email_activity(zipped_data):
 
     assert data.iloc[0]["word_count"] == 6
     assert data.iloc[0]["character_count"] == 33
+
+    assert data.iloc[0]["sentiment"] == "positive"
+    assert data.iloc[1]["sentiment"] == "negative"
+    assert data.iloc[2]["sentiment"] == "negative"
+    assert data.iloc[3]["sentiment"] == "positive"
 
