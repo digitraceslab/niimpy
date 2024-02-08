@@ -55,13 +55,13 @@ class MailboxReader():
                         lines = [line]
             
             lines.append(line)
-            
+
         # Handle last message
         if lines:
             if isinstance(lines[0], bytes):
                 message = email.message_from_bytes(b''.join(lines))
             else:
-                message = email.message_from_bytes(b''.join(lines))
+                message = email.message_from_string(b''.join(lines))
             yield(message)
 
     def close(self):
