@@ -10,5 +10,6 @@ coverage
 geopy
 kaleido
 scipy
-multi-language-sentiment @ git+https://github.com/AaltoRSE/multi-language-sentiment.git
 tqdm
+multi-language-sentiment @ git+https://github.com/AaltoRSE/multi-language-sentiment.git
+google_takeout_email

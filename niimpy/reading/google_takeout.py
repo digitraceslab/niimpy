@@ -9,7 +9,7 @@ import warnings
 from tqdm import tqdm
 from multi_language_sentiment import sentiment as get_sentiment
 from niimpy.preprocessing import util
-import niimpy.reading.email as email_utils
+import google_takeout_email as email_utils
 
 
 def format_inferred_activity(data, inferred_activity, activity_threshold):

@@ -1,7 +1,7 @@
 import os
 
 from niimpy import config
-import niimpy.reading.email as email_utils
+import google_takeout_email as email_utils
 
 
 def test_MailboxReader():
