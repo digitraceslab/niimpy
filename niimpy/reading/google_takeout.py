@@ -412,8 +412,6 @@ def email_activity(
             if len(content_batch) >= 0:
                 sentiments += get_sentiment(content_batch)
 
-        print(sentiments)
-
         labels = [s["label"] for s in sentiments]
         scores = [s["score"] for s in sentiments]
         df["sentiment"] = labels
