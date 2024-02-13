@@ -54,6 +54,28 @@ def test_read_location(zipped_data):
     assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"] == 62
 
 
+def test_read_location_activity_threshold(zipped_data):
+    """test reading location data from a Google takeout file."""
+    data = niimpy.reading.google_takeout.location_history(
+        zipped_data,
+        inferred_activity = "threshold",
+    )
+
+    assert data.index[0] == pd.to_datetime("2016-08-12T19:30:49.531Z")
+    assert data['latitude']["2016-08-12T19:30:49.531Z"].iloc[0] == 35.9975588
+    assert data['longitude']["2016-08-12T19:30:49.531Z"].iloc[0] == -78.9225036
+    
+    assert len(data[data["source"] == "GPS"]) == 0
+
+    assert data['activity_type']["2016-08-12T19:30:49.531Z"].iloc[0] == "STILL"
+    assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"].iloc[0] == 62
+    assert data['activity_type']["2016-08-12T19:30:49.531Z"].iloc[1] == "IN_VEHICLE"
+    assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"].iloc[1] == 31
+    assert data['activity_type']["2016-08-12T19:30:49.531Z"].iloc[2] == "UNKNOWN"
+    assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"].iloc[2] == 8
+
+
+
 def test_read_location_no_location_data(empty_zip_file):
     """test reading location data not present in file. """
     data = niimpy.reading.google_takeout.location_history(empty_zip_file)
@@ -148,10 +170,6 @@ def test_read_email_activity_mbox_file():
 
     assert data.iloc[0]["word_count"] == 6
     assert data.iloc[0]["character_count"] == 33
-
-    print(data["sentiment"])
-    print(data["sentiment"][3])
-    print(data.iloc[3]["sentiment"])
 
     assert data.iloc[0]["sentiment"] == "positive"
     assert data.iloc[1]["sentiment"] == "negative"
