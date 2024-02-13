@@ -269,8 +269,34 @@ def infer_user_email(df):
     return address_counts.keys()[0]
 
 
+class email_file():
+    """ Opens both Google Takeout zip files and .mbox files. """
+    def __init__(self, filename):
+        self.filename = filename
+        if filename.endswith(".zip"):
+            self.zip_file = ZipFile(filename)
+            internal_filename = "Takeout/Mail/All mail Including Spam and Trash.mbox"
+            self.mailbox_file = self.zip_file.open(internal_filename)
+        elif filename.endswith(".mbox"):
+            self.mailbox_file = open(filename)
+        else:
+            raise ValueError("Unknown file")
+        
+        self.mailbox = email_utils.MailboxReader(self.mailbox_file)
+
+    @property
+    def messages(self):
+        return self.mailbox.messages
+
+    def close(self):
+        self.mailbox.close()
+        self.mailbox_file.close()
+        if self.filename.endswith(".zip"):
+            self.zip_file.close()
+
+
 def email_activity(
-        zip_filename,
+        filename,
         pseudonymize=True,
         user=None,
         sentiment=False,
@@ -300,87 +326,85 @@ def email_activity(
 
     data : pandas.DataFrame
     """
+    mailbox = email_file(filename)
 
-    zip_file = ZipFile(zip_filename)
-    file_name = "Takeout/Mail/All mail Including Spam and Trash.mbox"
     data = []
+    for message in mailbox.messages:
+        # Several fields have different alternate spellings.
+        # We use message.get to check all we have encountered
+        # so far.
 
-    with zip_file.open(file_name) as mailbox_file:
-        mailbox = email_utils.MailboxReader(mailbox_file)
-        for message in mailbox.messages:
-            # Several fields have different alternate spellings.
-            # We use message.get to check all we have encountered
-            # so far.
+        # We use the date entry as the timestamp
+        try:
+            timestamp = message.get("Date", "")
+            timestamp = message.get("date", timestamp)
+            if timestamp:
+                timestamp = email.utils.parsedate_to_datetime(timestamp)
+            timestamp = pd.to_datetime(timestamp)
+        except:
+            warnings.warn(f"Could not parse message timestamp: {received}")
 
-            # We use the date entry as the timestamp
-            try:
-                timestamp = message.get("Date", "")
-                timestamp = message.get("date", timestamp)
-                if timestamp:
-                    timestamp = email.utils.parsedate_to_datetime(timestamp)
-                timestamp = pd.to_datetime(timestamp)
-            except:
-                warnings.warn(f"Could not parse message timestamp: {received}")
+        # Extract received time and convert to datetime.
+        # Entries are separated by ";" and the date is the last 
+        # one
+        received = message.get("received", "")
+        received = message.get("received", received)
+        received = received.split(";")[-1].strip()
+        try:
+            if received:
+                received = email.utils.parsedate_to_datetime(received)
+            received = pd.to_datetime(received)
+        except:
+            warnings.warn(f"Failed to format received time: {received}")
 
-            # Extract received time and convert to datetime.
-            # Entries are separated by ";" and the date is the last 
-            # one
-            received = message.get("received", "")
-            received = message.get("received", received)
-            received = received.split(";")[-1].strip()
-            try:
-                if received:
-                    received = email.utils.parsedate_to_datetime(received)
-                received = pd.to_datetime(received)
-            except:
-                warnings.warn(f"Failed to format received time: {received}")
+        in_reply_to = message.get("In-Reply-To", "")
+        in_reply_to = message.get("In-reply-to", in_reply_to)
+        in_reply_to = message.get("in-reply-to", in_reply_to)
+        in_reply_to = message.get("Reply-To", in_reply_to)
+        in_reply_to = message.get("Reply-to", in_reply_to)
+        in_reply_to = message.get("Mail-Reply-To", in_reply_to)
+        in_reply_to = message.get("Mail-Followup-To", in_reply_to)
 
-            in_reply_to = message.get("In-Reply-To", "")
-            in_reply_to = message.get("In-reply-to", in_reply_to)
-            in_reply_to = message.get("in-reply-to", in_reply_to)
-            in_reply_to = message.get("Reply-To", in_reply_to)
-            in_reply_to = message.get("Reply-to", in_reply_to)
-            in_reply_to = message.get("Mail-Reply-To", in_reply_to)
-            in_reply_to = message.get("Mail-Followup-To", in_reply_to)
+        cc = str(message.get("CC", ""))
+        cc = str(message.get("Cc", cc))
+        cc = str(message.get("cc", cc))
+        bcc = str(message.get("Bcc", ""))
+        bcc = str(message.get("BCC", bcc))
+        bcc = str(message.get("BCc", bcc))
+        bcc = str(message.get("bcc", bcc))
 
-            cc = str(message.get("CC", ""))
-            cc = str(message.get("Cc", cc))
-            cc = str(message.get("cc", cc))
-            bcc = str(message.get("Bcc", ""))
-            bcc = str(message.get("BCC", bcc))
-            bcc = str(message.get("BCc", bcc))
-            bcc = str(message.get("bcc", bcc))
+        message_id = str(message.get("Message-ID", ""))
+        message_id = str(message.get("Message-Id", message_id))
+        message_id = str(message.get("Message-id", message_id))
+        message_id = str(message.get("message-id", message_id))
 
-            message_id = str(message.get("Message-ID", ""))
-            message_id = str(message.get("Message-Id", message_id))
-            message_id = str(message.get("Message-id", message_id))
-            message_id = str(message.get("message-id", message_id))
+        from_address = str(message.get("From", ""))
+        from_address = str(message.get("FROM", from_address))
+        from_address = str(message.get("from", from_address))
 
-            from_address = str(message.get("From", ""))
-            from_address = str(message.get("FROM", from_address))
-            from_address = str(message.get("from", from_address))
+        to_address = str(message.get("To", ""))
+        to_address = str(message.get("TO", to_address))
+        to_address = str(message.get("to", to_address))
+        to_address = str(message.get("Sender", to_address))
+        to_address = str(message.get("sender", to_address))
 
-            to_address = str(message.get("To", ""))
-            to_address = str(message.get("TO", to_address))
-            to_address = str(message.get("to", to_address))
-            to_address = str(message.get("Sender", to_address))
-            to_address = str(message.get("sender", to_address))
+        content = email_utils.extract_content(message)
 
-            content = email_utils.extract_content(message)
+        row = {
+            "timestamp": timestamp,
+            "received": received,
+            "from": email_utils.strip_address(from_address),
+            "to": email_utils.parse_address_list(to_address),
+            "cc": email_utils.parse_address_list(cc),
+            "bcc": email_utils.parse_address_list(bcc),
+            "message_id": message_id,
+            "in_reply_to": in_reply_to,
+            "character_count": len(content),
+            "word_count": len(content.split())
+        }
+        data.append(row)
 
-            row = {
-                "timestamp": timestamp,
-                "received": received,
-                "from": email_utils.strip_address(from_address),
-                "to": email_utils.parse_address_list(to_address),
-                "cc": email_utils.parse_address_list(cc),
-                "bcc": email_utils.parse_address_list(bcc),
-                "message_id": message_id,
-                "in_reply_to": in_reply_to,
-                "character_count": len(content),
-                "word_count": len(content.split())
-            }
-            data.append(row)
+    mailbox.close()
 
     df = pd.DataFrame(data)
 
@@ -400,17 +424,19 @@ def email_activity(
         print(f"Running sentiment analysis on {len(df)} messages.")
         content_batch = []
         sentiments = []
-        with zip_file.open(file_name) as mailbox_file:
-            mailbox = email_utils.MailboxReader(mailbox_file)
-            with tqdm(total=len(df)) as pbar:
-                for message in mailbox.messages:
-                    content_batch.append(email_utils.extract_content(message))
-                    if len(content_batch) >= sentiment_batch_size:
-                        sentiments += get_sentiment(content_batch)
-                        content_batch = []
-                        pbar.update(sentiment_batch_size)
-            if len(content_batch) >= 0:
-                sentiments += get_sentiment(content_batch)
+        mailbox = email_file(filename)
+
+        with tqdm(total=len(df)) as pbar:
+            for message in mailbox.messages:
+                content_batch.append(email_utils.extract_content(message))
+                if len(content_batch) >= sentiment_batch_size:
+                    sentiments += get_sentiment(content_batch)
+                    content_batch = []
+                    pbar.update(sentiment_batch_size)
+        if len(content_batch) >= 0:
+            sentiments += get_sentiment(content_batch)
+
+        mailbox.close()
 
         labels = [s["label"] for s in sentiments]
         scores = [s["score"] for s in sentiments]
