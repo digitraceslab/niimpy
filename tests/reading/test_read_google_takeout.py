@@ -29,9 +29,16 @@ def zipped_data():
         create_zip(zip_filename)
         yield zip_filename
 
+@pytest.fixture
+def empty_zip_file():
+    with tempfile.TemporaryDirectory() as ddir:
+        zip_filename = os.path.join(ddir, "test.zip")
+        zipfile.ZipFile(zip_filename, mode="w").close()
+        yield zip_filename
+
 
 def test_read_location(zipped_data):
-    """test reading location data form a Google takeout file."""
+    """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(zipped_data)
     
     assert data['latitude']["2016-08-12T19:29:43.821Z"] == 35.9974880
@@ -47,8 +54,14 @@ def test_read_location(zipped_data):
     assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"] == 62
 
 
+def test_read_location_no_location_data(empty_zip_file):
+    """test reading location data not present in file. """
+    data = niimpy.reading.google_takeout.location_history(empty_zip_file)
+    assert data.empty
+
+
 def test_read_activity(zipped_data):
-    """test reading activity data form a Google takeout file."""
+    """test reading activity data from a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(zipped_data).sort_index()
     
     assert data.index[0] == pd.to_datetime("2023-11-20 00:00:00+0200")
@@ -73,6 +86,12 @@ def test_read_activity(zipped_data):
     assert data.iloc[75]["start_time"] == pd.to_datetime("2023-11-20 18:45:00+02:00")
     assert data.iloc[75]["end_time"] == pd.to_datetime("2023-11-20 19:00:00+02:00")
     assert data.iloc[75]["walking_duration"] == pd.to_timedelta("0 days 00:00:00.337365")
+
+
+def test_read_activity_no_activity_data(empty_zip_file):
+    """ test reading activity data not present in file. """
+    data = niimpy.reading.google_takeout.activity(empty_zip_file)
+    assert data.empty
 
 
 def test_read_email_activity(zipped_data):
@@ -103,4 +122,45 @@ def test_read_email_activity(zipped_data):
     assert data.iloc[1]["sentiment"] == "negative"
     assert data.iloc[2]["sentiment"] == "negative"
     assert data.iloc[3]["sentiment"] == "positive"
+
+
+def test_read_email_activity_mbox_file():
+    path = os.path.join(config.GOOGLE_TAKEOUT_DIR, "Takeout", "Mail", "All mail Including Spam and Trash.mbox")
+    data = niimpy.reading.google_takeout.email_activity(path, sentiment=True)
+
+    assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
+    assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
+    assert data.index[3] == pd.to_datetime("2023-12-15 12:39:43+00:00")
+    
+    assert pd.isnull(data.iloc[0]["received"])
+    assert pd.isnull(data.iloc[1]["received"])
+    assert data.iloc[3]["received"] == pd.to_datetime("2023-12-15 12:19:43+00:00")
+
+    assert pd.isnull(data.iloc[0]["in_reply_to"])
+    assert pd.isnull(data.iloc[1]["in_reply_to"])
+    assert data.iloc[3]["in_reply_to"] == data.iloc[0]["message_id"]
+
+    assert pd.isnull(data.iloc[0]["from"]) == 0
+    assert pd.isnull(data.iloc[1]["from"]) == 0
+    assert data.iloc[3]["from"] == data.iloc[1]["to"][0]
+    assert data.iloc[3]["cc"] == data.iloc[3]["bcc"]
+    assert data.iloc[0]["to"][0] == data.iloc[1]["to"][1]
+
+    assert data.iloc[0]["word_count"] == 6
+    assert data.iloc[0]["character_count"] == 33
+
+    print(data["sentiment"])
+    print(data["sentiment"][3])
+    print(data.iloc[3]["sentiment"])
+
+    assert data.iloc[0]["sentiment"] == "positive"
+    assert data.iloc[1]["sentiment"] == "negative"
+    assert data.iloc[2]["sentiment"] == "negative"
+    assert data.iloc[3]["sentiment"] == "positive"
+
+
+def test_read_email_activity_no_email_data(empty_zip_file):
+    """test reading email activity data not present in file. """
+    data = niimpy.reading.google_takeout.email_activity(empty_zip_file)
+    assert data.empty
 
