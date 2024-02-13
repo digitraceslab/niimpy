@@ -366,7 +366,7 @@ def email_activity(
             to_address = str(message.get("Sender", to_address))
             to_address = str(message.get("sender", to_address))
 
-            content = str(message.get_payload())
+            content = email_utils.extract_content(message)
 
             row = {
                 "timestamp": timestamp,
