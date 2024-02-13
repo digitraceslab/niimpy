@@ -12,6 +12,7 @@ from niimpy.preprocessing import util
 import google_takeout_email as email_utils
 
 
+
 def format_inferred_activity(data, inferred_activity, activity_threshold):
     # Format the activity type column into activity type and
     # activity inference confidence. The data is nested a few
@@ -105,8 +106,12 @@ def location_history(
 
 
     # Read json data from the zip file and convert to pandas DataFrame.
-    zip_file = ZipFile(zip_filename)
-    json_data  = zip_file.read("Takeout/Location History/Records.json")
+    try:
+        zip_file = ZipFile(zip_filename)
+        json_data  = zip_file.read("Takeout/Location History/Records.json")
+    except KeyError:
+        warnings.warn("Could not find location history in zip file.")
+        return pd.DataFrame()
     json_data = json.loads(json_data)
     data = pd.json_normalize(json_data["locations"])
     data = pd.DataFrame(data)
@@ -326,7 +331,11 @@ def email_activity(
 
     data : pandas.DataFrame
     """
-    mailbox = email_file(filename)
+    try:
+        mailbox = email_file(filename)
+    except KeyError:
+        warnings.warn("Could not find email data in file.")
+        return pd.DataFrame()
 
     data = []
     for message in mailbox.messages:
