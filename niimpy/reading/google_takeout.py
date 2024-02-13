@@ -104,13 +104,11 @@ def location_history(
     column_name_map = {'deviceTag': "device"}
     drop_columns = ['deviceDesignation', 'activeWifiScan.accessPoints', 'locationMetadata', 'osLevel']
 
-
     # Read json data from the zip file and convert to pandas DataFrame.
     try:
         zip_file = ZipFile(zip_filename)
         json_data  = zip_file.read("Takeout/Location History/Records.json")
     except KeyError:
-        warnings.warn("Could not find location history in zip file.")
         return pd.DataFrame()
     json_data = json.loads(json_data)
     data = pd.json_normalize(json_data["locations"])
@@ -179,6 +177,9 @@ def activity(zip_filename, user=None):
                     data["date"] = date
                     dfs.append(data)
 
+    if len(dfs) == 0:
+        return pd.DataFrame()
+    
     data = pd.concat(dfs)
 
     # Format start time and end time columns with date. Set start time as the
@@ -334,7 +335,6 @@ def email_activity(
     try:
         mailbox = email_file(filename)
     except KeyError:
-        warnings.warn("Could not find email data in file.")
         return pd.DataFrame()
 
     data = []
