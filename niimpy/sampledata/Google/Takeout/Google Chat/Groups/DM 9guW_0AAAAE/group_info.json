@@ -1,0 +1,14 @@
+{
+  "members": [
+    {
+      "name": "user 1",
+      "email": "email@example.com",
+      "user_type": "Human"
+    },
+    {
+      "name": "user 2",
+      "email": "email2@example.cm",
+      "user_type": "Human"
+    }
+  ]
+}
