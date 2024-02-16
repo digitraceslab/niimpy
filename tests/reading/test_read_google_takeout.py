@@ -182,3 +182,37 @@ def test_read_email_activity_no_email_data(empty_zip_file):
     data = niimpy.reading.google_takeout.email_activity(empty_zip_file)
     assert data.empty
 
+
+def test_read_chat(zipped_data):
+    data = niimpy.reading.google_takeout.chat(zipped_data)
+
+    assert data.index[0] == pd.to_datetime("2024-01-30 13:27:33+00:00")
+    assert data.index[1] == pd.to_datetime("2024-01-30 13:29:10+00:00")
+    assert data.index[2] == pd.to_datetime("2024-01-30 13:29:17+00:00")
+    assert data.index[3] == pd.to_datetime("2024-01-30 13:29:17+00:00")
+
+    assert data.iloc[0]["creator_name"] == 0
+    assert data.iloc[1]["creator_name"] == data.iloc[2]["creator_name"]
+    assert data.iloc[3]["creator_name"] == 0
+
+    assert data.iloc[0]["creator_email"] == 0
+    assert data.iloc[1]["creator_email"] == data.iloc[2]["creator_email"]
+    assert data.iloc[3]["creator_email"] == 0
+
+    assert data.iloc[0]["creator_user_type"] == "Human"
+    assert data.iloc[1]["creator_user_type"] == "Human"
+    assert data.iloc[2]["creator_user_type"] == "Human"
+    assert data.iloc[3]["creator_user_type"] == "Human"
+
+    assert data.iloc[0]["word_count"] == 1
+    assert data.iloc[1]["word_count"] == 1
+    assert data.iloc[2]["word_count"] == 3
+    assert data.iloc[3]["word_count"] == 5
+
+    assert data.iloc[0]["character_count"] == 5
+    assert data.iloc[1]["character_count"] == 5
+    assert data.iloc[2]["character_count"] == 11
+    assert data.iloc[3]["character_count"] == 22
+
+    assert data.iloc[0]["chat_group"] == 0
+
