@@ -571,9 +571,7 @@ def chat(
 
     df.drop("text", axis=1, inplace=True)
 
-    # replace . in column names with _
     util.format_column_names(df)
-
     return df
 
 
