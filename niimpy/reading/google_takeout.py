@@ -303,6 +303,33 @@ class email_file():
             self.zip_file.close()
 
 
+def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100):
+    """ Run sentiment analysis on the content of the email messages
+    in the dataframe. """
+    content_batch = []
+    sentiments = []
+    mailbox = email_file(filename)
+
+    with tqdm(total=len(df)) as pbar:
+        for message in mailbox.messages:
+            content_batch.append(email_utils.extract_content(message))
+            if len(content_batch) >= sentiment_batch_size:
+                sentiments += get_sentiment(content_batch)
+                content_batch = []
+                pbar.update(sentiment_batch_size)
+    if len(content_batch) >= 0:
+        sentiments += get_sentiment(content_batch)
+
+    mailbox.close()
+
+    labels = [s["label"] for s in sentiments]
+    scores = [s["score"] for s in sentiments]
+    df["sentiment"] = labels
+    df["sentiment_score"] = scores
+
+    return df
+
+
 def email_activity(
         filename,
         pseudonymize=True,
@@ -432,28 +459,34 @@ def email_activity(
     # Run sentiment analysis if requested. This might take some time.
     if sentiment:
         print(f"Running sentiment analysis on {len(df)} messages.")
-        content_batch = []
-        sentiments = []
-        mailbox = email_file(filename)
+        sentiment_analysis_from_email(df, filename, sentiment_batch_size)
 
-        with tqdm(total=len(df)) as pbar:
-            for message in mailbox.messages:
-                content_batch.append(email_utils.extract_content(message))
-                if len(content_batch) >= sentiment_batch_size:
-                    sentiments += get_sentiment(content_batch)
-                    content_batch = []
-                    pbar.update(sentiment_batch_size)
+    return df
+
+
+
+def sentiment_analysis_from_text_column(df, text_content_column, sentiment_batch_size=100):
+    """ Run sentiment analysis on a dataframe with text content
+    and add the results as new columns. """
+    content_batch = []
+    sentiments = []
+    with tqdm(total=len(df)) as pbar:
+        for message in df[text_content_column]:
+            content_batch.append(message)
+            if len(content_batch) >= sentiment_batch_size:
+                sentiments += get_sentiment(content_batch)
+                content_batch = []
+                pbar.update(sentiment_batch_size)
         if len(content_batch) >= 0:
             sentiments += get_sentiment(content_batch)
 
-        mailbox.close()
-
-        labels = [s["label"] for s in sentiments]
-        scores = [s["score"] for s in sentiments]
-        df["sentiment"] = labels
-        df["sentiment_score"] = scores
-
+    labels = [s["label"] for s in sentiments]
+    scores = [s["score"] for s in sentiments]
+    df["sentiment"] = labels
+    df["sentiment_score"] = scores
     return df
+
+
 
 
 def chat(
@@ -534,22 +567,7 @@ def chat(
         df["creator.name"] = df["creator.name"].apply(lambda x: name_map[x])
 
     if sentiment:
-        content_batch = []
-        sentiments = []
-        with tqdm(total=len(df)) as pbar:
-            for message in df["text"]:
-                content_batch.append(message)
-                if len(content_batch) >= sentiment_batch_size:
-                    sentiments += get_sentiment(content_batch)
-                    content_batch = []
-                    pbar.update(sentiment_batch_size)
-            if len(content_batch) >= 0:
-                sentiments += get_sentiment(content_batch)
-
-        labels = [s["label"] for s in sentiments]
-        scores = [s["score"] for s in sentiments]
-        df["sentiment"] = labels
-        df["sentiment_score"] = scores
+        df = sentiment_analysis_from_text_column(df, "text", sentiment_batch_size)
 
     df.drop("text", axis=1, inplace=True)
 
@@ -621,3 +639,8 @@ def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
         df["channel_title"] = df["channel_title"].astype("category").cat.codes
 
     return df
+
+
+
+
+
