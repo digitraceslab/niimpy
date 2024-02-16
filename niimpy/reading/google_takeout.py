@@ -216,6 +216,7 @@ def pseudonymize_addresses(df, user_email = None):
     start from 1 and run in order encountered.
     
     If user_email is provided, that email is labeled as 0.
+    Label "" as pd.NA.
     """
     address_dict = {"": pd.NA}
     if user_email is not None:
@@ -226,32 +227,32 @@ def pseudonymize_addresses(df, user_email = None):
     addresses |= set(df["cc"].explode().unique())
     addresses |= set(df["bcc"].explode().unique())
     addresses = list(addresses)
-    for i, k in enumerate(addresses):
-        if k not in address_dict:
-            address_dict[k] = i+1
 
-    def replace_to_list(addresses):
-        return [address_dict[address] for address in addresses]
-        
-    df["to"] = df["to"].apply(replace_to_list)
+    address_dict = {k: i for i, k in enumerate(addresses, 1)}
+    if user_email is not None:
+        address_dict[user_email] = 0
+    address_dict[""]= pd.NA
+
+    df["to"] = df["to"].apply(lambda x: [address_dict[k] for k in x])
     df["from"] = df["from"].apply(lambda x: address_dict[x])
-    df["cc"] = df["cc"].apply(replace_to_list)
-    df["bcc"] = df["bcc"].apply(replace_to_list)
+    df["cc"] = df["cc"].apply(lambda x: [address_dict[k] for k in x])
+    df["bcc"] = df["bcc"].apply(lambda x: [address_dict[k] for k in x])
     return df
 
 
 def pseudonymize_message_id(df):
     """ Replace message ID strings with numerical IDs. The IDs
-    start from 0 and run in order encountered.
+    start from 0 and run in order encountered. Message ids are
+    found in message_id and in_reply_to columns.
+
+    map "" to pd.NA.
     """
-    message_id_dict = {"": pd.NA}
-        
     message_ids = set(df["message_id"].explode().unique())
     message_ids |= set(df["in_reply_to"].explode().unique())
     message_ids = list(message_ids)
-    for i, k in enumerate(message_ids):
-        if k not in message_id_dict:
-            message_id_dict[k] = i
+
+    message_id_dict = {k: i for i, k in enumerate(message_ids)}
+    message_id_dict[""] = pd.NA
 
     df["message_id"] = df["message_id"].apply(lambda x: message_id_dict[x])
     df["in_reply_to"] = df["in_reply_to"].apply(lambda x: message_id_dict[x])
