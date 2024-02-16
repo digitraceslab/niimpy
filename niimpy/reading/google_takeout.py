@@ -468,7 +468,16 @@ def chat(
 
     zip_filename : str
         The filename of the zip file.
-
+    user: str (optiona)
+        A user ID that is added as a column to the dataframe. In not
+        provided, a random user UI is generated.
+    sentiment: Bool (optional)
+        Include sentiment analysis of the message content
+    sentiment_batch_size: int (optional)
+        The number of messages to send to the sentiment analysis
+        service in each batch. Defaults to 100.
+    pseudonymize: bool (optional)
+        Replace senders and receivers with ID numbers. Defaults to True.
 
     Returns
     -------
@@ -502,6 +511,7 @@ def chat(
 
     df["character_count"] = df["text"].apply(len)
     df["word_count"] = df["text"].apply(lambda x: len(x.split()))
+    df["user"] = user
 
     if pseudonymize:
         user_email = df["creator.email"].value_counts().idxmax()
@@ -541,6 +551,9 @@ def chat(
         df["sentiment_score"] = scores
 
     df.drop("text", axis=1, inplace=True)
+
+    # replace . in column names with _
+    util.format_column_names(df)
 
     return df
 
