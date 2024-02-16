@@ -7,6 +7,7 @@ import email
 import uuid
 import warnings
 from tqdm import tqdm
+from bs4 import BeautifulSoup
 from multi_language_sentiment import sentiment as get_sentiment
 from niimpy.preprocessing import util
 import google_takeout_email as email_utils
@@ -559,3 +560,64 @@ def chat(
 
 
 
+def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
+    """ Read the watch history from a Google Takeout zip file.
+
+    Watch history is stored as an html file. We parse the file
+    and extract record times. These correspond to the time the
+    user has started watching a given video.
+
+    We do not return video titles or channel titles, but we
+    convert these into unique identifiers and include those.
+    
+    Parameters
+    ----------
+
+    zip_filename : str
+        The filename of the zip file.
+
+
+    Returns
+    -------
+
+    data : pandas.DataFrame
+    """
+
+    # Read the html file with the watch history
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            with zip_file.open("Takeout/YouTube and YouTube Music/history/watch-history.html") as file:
+                html = file.read().decode()
+    except KeyError:
+        return pd.DataFrame()
+    
+    # Extract divs with class content-cell. These contain the watch history.
+    soup = BeautifulSoup(html, "html.parser")
+    rows = soup.find_all("div", {"class": "content-cell"})
+
+    data = []
+    for row in rows:
+        a = row.find_all("a")
+        if len(a) > 1:
+            data.append({
+                "video_title": a[0].text,
+                "channel_title": a[1].text,
+                "timestamp": row.find_all("br")[1].next_sibling.text
+            })
+
+    # Create the dataframe and set the timestamp as the index
+    # Time format is like Feb 13, 2024, 8:35:03 AM EET
+    df = pd.DataFrame(data)
+    df["timestamp"] = pd.to_datetime(
+        df["timestamp"],
+        format="%b %d, %Y, %I:%M:%S %p %Z"
+    )
+    df.set_index("timestamp", inplace=True)
+    df["user"] = user
+
+    # Pseudonymize the titles
+    if pseudoymize:
+        df["video_title"] = df["video_title"].astype("category").cat.codes
+        df["channel_title"] = df["channel_title"].astype("category").cat.codes
+
+    return df
