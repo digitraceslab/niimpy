@@ -216,3 +216,20 @@ def test_read_chat(zipped_data):
 
     assert data.iloc[0]["chat_group"] == 0
 
+#   <div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">Watched <a href="https://www.youtube.com/watch?v=video_id_1">Video Title 1</a><br/><a href="https://www.youtube.com/channel/channels_id_1">Channel Title 1</a><br/>Feb 13, 2024, 8:36:49 AM EET</div><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1 mdl-typography--text-right"></div><div class="content-cell mdl-cell mdl-cell--12-col mdl-typography--caption"><b>Products:</b><br/> YouTube<br/><b>Why is this here?</b><br/> This activity was saved to your Google Account because the following settings were on: YouTube watch history. You can control these settings  <a href="https://myaccount.google.com/activitycontrols">here</a>.</div><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">Watched <a href="https://www.youtube.com/watch?v=video_id_2">Video Title 2</a><br/><a href="https://www.youtube.com/channel/channel_id_2">Channel Title 2</a><br/>Feb 13, 2024, 8:36:05 AM EET</div><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1 mdl-typography--text-right"></div><div class="content-cell mdl-cell mdl-cell--12-col mdl-typography--caption"><b>Products:</b><br/> YouTube<br/><b>Why is this here?</b><br/> This activity was saved to your Google Account because the following settings were on: YouTube watch history. You can control these settings  <a href="https://myaccount.google.com/activitycontrols">here</a>.</div><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">Watched <a href="https://www.youtube.com/watch?v=video_id_3">Video Title 3</a><br/><a href="https://www.youtube.com/channel/channel_id_3">Channel Title 3</a><br/>Feb 13, 2024, 8:35:38 AM EET</div><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1 mdl-typography--text-right"></div><div class="content-cell mdl-cell mdl-cell--12-col mdl-typography--caption"><b>Products:</b><br/> YouTube<br/><b>Why is this here?</b><br/> This activity was saved to your Google Account because the following settings were on: YouTube watch history. You can control these settings  <a href="https://myaccount.google.com/activitycontrols">here</a>.</div><div class="content-cell mdl-cell mdl-cell--6-col mdl-typography--body-1">Watched <a href="https://www.youtube.com/watch?v=video_id_1">Video Title 1</a><br/><a href="https://www.youtube.com/channel/channel_id_1">Channel Title 1</a><br/>Feb 13, 2024, 8:35:03 AM EET</div>
+
+def test_read_youtube_watch_history(zipped_data):
+    data = niimpy.reading.google_takeout.youtube_watch_history(zipped_data)
+
+    assert data.index[0] == pd.to_datetime("2024-02-13 06:36:49+00:00")
+    assert data.index[1] == pd.to_datetime("2024-02-13 06:36:05+00:00")
+    assert data.index[2] == pd.to_datetime("2024-02-13 06:35:38+00:00")
+    assert data.index[3] == pd.to_datetime("2024-02-13 06:35:03+00:00")
+
+    assert data.iloc[0]["video_title"] != data.iloc[1]["video_title"]
+    assert data.iloc[0]["channel_title"] != data.iloc[1]["channel_title"]
+    assert data.iloc[0]["video_title"] != data.iloc[2]["video_title"]
+    assert data.iloc[0]["channel_title"] != data.iloc[2]["channel_title"]
+    assert data.iloc[0]["video_title"] == data.iloc[3]["video_title"]
+    assert data.iloc[0]["channel_title"] == data.iloc[3]["channel_title"]
+
