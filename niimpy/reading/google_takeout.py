@@ -519,27 +519,42 @@ def chat(
     data : pandas.DataFrame
     """
 
-    # Each group chat is stored in a separate file. We read all of them.
     dfs = []
     group_index = 0
+    user_emails = []
+    user_names = []
     with ZipFile(zip_filename) as zip_file:
+        # Find the user email from Takeout/Google Chat/Users/*/user_info.json
+        for filename in zip_file.namelist():
+            if filename.startswith("Takeout/Google Chat/Users/") and filename.endswith("user_info.json"):
+                with zip_file.open(filename) as json_file:
+                    user_info = json.load(json_file)
+                    user_emails.append(user_info["user"]["email"])
+                    user_names.append(user_info["user"]["name"])
+        # Each group chat is stored in a separate file. We read all of them.
         for filename in zip_file.namelist():
             # Read the more finegrained data for each date
             if filename.startswith("Takeout/Google Chat/Groups/") and filename.endswith("messages.json"):
                 with zip_file.open(filename) as json_file:
-                    data = json.load(json_file)
-                    data["chat_group"] = group_index
+                    data = json.load(json_file)["messages"]
+                    for i in range(len(data)):
+                        data[i]["chat_group"] = group_index
                     group_index += 1
                     # flatten the nested json data
-                    print(data["messages"])
-                    data = pd.json_normalize(data["messages"])
+                    data = pd.json_normalize(data)
                     dfs.append(data)
 
     if len(dfs) == 0:
         return pd.DataFrame()
     
+    if len(user_emails) > 1:
+        warnings.warn("Multiple user emails found. Using the first one.")
+    user_email = user_emails[0]
+    user_name = user_names[0]
+    
+    # create dataframe and set index. Timestamp is formatted as Tuesday, January 30, 2024 at 1:27:33 PM UTC
     df = pd.DataFrame(data)
-    df["timestamp"] = pd.to_datetime(df["created_date"])
+    df["timestamp"] = pd.to_datetime(df["created_date"], format="%A, %B %d, %Y at %I:%M:%S %p %Z")
     df.set_index("timestamp", inplace=True)
     df.drop("created_date", axis=1, inplace=True)
 
@@ -548,22 +563,14 @@ def chat(
     df["user"] = user
 
     if pseudonymize:
-        user_email = df["creator.email"].value_counts().idxmax()
         addresses = set(df["creator.email"].unique())
-        address_map = {user_email: 0}
-        for i, address in enumerate(addresses):
-            if address not in address_map:
-                address_map[address] = i+1
-        
+        address_map = {address: i for i, address in enumerate(addresses, 1)}
+        address_map[user_email] = 0
         df["creator.email"] = df["creator.email"].apply(lambda x: address_map[x])
 
-        user_name = df["creator.name"].value_counts().idxmax()
         names = set(df["creator.name"].unique())
-        name_map = {user_name: 0}
-        for i, name in enumerate(names):
-            if name not in name_map:
-                name_map[name] = i+1
-        
+        name_map = {address: i for i, address in enumerate(names, 1)}
+        name_map[user_name] = 0
         df["creator.name"] = df["creator.name"].apply(lambda x: name_map[x])
 
     if sentiment:
