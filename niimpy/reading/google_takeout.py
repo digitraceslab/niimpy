@@ -629,6 +629,8 @@ def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
         format="%b %d, %Y, %I:%M:%S %p %Z"
     )
     df.set_index("timestamp", inplace=True)
+    if user is None:
+        user = uuid.uuid1()
     df["user"] = user
 
     # Pseudonymize the titles
