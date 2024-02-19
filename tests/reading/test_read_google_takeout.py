@@ -183,6 +183,11 @@ def test_read_email_activity_no_email_data(empty_zip_file):
     assert data.empty
 
 
+def test_read_email_unknown_file():
+    with pytest.raises(ValueError):
+        niimpy.reading.google_takeout.email_activity("unknown_file")
+
+
 def test_read_chat(zipped_data):
     data = niimpy.reading.google_takeout.chat(zipped_data)
 
