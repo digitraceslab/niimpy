@@ -633,7 +633,7 @@ def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
     df = pd.DataFrame(data)
     df["timestamp"] = pd.to_datetime(
         df["timestamp"],
-        format="%b %d, %Y, %I:%M:%S %p %Z"
+        format="%b %d, %Y, %I:%M:%S %p %Z"
     )
     df.set_index("timestamp", inplace=True)
     if user is None:
