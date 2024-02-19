@@ -3,6 +3,7 @@ from dateutil.tz import tzlocal
 import numpy as np
 import os
 import pandas as pd
+import re
 import sys
 import warnings
 
@@ -121,6 +122,19 @@ def to_datetime(value):
         return times.dt.tz_convert(TZ)
     else:
         return times.tz_convert(TZ)
+    
+
+def format_column_names(df):
+    # Replace special characters, including space and ., with _
+    # (keeping parenthesis and /, which are used in units, e.g. "temperature (C)")
+    # Convert to lower case
+    column_map = {}
+    for column in df.columns:
+        formatted_name = column.replace(" ", "_").lower()
+        formatted_name = re.sub(r'[^a-zA-Z0-9_()/]+', '_', formatted_name)
+        column_map[column] = formatted_name
+    df.rename(columns=column_map, inplace=True)
+
 
 def occurrence(series, bin_width=720, grouping_width=3600):
     """Number of 12-minute
@@ -192,11 +206,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     assert method_numerical in ['mean', 'sum', 'median'], \
         'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
     if method_numerical == 'sum':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).sum()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).sum(numeric_only=True)
     elif method_numerical == 'mean':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).mean()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).mean(numeric_only=True)
     elif method_numerical == 'median':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).median()
+        sub_df1 = groupby.resample(freq, **resample_kwargs).median(numeric_only=True)
     else:
         print("Can't recognize sampling method")
 
@@ -219,5 +233,8 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     sub_df1 = sub_df1.drop(groups, axis=1, errors='ignore')
     sub_df2 = sub_df2.drop(groups, axis=1, errors='ignore')
     final_df = sub_df1.join(sub_df2)
+
+    # Reset the user index, user should be a column
+    final_df.reset_index("user", inplace=True)
 
     return final_df

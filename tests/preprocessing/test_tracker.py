@@ -10,6 +10,7 @@ def test_step_summary():
     df = pd.read_csv(config.STEP_SUMMARY_PATH, index_col=0)
     # Converting the index as date
     df.index = pd.to_datetime(df.index)
+    df = df.rename(columns={"subject_id": "user"})
 
     summary_df = tracker.step_summary(df, {'value_col': 'steps'})
     assert summary_df['max_sum_step'].values[0] == 13025
@@ -23,9 +24,10 @@ def test_daily_step_distribution():
     df = pd.read_csv(config.STEP_SUMMARY_PATH, index_col=0)
     # Converting the index as date
     df.index = pd.to_datetime(df.index)
+    df = df.rename(columns={"subject_id": "user"})
 
     res = tracker.extract_features_tracker(df)
 
     assert isinstance(res, pd.DataFrame)
-    assert math.isclose(res.loc[(res["user"] == 'wiam9xme') & (res['time'] == '2021-07-03 19:00:00')][
+    assert math.isclose(res.loc[(res["user"] == 'wiam9xme') & (res.index == '2021-07-03 19:00:00')][
                'daily_distribution'].values[0], 0.025162, rel_tol = 0.0001), "Incorrect daily distribution calculation"

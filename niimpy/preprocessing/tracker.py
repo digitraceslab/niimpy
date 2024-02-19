@@ -100,10 +100,12 @@ def tracker_daily_step_distribution(steps_df, config={}):
         A dataframe containing the distribution of step count per day at hourly resolution.
     """
 
-    # Combine date and time to acquire  timestamp 
+    steps_column = config.get("steps_column", "steps")
+
+    # Extract date and time columns from timestamp
     df = steps_df.copy()
-    df = df.rename(columns={"subject_id": "user"})  # rename column, to be niimpy-compatible
-    df['time'] = pd.to_datetime(df['date'] + ":" + df['time'], format='%Y-%m-%d:%H:%M:%S.%f')
+    df["date"] = df.index.date 
+    df["time"] = df.index
 
     # Dummy columns for hour, month, day for easier operations later on
     df['hour'] = df.index.hour
@@ -117,16 +119,15 @@ def tracker_daily_step_distribution(steps_df, config={}):
     # during each hour
     df['daily_sum'] = group_data( df,
         columns = ['day', 'month'] + group_by_columns
-    )['steps'].transform('sum')  # stores sum of daily step
+    )[steps_column].transform('sum')  # stores sum of daily step
 
     # Divide hourly steps by daily sum to get the distribution
-    df['daily_distribution'] = df['steps'] / df['daily_sum']
+    df['daily_distribution'] = df[steps_column] / df['daily_sum']
 
     # Set timestamp index
-    #df = df.set_index("time")
-    df = df.set_index("user")
+    df = df.set_index("time")
 
-    return df
+    return df[["daily_distribution", "daily_sum", "month", "day", "hour", "user"]]
 
 
 ALL_FEATURES = [globals()[name] for name in globals()

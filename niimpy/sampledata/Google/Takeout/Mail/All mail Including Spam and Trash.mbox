@@ -1,0 +1,84 @@
+From MAILER-DAEMON Sat, 15 Dec 2023 12:19:43 0000
+From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+To: example2 <example2@example.com>
+Message-ID: 1
+Subject: Hello
+date: Sat, 15 Dec 2023 12:19:43 0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Hello! This is a happy message!
+
+From MAILER-DAEMON Sat, 15 Dec 2023 12:29:43 0000
+Message-ID: 2
+Subject: Hello
+To: example <example@example.com>, example2 <example2@example.com>
+From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+date: Sat, 15 Dec 2023 12:29:43 0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Hello! This is a sad message!
+
+From MAILER-DAEMON Sat, 15 Dec 2023 12:29:43 0000
+Message-ID: 2
+Subject: Hello
+To: example <example@example.com>, example2 <example2@example.com>
+From: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+date: Sat, 15 Dec 2023 12:29:43 0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Hei! Tämä on ikävä viesti!
+
+From MAILER-DAEMON Sat, 15 Dec 2023 12:39:43 0000
+Message-ID: 3
+In-Reply-To: 1
+Subject: Hello
+From: example <example@example.com>
+To: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+CC: example3 <example3@example.com>
+BCC: example3 <example3@example.com>
+date: Sat, 15 Dec 2023 12:39:43 0000
+received: Other information; Sat, 15 Dec 2023 12:19:43 0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+Hei! Tämä on iloinen viesti!
+
+From MAILER-DAEMON Sat, 15 Dec 20Not a time23 12:39:43 0000
+Message-ID: 3
+In-Reply-To: 1
+Subject: Hello
+From: example <example@example.com>
+To: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+CC: example3 <example3@example.com>
+BCC: example3 <example3@example.com>
+date: Sat, 15 Dec 202Not a time3 12:39:43 0000
+received: Other information; Sat, 15 Dec 2023 12:19:43 0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+This message timestamp is not formatted correctly
+
+From MAILER-DAEMON Sat, 15 Dec 20Not a time23 12:39:43 0000
+Message-ID: 3
+In-Reply-To: 1
+Subject: Hello
+From: example <example@example.com>
+To: Jarno Rantaharju <jarno.rantaharju@aalto.fi>
+CC: example3 <example3@example.com>
+BCC: example3 <example3@example.com>
+date: Sat, 15 Dec 2023 12:39:43 0000
+received: Other information; Sat, 15 DeNot a timec 2023 12:19:43 0000
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
+
+This message timestamp is not formatted correctly
+

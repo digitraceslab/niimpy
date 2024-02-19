@@ -1,0 +1,14 @@
+{
+  "user": {
+    "name": "user 1",
+    "email": "email@example.com",
+    "user_type": "Human"
+  },
+  "membership_info": [
+    {
+      "group_id": "DM 9guW_0AAAAE",
+      "membership_state": "MEMBER_JOINED"
+    }
+  ],
+  "information": "This file is for testing and should not exist. Niimpy should give a warning when it finds a second user info file."
+}
