@@ -117,7 +117,10 @@ def test_read_activity_no_activity_data(empty_zip_file):
 
 
 def test_read_email_activity(zipped_data):
-    data = niimpy.reading.google_takeout.email_activity(zipped_data, sentiment=True)
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.email_activity(
+            zipped_data, sentiment=True, sentiment_batch_size = 2
+        )
 
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
@@ -148,7 +151,10 @@ def test_read_email_activity(zipped_data):
 
 def test_read_email_activity_mbox_file():
     path = os.path.join(config.GOOGLE_TAKEOUT_DIR, "Takeout", "Mail", "All mail Including Spam and Trash.mbox")
-    data = niimpy.reading.google_takeout.email_activity(path, sentiment=True)
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.email_activity(
+            path, sentiment=True, sentiment_batch_size = 2
+        )
 
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
@@ -189,7 +195,12 @@ def test_read_email_unknown_file():
 
 
 def test_read_chat(zipped_data):
-    data = niimpy.reading.google_takeout.chat(zipped_data)
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.chat(
+            zipped_data,
+            sentiment=True,
+            sentiment_batch_size = 2
+        )
 
     assert data.index[0] == pd.to_datetime("2024-01-30 13:27:33+00:00")
     assert data.index[1] == pd.to_datetime("2024-01-30 13:29:10+00:00")
@@ -219,6 +230,11 @@ def test_read_chat(zipped_data):
     assert data.iloc[2]["character_count"] == 11
     assert data.iloc[3]["character_count"] == 22
 
+    assert data.iloc[0]["sentiment"] == 'none'
+    assert data.iloc[1]["sentiment"] == 'none'
+    assert data.iloc[2]["sentiment"] == 'positive'
+    assert data.iloc[3]["sentiment"] == 'positive'
+
     assert data.iloc[0]["chat_group"] == 0
 
 
@@ -246,3 +262,5 @@ def test_read_youtube_watch_history(zipped_data):
 def test_read_youtube_watch_history_no_youtube_data(empty_zip_file):
     data = niimpy.reading.google_takeout.youtube_watch_history(empty_zip_file)
     assert data.empty
+
+
