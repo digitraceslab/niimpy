@@ -10,3 +10,6 @@ coverage
 geopy
 kaleido
 scipy
+tqdm
+multi_language_sentiment
+google_takeout_email
