@@ -11,5 +11,6 @@ geopy
 kaleido
 scipy
 tqdm
+beautifulsoup4
 multi_language_sentiment
 google_takeout_email
