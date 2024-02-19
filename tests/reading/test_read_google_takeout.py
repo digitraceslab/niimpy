@@ -217,6 +217,11 @@ def test_read_chat(zipped_data):
     assert data.iloc[0]["chat_group"] == 0
 
 
+def test_read_chat_no_chat_data(empty_zip_file):
+    data = niimpy.reading.google_takeout.chat(empty_zip_file)
+    assert data.empty
+
+
 def test_read_youtube_watch_history(zipped_data):
     data = niimpy.reading.google_takeout.youtube_watch_history(zipped_data)
 
@@ -232,3 +237,7 @@ def test_read_youtube_watch_history(zipped_data):
     assert data.iloc[0]["video_title"] == data.iloc[3]["video_title"]
     assert data.iloc[0]["channel_title"] == data.iloc[3]["channel_title"]
 
+
+def test_read_youtube_watch_history_no_youtube_data(empty_zip_file):
+    data = niimpy.reading.google_takeout.youtube_watch_history(empty_zip_file)
+    assert data.empty
