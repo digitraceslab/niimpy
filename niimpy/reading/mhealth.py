@@ -25,7 +25,6 @@ mHealth_duration_units = {
 }
 
 
-
 def format_part_of_day(df, prefix):
     ''' Format columns with mHealth formatted part of day. Returns a dataframe
     with date stored in the column "date" and "part_of_day". Options for
@@ -41,7 +40,7 @@ def format_part_of_day(df, prefix):
     })
 
     rows = ~df["part_of_day"].isnull()
-    df.loc[rows, "date"] = pd.to_datetime(df.loc[rows, "date"])
+    df["date"] = pd.to_datetime(df["date"], utc=True)
     df.loc[rows, "timestamp"] = df.loc[rows, "date"]
     return df
 
@@ -89,12 +88,14 @@ def format_time_interval(df, prefix):
 
     In the second case, the formatted database will contain two columns:
     start and end.
-    '''
-    
+
+    Also sets the timestamp to "start" or "date" if available.
+    '''    
     # Create any of the result columns thay may not exist
     for col in ["start", "end"]:
         if col not in df.columns:
-            df[col] = None
+            df[col] = pd.Series(pd.NaT, index=df.index)
+            df[col] = pd.to_datetime(df[col], utc=True)
 
     if f'{prefix}.part_of_day' in df.columns:
         df = format_part_of_day(df, prefix)
@@ -116,10 +117,13 @@ def format_time_interval(df, prefix):
     if start_col in df.columns and duration_col in df.columns:
         rows = ~df[duration_col].isnull() & ~df[start_col].isnull()
         df.loc[rows, "end"] = df.loc[rows, "start"] + df.loc[rows, duration_col]
+        df["end"] = pd.to_datetime(df["end"], utc=True)
 
     if end_col in df.columns and duration_col in df.columns:
         rows = ~df[end_col].isnull() & ~df[duration_col].isnull()
         df.loc[rows, "start"] = df.loc[rows, "end"] - df.loc[rows, duration_col]
+        df["start"] = pd.to_datetime(df["start"], utc=True)
+
 
     # Drop the original columns
     for col in [start_col, end_col, duration_col]:
@@ -127,8 +131,14 @@ def format_time_interval(df, prefix):
             df = df.drop(col, axis=1)
 
     # Set timestamp to the start time
-    rows = ~df["start"].isnull()
-    df.loc[rows, "timestamp"] = df.loc[rows, "start"]
+    df["timestamp"] = df["start"]
+
+    # where start time is abset (happens when time interval is given as
+    # date and part of day), set timestamp to date
+    if "date" in df.columns:
+        rows = df["timestamp"].isnull()
+        df.loc[rows, "timestamp"] = df.loc[rows, "date"]
+        df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
 
     return df
 
@@ -175,6 +185,7 @@ def total_sleep_time(data_list):
     df = duration_to_timedelta(df, "total_sleep_time")
     df = format_time_interval(df, "effective_time_frame.time_interval")
 
+    df["timestamp"] = pd.to_datetime(df["timestamp"], utc=True)
     df.set_index('timestamp', inplace=True)
     return df
 
@@ -271,7 +282,7 @@ def heart_rate(data_list):
     # Each sample contains a time_frame, which is either a duration or a
     # date-time string
     rows = ~df["effective_time_frame.date_time"].isna()
-    df.loc[rows, "timestamp"] = pd.to_datetime(df["effective_time_frame.date_time"])
+    df.loc[rows, "timestamp"] = pd.to_datetime(df["effective_time_frame.date_time"], utc=True)
 
     df = format_time_interval(df, "effective_time_frame.time_interval")
 
