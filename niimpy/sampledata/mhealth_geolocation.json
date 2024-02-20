@@ -1,0 +1,40 @@
+[
+    {
+        "latitude": {
+            "value": 60.1867,
+            "unit": "deg"
+        },
+        "longitude": {
+            "value": 24.8283,
+            "unit": "deg"
+        },
+        "effective_time_frame": {
+            "time_interval": {
+                "start_date_time": "2016-02-05T20:35:00-08:00",
+                "end_date_time": "2016-02-06T06:35:00-08:00"
+            }
+        },
+        "positioning_system": "GPS"
+    },
+    {
+        "latitude": {
+            "value": 60.1867,
+            "unit": "deg"
+        },
+        "longitude": {
+            "value": 24.8283,
+            "unit": "deg"
+        },
+        "elevation": {
+            "value": 20.4,
+            "unit": "m"
+        },
+        "effective_time_frame": {
+            "time_interval": {
+                "start_date_time": "2016-02-05T20:35:00-08:00",
+                "end_date_time": "2016-02-06T06:35:00-08:00"
+            }
+        },
+        "positioning_system": "GPS"
+    }
+]

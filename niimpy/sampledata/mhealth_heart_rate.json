@@ -1,0 +1,45 @@
+[
+    {
+        "heart_rate": {
+            "value": 70,
+            "unit": "beats/min"
+        },
+        "effective_time_frame": {
+            "date_time": "2023-11-20T07:25:00-08:00"
+        },
+        "temporal_relationship_to_sleep": "on waking"
+    },
+    {
+        "heart_rate": {
+            "value": 65,
+            "unit": "beats/min"
+        },
+        "effective_time_frame": {
+            "time_interval": {
+                "duration": {
+                    "value": 10,
+                    "unit": "min"
+                },
+                "end_date_time": "2023-12-20T08:00:00-02:00"
+            }
+        },
+        "temporal_relationship_to_sleep": "on waking"
+    },
+    {
+        "heart_rate": {
+            "value": 35,
+            "unit": "beats/min"
+        },
+        "effective_time_frame": {
+            "time_interval": {
+                "duration": {
+                    "value": 10,
+                    "unit": "min"
+                },
+                "end_date_time": "2023-12-20T02:00:00-02:00"
+            }
+        },
+        "descriptive_statistic": "average",
+        "temporal_relationship_to_sleep": "during sleep"
+    }
+]
