@@ -244,7 +244,7 @@ def screen_count(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)
@@ -294,7 +294,7 @@ def screen_duration(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)           
@@ -345,7 +345,7 @@ def screen_duration_min(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)           
@@ -396,7 +396,7 @@ def screen_duration_max(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)           
@@ -447,7 +447,7 @@ def screen_duration_mean(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)           
@@ -498,7 +498,7 @@ def screen_duration_median(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)           
@@ -549,7 +549,7 @@ def screen_duration_std(df, bat, config=None):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)           
@@ -596,7 +596,7 @@ def screen_first_unlock(df, bat, config):
     else:
         col_name = config["screen_column_name"]
     if not "resample_args" in config:
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)

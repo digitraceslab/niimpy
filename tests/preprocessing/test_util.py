@@ -44,7 +44,7 @@ def test_aggregate_correct_frequency():
     
     df = setup_dataframe.create_timeindex_dataframe(nrows=120, ncols=6, freq='T')
     df['user'] = 1234
-    res_df = niimpy.util.aggregate(df, method_categorical='mode', freq='H')
+    res_df = niimpy.util.aggregate(df, method_categorical='mode', freq='h')
     
     m = res_df.loc[[pd.Timestamp('2022-01-01 00:00:00'), pd.Timestamp('2022-01-01 01:00:00')]].index
     np.testing.assert_array_equal(res_df.index , m)

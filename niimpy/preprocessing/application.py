@@ -381,7 +381,7 @@ def app_count(df, bat, screen, config={}):
     else:
         screen_col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = classify_app(df, config)
 
@@ -465,7 +465,7 @@ def app_duration(df, bat, screen, config=None):
     else:
         screen_col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df2 = classify_app(df, config)
 

@@ -45,7 +45,7 @@ def call_duration_total(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -92,7 +92,7 @@ def call_duration_mean(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -141,7 +141,7 @@ def call_duration_median(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -189,7 +189,7 @@ def call_duration_std(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -236,7 +236,7 @@ def call_count(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -283,7 +283,7 @@ def call_outgoing_incoming_ratio(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df2 = call_count(df, config)
     df2 = df2.set_index(list(group_by_columns & set(df2.columns)), append=True)
@@ -325,7 +325,7 @@ def sms_count(df, config=None):
     else:
         col_name = config["communication_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     outgoing = group_data(df[df.message_type=="outgoing"])[col_name].resample(**config["resample_args"]).count()
     outgoing.rename("outgoing_count", inplace=True)

@@ -61,11 +61,11 @@ def test_audio_features():
     assert test_user1_dev2.loc[pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_loud"] == 6
     assert test_user2.loc[pd.Timestamp("2019-08-13", tz='Europe/Helsinki')]["audio_count_loud"] == 17
     
-    features ={audio.audio_min_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               audio.audio_max_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               audio.audio_mean_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               audio.audio_median_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}},
-               audio.audio_std_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}}}
+    features ={audio.audio_min_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
+               audio.audio_max_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
+               audio.audio_mean_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
+               audio.audio_median_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"3h"}},
+               audio.audio_std_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"3h"}}}
     test = audio.extract_features_audio(data, features=features)
     
     test_user1 = test[test["user"] == "jd9INuQ5BBlW"]

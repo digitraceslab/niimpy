@@ -53,10 +53,10 @@ def test_audio_features():
     assert test_user.loc[pd.Timestamp("2019-08-10", tz='Europe/Helsinki')]["outgoing_count"] == 2
     assert test_user.loc[pd.Timestamp("2019-08-10", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 2
     
-    features ={comms.call_duration_total:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               comms.call_duration_mean:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               comms.call_duration_median:{"audio_column_name":"double_frequency","resample_args":{"rule":"2H"}},
-               comms.call_duration_std:{"audio_column_name":"double_frequency","resample_args":{"rule":"3H"}}}
+    features ={comms.call_duration_total:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
+               comms.call_duration_mean:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
+               comms.call_duration_median:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
+               comms.call_duration_std:{"audio_column_name":"double_frequency","resample_args":{"rule":"3h"}}}
     test = comms.extract_features_comms(data, features=features)
     
     test_user = test[test["user"] == "jd9INuQ5BBlW"]

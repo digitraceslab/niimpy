@@ -46,7 +46,7 @@ def audio_count_silent(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     df_u[col_name] = pd.to_numeric(df_u[col_name])
         
@@ -93,7 +93,7 @@ def audio_count_speech(df_u, config=None):
     else:
         freq_name = config["audio_freq_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
@@ -139,7 +139,7 @@ def audio_count_loud(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
@@ -182,7 +182,7 @@ def audio_min_freq(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).min()
@@ -222,7 +222,7 @@ def audio_max_freq(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).max()
@@ -262,7 +262,7 @@ def audio_mean_freq(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
@@ -302,7 +302,7 @@ def audio_median_freq(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).median()
@@ -342,7 +342,7 @@ def audio_std_freq(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).std()
@@ -382,7 +382,7 @@ def audio_min_db(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).min()
@@ -422,7 +422,7 @@ def audio_max_db(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).max()
@@ -462,7 +462,7 @@ def audio_mean_db(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
@@ -502,7 +502,7 @@ def audio_median_db(df_u, config):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).median()
@@ -542,7 +542,7 @@ def audio_std_db(df_u, config=None):
     else:
         col_name = config["audio_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     if len(df_u)>0:
         result = group_data(df_u)[col_name].resample(**config["resample_args"]).std()
