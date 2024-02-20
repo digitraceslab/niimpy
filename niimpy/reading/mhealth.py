@@ -107,8 +107,7 @@ def format_time_interval(df, prefix):
     # Format the date-like columns. All the mHealth columns might exist if the formatting in the data is mixed
     for col, mHealth_col in [("start", start_col), ("end", end_col)]:
         if mHealth_col in df.columns:
-            rows = ~df[mHealth_col].isnull()
-            df.loc[rows, col] = pd.to_datetime(df.loc[rows, mHealth_col])
+            df[col] = pd.to_datetime(df[mHealth_col], utc=True)
 
     # Format duration as DateOffset. We use this below to calculate either start of end
     df = duration_to_timedelta(df, duration_col)
