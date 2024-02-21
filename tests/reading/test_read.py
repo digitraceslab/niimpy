@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 import niimpy
 from niimpy.reading import read
@@ -19,4 +18,4 @@ def test_read_preprocess_add_group_csv():
     """Test of add_group= option"""
     data = niimpy.read_csv(config.MULTIUSER_AWARE_BATTERY_PATH, add_group='group1', tz=TZ)
     assert 'group' in data
-    assert data['group'][0] == 'group1'
+    assert data.iloc[0]['group'] == 'group1'

@@ -117,23 +117,24 @@ def event_classification_screen(df, config):
     df.sort_values(by=["user","device"], inplace=True)
     df['next'] = df[col_name].shift(-1)
     df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str)   
-    df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])#Discard transitions between subjects
-    df = df.droplevel(0)
+    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False) #Discard transitions between subjects
+    df = df.reset_index().set_index("level_1")
     df["use"] =  df["on"] = df["na"] = df["off"] = 0
     
-    df["use"][(df.next=='30') | (df.next=='31') | (df.next=='32')]=1 #in use
-    df["on"][(df.next=='10') | (df.next=='12') | (df.next=='13') | (df.next=='20')]=1 #on
-    df["na"][(df.next=='21') | (df.next=='23')]=1 #irrelevant. It seems like from 2 to 1 is from off to on (i.e. the screen goes to off and then it locks)
-    df["off"][(df.next=='01') | (df.next=='02') | (df.next=='03')]=1 #off
+    df.loc[(df.next=='30') | (df.next=='31') | (df.next=='32'), "use"]=1 #in use
+    df.loc[(df.next=='10') | (df.next=='12') | (df.next=='13') | (df.next=='20'), "on"]=1 #on
+    df.loc[(df.next=='21') | (df.next=='23'), "na"]=1 #irrelevant. It seems like from 2 to 1 is from off to on (i.e. the screen goes to off and then it locks)
+    df.loc[(df.next=='01') | (df.next=='02') | (df.next=='03'), "off"]=1 #off
     
     df.drop(columns=["next",col_name], inplace=True)   
     
     #Discard the first and last row because they do not have all info. We do not
-    #know what happened before or after these points. 
-    df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[1:])
-    df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
-    df = df.droplevel(0)
-    df = df.droplevel(0)
+    #know what happened before or after these points.
+    df.index = df.index.set_names(['level_1'])
+    df = df.groupby("user").apply(lambda x: x.iloc[1:], include_groups=False)
+    df = df.reset_index().set_index("level_1")
+    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False)
+    df = df.reset_index().set_index("level_1")
     return df
 
 def duration_util_screen(df):
@@ -160,8 +161,8 @@ def duration_util_screen(df):
     df['duration'] = df['duration'].shift(-1)
     
     #Discard transitions between subjects
-    df = df.groupby("user", as_index=False).apply(lambda x: x.iloc[:-1])
-    df = df.droplevel(0)
+    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False)
+    df = df.reset_index().set_index("level_1")
     
     #Discard any datapoints whose duration in “ON” and "IN USE" states are 
     #longer than 10 hours becaus they may be artifacts
