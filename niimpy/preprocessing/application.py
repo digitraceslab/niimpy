@@ -394,7 +394,6 @@ def app_count(df, bat, screen, config={}):
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
     
     if (screen.empty and not bat.empty):
         shutdown = b.shutdown_info(bat, config)
@@ -405,10 +404,8 @@ def app_count(df, bat, screen, config={}):
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
         
-    if (screen.empty and bat.empty):
-        df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
+    df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
 
     df2.dropna(inplace=True)
     
@@ -418,7 +415,7 @@ def app_count(df, bat, screen, config={}):
         result = group_data(df2)["app_group"].resample(**config["resample_args"]).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         result = reset_groups(result)
-        print("DF: ", result)
+
         return result
     return None
 
@@ -479,7 +476,7 @@ def app_duration(df, bat, screen, config=None):
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+        
     
     if (screen.empty and not bat.empty):
         shutdown = b.shutdown_info(bat, config)
@@ -490,14 +487,18 @@ def app_duration(df, bat, screen, config=None):
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user","device","datetime"], inplace=True)
         df2["app_group"].fillna('off', inplace=True)
-        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
     
-    if (screen.empty and bat.empty):
-        df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+    df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
+
+    # Group by user and device, then apply the resample and fill function
+    def resample_and_fill(group):
+        # Assuming the group is already sorted by time
+        return group.resample('15S').ffill()
     
+    df2 = df2.groupby(['user', 'device']).apply(resample_and_fill).reset_index(level=['user', 'device'], drop=True)
     
     df2['duration']=np.nan
-    df2['duration']=df2['datetime'].diff()
+    df2['duration']=df2.index.to_series().diff()
     df2['duration'] = df2['duration'].shift(-1)
     #Discard any datapoints whose duration are than 10 hours becaus they may be artifacts
     thr = pd.Timedelta('10 hours')
@@ -506,7 +507,7 @@ def app_duration(df, bat, screen, config=None):
     df2["duration"] = df2["duration"].dt.total_seconds()
     
     df2.dropna(inplace=True)
-    
+
     if len(df2)>0:
         df2['datetime'] = pd.to_datetime(df2['datetime'])
         df2.set_index('datetime', inplace=True)
@@ -543,7 +544,7 @@ def extract_features_app(df, bat, screen, features=None):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    print("extraciing faturie")
+
     if features is None:
         features = ALL_FEATURES
     else:
