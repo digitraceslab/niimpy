@@ -490,16 +490,24 @@ def app_duration(df, bat, screen, config=None):
     
     df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
 
-    # Group by user and device, then apply the resample and fill function
-    def resample_and_fill(group):
-        # Assuming the group is already sorted by time
-        return group.resample('15S').ffill()
-    
-    df2 = df2.groupby(['user', 'device']).apply(resample_and_fill).reset_index(level=['user', 'device'], drop=True)
-    
+    # Define a function to resample each group
+    def resample_group(group):
+        
+        rule = config["resample_args"]["rule"]
+
+        all_times = pd.date_range(start=group.index.min().round(rule), end=group.index.max().round(rule), freq=rule)
+
+        new_df = pd.DataFrame(index=all_times)
+        resampled_group = group.join(new_df, how='outer').ffill()
+        resampled_group['datetime'] = resampled_group.index
+        return resampled_group
+
+    # Apply the resampling function to each group
+    df2 = df2.groupby(['user', 'device']).apply(resample_group).reset_index(drop=True)
     df2['duration']=np.nan
-    df2['duration']=df2.index.to_series().diff()
+    df2['duration']=df2['datetime'].diff()
     df2['duration'] = df2['duration'].shift(-1)
+
     #Discard any datapoints whose duration are than 10 hours becaus they may be artifacts
     thr = pd.Timedelta('10 hours')
     df2 = df2[~(df2.duration>thr)]
