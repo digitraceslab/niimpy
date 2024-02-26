@@ -409,7 +409,7 @@ def app_count(df, bat, screen, config={}):
         
     if (screen.empty and bat.empty):
         df2 = df2[['user', 'device', 'datetime', 'app_group', "application_name"]]
-    
+
     df2.dropna(inplace=True)
     
     if len(df2)>0:
@@ -418,6 +418,7 @@ def app_count(df, bat, screen, config={}):
         result = group_data(df2)["app_group"].resample(**config["resample_args"]).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         result = reset_groups(result)
+        print("DF: ", result)
         return result
     return None
 
@@ -542,7 +543,7 @@ def extract_features_app(df, bat, screen, features=None):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    
+    print("extraciing faturie")
     if features is None:
         features = ALL_FEATURES
     else:
