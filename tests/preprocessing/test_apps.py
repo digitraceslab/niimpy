@@ -2,7 +2,6 @@ import os
 
 import numpy as np
 import pandas as pd
-import numpy as np
 
 import niimpy
 import niimpy.preprocessing.application as app
@@ -13,7 +12,7 @@ data = niimpy.read_csv(config.SINGLEUSER_AWARE_APP_PATH, tz='Europe/Helsinki')
 screen = niimpy.read_csv(config.MULTIUSER_AWARE_SCREEN_PATH, tz='Europe/Helsinki')
 battery = niimpy.read_csv(config.MULTIUSER_AWARE_BATTERY_PATH, tz='Europe/Helsinki')
 
-def test_audio_features():
+def test_app_features():
     
     test = app.extract_features_app(data, battery, screen, features=None)    
     time = "2019-08-05 14:00:00+03:00"

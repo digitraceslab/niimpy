@@ -490,7 +490,7 @@ def app_duration(df, bat, screen, config=None):
     
     df2 = df2[['user', 'device', 'time','datetime', 'app_group']]
 
-    # Define a function to resample each group
+    # Fill in time gap between app foreground session
     def resample_group(group):
         
         rule = config["resample_args"]["rule"]
@@ -502,8 +502,9 @@ def app_duration(df, bat, screen, config=None):
         resampled_group['datetime'] = resampled_group.index
         return resampled_group
 
-    # Apply the resampling function to each group
+    # Apply resampling to each group
     df2 = df2.groupby(['user', 'device']).apply(resample_group).reset_index(drop=True)
+    
     df2['duration']=np.nan
     df2['duration']=df2['datetime'].diff()
     df2['duration'] = df2['duration'].shift(-1)
