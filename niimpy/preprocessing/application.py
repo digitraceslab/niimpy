@@ -494,7 +494,7 @@ def app_duration(df, bat, screen, config=None):
 
         all_times = pd.date_range(
             start=group.index.min().round(rule),
-            end=group.index.max().round(rule),
+            end=group.index.max().ceil(rule),
             freq=rule,
         )
 
