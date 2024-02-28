@@ -7,9 +7,7 @@ from sklearn.cluster import DBSCAN
 
 from geopy.distance import geodesic
 
-import niimpy
-
-default_freq = "1M"
+default_freq = "1ME"
 
 group_by_columns = set(["user", "device"])
 
