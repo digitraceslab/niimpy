@@ -18,6 +18,7 @@ def test_audio_features():
     time = pd.Timestamp("2020-01-09 02:30:00", tz='Europe/Helsinki')
     
     test_user = test[test["user"] == "jd9INuQ5BBlW"]
+
     assert test_user.loc[time]["screen_on_count"] == 4
     assert test_user.loc[time]["screen_off_count"] == 5
     assert test_user.loc[time]["screen_use_count"] == 2
