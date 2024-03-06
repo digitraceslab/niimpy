@@ -513,9 +513,9 @@ def app_duration(df, bat, screen, config=None):
     #Discard any datapoints whose duration are larger than 10 hours or smaller than 0 becaus they may be are artifacts
     thr = pd.Timedelta("10 hours")
     df2 = df2[~(df2.duration > thr)]
-    df2 = df2[~(df2.duration <= 0)]
     df2["duration"] = df2["duration"].dt.total_seconds()
-
+    df2 = df2[~(df2.duration <= 0)]
+    
     df2.dropna(inplace=True)
 
     if len(df2) > 0:

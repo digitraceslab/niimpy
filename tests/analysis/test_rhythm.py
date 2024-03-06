@@ -45,7 +45,6 @@ def df():
     res["time"] = pd.to_datetime(res["time"], errors='coerce')
     res = res.set_index("time")
 
-    res.to_csv("test.csv")
     return res 
 
 # 1. Basic functionality test

@@ -13,8 +13,8 @@ def test_app_features():
     # TEST 1
     test = app.extract_features_app(data, battery, screen, features=None)
 
-    user_comm = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "comm")]
-    user_work = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "work")]
+    user_comm = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "comm")]
+    user_work = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "work")]
     assert user_comm.loc["2019-08-05 14:00:00+03:00"]["count"] == 2
     assert user_work.loc["2019-08-06 04:00:00+03:00"]["count"] == 1
     assert user_comm.loc["2019-08-05 14:00:00+03:00"]["duration"] == pytest.approx(
@@ -34,8 +34,8 @@ def test_app_features():
         app.app_duration: {"resample_args": {"rule": "1H"}},
     }
     test = app.extract_features_app(data, battery, screen, features=features)
-    user_comm = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "comm")]
-    user_work = test[(test["user"] == "iGyXetHE3S8u") & (test["app_group"] == "work")]
+    user_comm = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "comm")]
+    user_work = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "work")]
 
     assert user_comm.loc["2019-08-05 20:00:00+03:00"]["count"] == 3
     assert user_work.loc["2019-08-06 04:00:00+03:00"]["count"] == 2
