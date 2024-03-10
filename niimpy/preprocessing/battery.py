@@ -292,7 +292,7 @@ def battery_occurrences(df, config):
         
         occurrence_data["time"] = occurrence_data.index
         occurrences = group_data(occurrence_data).resample(
-            **config["resample_args"]
+            **config["resample_args"], include_groups=False
         ).agg({
             "time": "count",
             battery_status_col: count_alive
@@ -301,7 +301,7 @@ def battery_occurrences(df, config):
     else:
         occurrence_data["time"] = occurrence_data.index
         occurrences = group_data(occurrence_data).resample(
-            **config["resample_args"]
+            **config["resample_args"], include_groups=False
         )["time"].count()
         occurrences = occurrences.to_frame(name='occurrences')
 
@@ -347,7 +347,7 @@ def battery_gaps(df, config):
 
         return pd.DataFrame({"battery_gap": delta})
     
-    result = group_data(df).apply(calculate_gaps)
+    result = group_data(df).apply(calculate_gaps, include_groups=False)
     result = reset_groups(result)
     return result
 
@@ -384,7 +384,7 @@ def battery_charge_discharge(df, config):
             'charge/discharge': delta
         })
 
-    discharge = group_data(df).apply(calculate_discharge)
+    discharge = group_data(df).apply(calculate_discharge, include_groups=False)
     discharge = reset_groups(discharge)
     return discharge
 

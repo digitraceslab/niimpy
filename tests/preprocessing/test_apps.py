@@ -25,7 +25,7 @@ def test_audio_features():
     assert user_comm.loc[time]["duration"] == 37
     assert user_work.loc[time]["duration"] == 6
        
-    features ={app.app_count:{"app_column_name":"application_name", "screen_column_name":"screen_status","resample_args":{"rule":"30S"}},
+    features ={app.app_count:{"app_column_name":"application_name", "screen_column_name":"screen_status","resample_args":{"rule":"30s"}},
                app.app_duration:{"resample_args":{"rule":"1min"}}}
     test = app.extract_features_app(data, battery, screen, features=features)
     

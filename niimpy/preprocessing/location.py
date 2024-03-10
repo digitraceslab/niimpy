@@ -146,8 +146,8 @@ def get_speeds_totaldist(lats, lons, times):
     dists = np.zeros(n_bins)
     time_deltas = np.ones(n_bins)
     for i in range(1, n_bins):
-        loc1 = (lats[i - 1], lons[i - 1])
-        loc2 = (lats[i], lons[i])
+        loc1 = (lats.iloc[i - 1], lons.iloc[i - 1])
+        loc2 = (lats.iloc[i], lons.iloc[i])
 
         time_deltas[i] = (times[i] - times[i - 1]).total_seconds()
         dists[i] = geodesic(loc1, loc2).meters
@@ -297,7 +297,7 @@ def location_number_of_significant_places(df, config={}):
         })
         return row
     
-    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = reset_groups(result)
     return result
 
@@ -427,7 +427,7 @@ def location_significant_place_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = reset_groups(result)
     return result
 
@@ -489,7 +489,7 @@ def location_distance_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = reset_groups(result)
     return result
 
