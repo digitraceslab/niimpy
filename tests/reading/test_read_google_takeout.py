@@ -265,6 +265,8 @@ def test_read_chat(zipped_data):
             sentiment_batch_size = 2
         )
 
+    assert data.shape == (4, 11)
+
     assert data.index[0] == pd.to_datetime("2024-01-30 13:27:33+00:00")
     assert data.index[1] == pd.to_datetime("2024-01-30 13:29:10+00:00")
     assert data.index[2] == pd.to_datetime("2024-01-30 13:29:17+00:00")
@@ -306,8 +308,34 @@ def test_read_chat_no_chat_data(empty_zip_file):
     assert data.empty
 
 
+def test_read_chat_start_date(zipped_data):
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.chat(
+            zipped_data,
+            sentiment=True,
+            sentiment_batch_size = 2,
+            start_date = pd.to_datetime("2024-01-30 13:29:00+00:00"),
+        )
+
+    assert data.shape == (3, 11)
+
+
+def test_read_chat_end_date(zipped_data):
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.chat(
+            zipped_data,
+            sentiment=True,
+            sentiment_batch_size = 2,
+            end_date = pd.to_datetime("2024-01-30 13:29:00+00:00"),
+        )
+
+    assert data.shape == (1, 11)
+
+
 def test_read_youtube_watch_history(zipped_data):
     data = niimpy.reading.google_takeout.youtube_watch_history(zipped_data)
+
+    assert data.shape == (4, 3)
 
     assert data.index[0] == pd.to_datetime("2024-02-13 06:36:49+00:00")
     assert data.index[1] == pd.to_datetime("2024-02-13 06:36:05+00:00")
@@ -325,5 +353,20 @@ def test_read_youtube_watch_history(zipped_data):
 def test_read_youtube_watch_history_no_youtube_data(empty_zip_file):
     data = niimpy.reading.google_takeout.youtube_watch_history(empty_zip_file)
     assert data.empty
+
+
+def test_read_youtube_watch_history_start_date(zipped_data):
+    data = niimpy.reading.google_takeout.youtube_watch_history(
+        zipped_data,
+        start_date = pd.to_datetime("2024-02-13 06:36:00+00:00"),
+    )
+    assert data.shape == (2, 3)
+
+def test_read_youtube_watch_history_end_date(zipped_data):
+    data = niimpy.reading.google_takeout.youtube_watch_history(
+        zipped_data,
+        end_date = pd.to_datetime("2024-02-13 06:36:00+00:00"),
+    )
+    assert data.shape == (2, 3)
 
 

@@ -602,6 +602,8 @@ def chat(
         zip_filename, user=None,
         sentiment=False, sentiment_batch_size = 100,
         pseudonymize=True,
+        start_date = None,
+        end_date = None
     ):
     """ Read Google chat messages from a Google Takeout zip file.
 
@@ -621,6 +623,12 @@ def chat(
         service in each batch. Defaults to 100.
     pseudonymize: bool (optional)
         Replace senders and receivers with ID numbers. Defaults to True.
+    start_date : datetime.datetime, optional
+        The start date for the data. If provided, only data after this date is
+        included.
+    end_date : datetime.datetime, optional
+        The end date for the data. If provided, only data before this date is
+        included.
 
     Returns
     -------
@@ -667,6 +675,12 @@ def chat(
     df.set_index("timestamp", inplace=True)
     df.drop("created_date", axis=1, inplace=True)
 
+    # Filter by start and end date
+    if start_date is not None:
+        df = df[df.index >= start_date]
+    if end_date is not None:
+        df = df[df.index <= end_date]
+
     df["character_count"] = df["text"].apply(len)
     df["word_count"] = df["text"].apply(lambda x: len(x.split()))
     df["user"] = user
@@ -692,7 +706,7 @@ def chat(
 
 
 
-def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
+def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date = None, end_date = None):
     """ Read the watch history from a Google Takeout zip file.
 
     Watch history is stored as an html file. We parse the file
@@ -707,7 +721,17 @@ def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
 
     zip_filename : str
         The filename of the zip file.
-
+    user: str (optional)
+        A user ID that is added as a column to the dataframe. If not provided,
+        a random user UI is generated.
+    pseudonymize: bool (optional)
+        Replace video and channel titles with ID numbers. Defaults to True.
+    start_date : datetime.datetime, optional
+        The start date for the data. If provided, only data after this date is
+        included.
+    end_date : datetime.datetime, optional
+        The end date for the data. If provided, only data before this date is
+        included.
 
     Returns
     -------
@@ -731,11 +755,19 @@ def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
     for row in rows:
         a = row.find_all("a")
         if len(a) > 1:
-            data.append({
+            item = {
                 "video_title": a[0].text,
                 "channel_title": a[1].text,
                 "timestamp": row.find_all("br")[1].next_sibling.text
-            })
+            }
+            timestamp = pd.to_datetime(item["timestamp"], format="%b %d, %Y, %I:%M:%S %p %Z")
+            if start_date is not None:
+                if timestamp < start_date:
+                    continue
+            if end_date is not None:
+                if timestamp > end_date:
+                    continue
+            data.append(item)
 
     # Create the dataframe and set the timestamp as the index
     # Time format is like Feb 13, 2024, 8:35:03 AM EET
@@ -750,7 +782,7 @@ def youtube_watch_history(zip_filename, user=None, pseudoymize=True):
     df["user"] = user
 
     # Pseudonymize the titles
-    if pseudoymize:
+    if pseudonymize:
         df["video_title"] = df["video_title"].astype("category").cat.codes
         df["channel_title"] = df["channel_title"].astype("category").cat.codes
 
