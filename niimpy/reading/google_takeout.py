@@ -56,13 +56,70 @@ def format_inferred_activity(data, inferred_activity, activity_threshold):
 
 
 
+def read_json_after_timestamp(zip_file, filename, start_date):
+    """ Read the json file from the zip file line by line and discard
+    entries with timestamp before start_date. The dictionary contains
+    a "locations" list. Each entry takes multiple lines and needs to
+    be read fully before including or discarding it.
+    
+    Parameters
+    ----------
+    zip_file : zipfile.ZipFile
+        The zip file object.
+    filename : str
+        The name of the file in the zip file.
+    start_date : datetime.datetime
+        The timestamp to filter by.
+    
+    Returns
+    -------
+    data : list
+        A list of dictionaries with json data.
+    """
+
+    with zip_file.open(filename) as json_file:
+        data = []
+        entry = ""
+        depth = 0
+        for line in json_file:
+            if isinstance(line, bytes):
+                line = line.decode()
+
+            if '"locations":' in line:
+                # list started
+                data = []
+                depth = 0
+                entry = ""
+                # anything after the first "[" is part of the list
+                line = '['.join(line.split("[")[1:])
+
+            for char in line:
+                if char == "{":
+                    depth += 1
+                elif char == "}":
+                    depth -= 1
+                    if depth == 0:
+                        entry += char
+                        entry = json.loads(entry)
+                        if pd.to_datetime(entry["timestamp"], format='ISO8601') > start_date:
+                            data.append(entry)
+                        entry = ""
+                        char = ""
+                if depth > 0:
+                    entry += char
+                    
+                        
+    return data
+
 
 def location_history(
         zip_filename,
         inferred_activity="highest",
         activity_threshold=0,
         drop_columns=True,
-        user = None
+        user = None,
+        start_date = None,
+        end_date = None,
     ):
     """  Read the location history from a google takeout zip file.
 
@@ -108,15 +165,23 @@ def location_history(
     # Read json data from the zip file and convert to pandas DataFrame.
     try:
         zip_file = ZipFile(zip_filename)
-        json_data  = zip_file.read("Takeout/Location History/Records.json")
+        filename = "Takeout/Location History (Timeline)/Records.json"
+        if start_date is not None:
+            json_data = read_json_after_timestamp(zip_file, filename, start_date)
+        else:
+            json_data  = zip_file.read(filename)
+            json_data = json.loads(json_data)["locations"]
     except KeyError:
         return pd.DataFrame()
-    json_data = json.loads(json_data)
-    data = pd.json_normalize(json_data["locations"])
+    data = pd.json_normalize(json_data)
     data = pd.DataFrame(data)
 
     # Convert timestamp to datetime
     data["timestamp"] = pd.to_datetime(data["timestamp"], format='ISO8601')
+
+    # Filter by end date
+    if end_date is not None:
+        data = data[data["timestamp"] < end_date]
 
     # Format latitude and longitude as floating point numbers
     data["latitude"] = data["latitudeE7"] / 10000000
@@ -146,7 +211,7 @@ def location_history(
     return data
 
 
-def activity(zip_filename, user=None):
+def activity(zip_filename, user=None, start_date = None, end_date = None):
     """ Read activity data from a Google Takeout zip file. 
     
     Parameters
@@ -154,11 +219,18 @@ def activity(zip_filename, user=None):
 
     zip_filename : str
         The filename of the zip file.
-
+    user: str (optional)
+        A user ID that is added as a column to the dataframe. If not provided,
+        a random user UI is generated.
+    start_date : datetime.datetime, optional
+        The start date for the data. If provided, only data after this date is
+        included.
+    end_date : datetime.datetime, optional
+        The end date for the data. If provided, only data before this date is
+        included.
 
     Returns
     -------
-
     data : pandas.DataFrame
     """
 
@@ -170,11 +242,19 @@ def activity(zip_filename, user=None):
             if filename.endswith('Daily activity metrics.csv'):
                 continue
 
-            # Read the more finegrained data for each date
+            # Read the more fine grained data for each date
             if filename.startswith("Takeout/Fit/Daily activity metrics/") and filename.endswith(".csv"):
+                date = os.path.basename(filename).replace(".csv", "")
+                if start_date is not None:
+                    date = pd.to_datetime(date)
+                    if date < start_date:
+                        continue
+                if end_date is not None:
+                    date = pd.to_datetime(date)
+                    if date > end_date:
+                        continue
                 with zip_file.open(filename) as csv_file:
                     data = pd.read_csv(csv_file)
-                    date = os.path.basename(filename).replace(".csv", "")
                     data["date"] = date
                     dfs.append(data)
 
@@ -336,6 +416,8 @@ def email_activity(
         user=None,
         sentiment=False,
         sentiment_batch_size = 100,
+        start_date = None,
+        end_date = None,
     ):
     """ Extract message header data from the GMail inbox in
     a Google Takeout zip file.
@@ -354,6 +436,15 @@ def email_activity(
         provided, a random user UI is generated.
     sentiment: Bool (optiona)
         Include sentiment analysis of the message content
+    sentiment_batch_size: int (optional)
+        The number of messages to run sentiment analysis on at a time.
+        Defaults to 100.
+    start_date : datetime.datetime, optional
+        The start date for the data. If provided, only data after this date is
+        included.
+    end_date : datetime.datetime, optional
+        The end date for the data. If provided, only data before this date is
+        included.
         
     Returns
     -------
@@ -378,6 +469,10 @@ def email_activity(
             if timestamp:
                 timestamp = email.utils.parsedate_to_datetime(timestamp)
             timestamp = pd.to_datetime(timestamp)
+            if start_date is not None and timestamp < start_date:
+                continue
+            if end_date is not None and timestamp > end_date:
+                continue
         except:
             warnings.warn(f"Could not parse message timestamp: {received}")
 
