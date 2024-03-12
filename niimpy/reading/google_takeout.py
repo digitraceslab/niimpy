@@ -381,7 +381,7 @@ class email_file():
             self.zip_file.close()
 
 
-def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100):
+def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100, start_date=None, end_date=None):
     """ Run sentiment analysis on the content of the email messages
     in the dataframe. """
     content_batch = []
@@ -390,6 +390,20 @@ def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100):
 
     with tqdm(total=len(df)) as pbar:
         for message in mailbox.messages:
+            try:
+                timestamp = message.get("Date", "")
+                timestamp = message.get("date", timestamp)
+                if timestamp:
+                    timestamp = email.utils.parsedate_to_datetime(timestamp)
+                timestamp = pd.to_datetime(timestamp)
+                if start_date is not None and timestamp < start_date:
+                    continue
+                if end_date is not None and timestamp > end_date:
+                    continue
+            except:
+                # Warning should already have been raised
+                continue
+
             content_batch.append(email_utils.extract_content(message))
             if len(content_batch) >= sentiment_batch_size:
                 sentiments += get_sentiment(content_batch)
@@ -467,12 +481,14 @@ def email_activity(
             if timestamp:
                 timestamp = email.utils.parsedate_to_datetime(timestamp)
             timestamp = pd.to_datetime(timestamp)
+            print(timestamp)
             if start_date is not None and timestamp < start_date:
                 continue
             if end_date is not None and timestamp > end_date:
                 continue
         except:
             warnings.warn(f"Could not parse message timestamp: {received}")
+            continue
 
         # Extract received time and convert to datetime.
         # Entries are separated by ";" and the date is the last 
@@ -552,7 +568,7 @@ def email_activity(
     # Run sentiment analysis if requested. This might take some time.
     if sentiment:
         print(f"Running sentiment analysis on {len(df)} messages.")
-        sentiment_analysis_from_email(df, filename, sentiment_batch_size)
+        sentiment_analysis_from_email(df, filename, sentiment_batch_size, start_date, end_date)
 
     return df
 

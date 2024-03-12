@@ -161,6 +161,8 @@ def test_read_email_activity(zipped_data):
             zipped_data, sentiment=True, sentiment_batch_size = 2
         )
 
+    assert data.shape == (5, 12)
+
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
     assert data.index[3] == pd.to_datetime("2023-12-15 12:39:43+00:00")
@@ -195,6 +197,8 @@ def test_read_email_activity_mbox_file():
             path, sentiment=True, sentiment_batch_size = 2
         )
 
+    assert data.shape == (5, 12)
+
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
     assert data.index[3] == pd.to_datetime("2023-12-15 12:39:43+00:00")
@@ -226,6 +230,26 @@ def test_read_email_activity_no_email_data(empty_zip_file):
     """test reading email activity data not present in file. """
     data = niimpy.reading.google_takeout.email_activity(empty_zip_file)
     assert data.empty
+
+
+def test_read_email_activity_start_date(zipped_data):
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.email_activity(
+            zipped_data, sentiment=True, sentiment_batch_size = 2,
+            start_date = pd.to_datetime("2023-12-15 12:20:00+00:00"),
+        )
+
+    assert data.shape == (4, 12)
+
+
+def test_read_email_activity_end_date(zipped_data):
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.email_activity(
+            zipped_data, sentiment=True, sentiment_batch_size = 2,
+            end_date = pd.to_datetime("2023-12-15 12:20:00+00:00"),
+        )
+
+    assert data.shape == (1, 12)
 
 
 def test_read_email_unknown_file():
