@@ -60,15 +60,16 @@ def test_read_location_start_date(zipped_data):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(
         zipped_data,
-        start_date=pd.to_datetime("2016-08-12T19:31:00.00Z")
+        start_date=pd.to_datetime("2016-08-12T19:31:00.00Z", format='ISO8601')
     )
-    assert data.shape == (6, 20)
+    assert data.shape == (5, 20)
 
-def test_read_location_start_date(zipped_data):
+
+def test_read_location_end_date(zipped_data):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(
         zipped_data,
-        end_date=pd.to_datetime("2016-08-12T21:16:34.00Z")
+        end_date=pd.to_datetime("2016-08-12T21:16:34.00Z", format='ISO8601')
     )
     assert data.shape == (5, 20)
 
@@ -94,7 +95,6 @@ def test_read_location_activity_threshold(zipped_data):
     assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"].iloc[2] == 8
 
 
-
 def test_read_location_no_location_data(empty_zip_file):
     """test reading location data not present in file. """
     data = niimpy.reading.google_takeout.location_history(empty_zip_file)
@@ -104,8 +104,10 @@ def test_read_location_no_location_data(empty_zip_file):
 def test_read_activity(zipped_data):
     """test reading activity data from a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(zipped_data).sort_index()
+
+    assert data.shape == (192, 21)
     
-    assert data.index[0] == pd.to_datetime("2023-11-20 00:00:00+0200")
+    assert data.index[0] == pd.to_datetime("2023-11-20 00:00:000+02:00")
     assert np.isnan(data.iloc[4]["move_minutes_count"])
     assert data.iloc[75]["move_minutes_count"] == 13.0
     assert data.iloc[75]["calories_(kcal)"] == pytest.approx(43.42468) 
@@ -133,6 +135,24 @@ def test_read_activity_no_activity_data(empty_zip_file):
     """ test reading activity data not present in file. """
     data = niimpy.reading.google_takeout.activity(empty_zip_file)
     assert data.empty
+
+
+def test_read_activity_start_date(zipped_data):
+    """test reading location data from a Google takeout file."""
+    data = niimpy.reading.google_takeout.activity(
+        zipped_data,
+        start_date=pd.to_datetime("2023-11-21T00:00:00.000Z", format="ISO8601")
+    )
+    assert data.shape == (96, 19)
+
+
+def test_read_activity_end_date(zipped_data):
+    """test reading location data from a Google takeout file."""
+    data = niimpy.reading.google_takeout.activity(
+        zipped_data,
+        end_date=pd.to_datetime("2023-11-20T00:00:00.000Z", format="ISO8601")
+    )
+    assert data.shape == (96, 21)
 
 
 def test_read_email_activity(zipped_data):

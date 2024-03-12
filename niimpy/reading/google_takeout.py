@@ -246,12 +246,10 @@ def activity(zip_filename, user=None, start_date = None, end_date = None):
             if filename.startswith("Takeout/Fit/Daily activity metrics/") and filename.endswith(".csv"):
                 date = os.path.basename(filename).replace(".csv", "")
                 if start_date is not None:
-                    date = pd.to_datetime(date)
-                    if date < start_date:
+                    if pd.to_datetime(date).tz_localize("UTC") < start_date:
                         continue
                 if end_date is not None:
-                    date = pd.to_datetime(date)
-                    if date > end_date:
+                    if pd.to_datetime(date).tz_localize("UTC") > end_date:
                         continue
                 with zip_file.open(filename) as csv_file:
                     data = pd.read_csv(csv_file)
