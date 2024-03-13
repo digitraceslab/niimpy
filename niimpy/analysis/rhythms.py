@@ -149,7 +149,7 @@ def compute_rhythms(df: pd.DataFrame,
     df : pandas.DataFrame
         Input dataframe with a Timestamp index and 'user' column.
     timebin : str
-        Time bin for grouping, using pandas frequency string (e.g., '1H', '2H', '4H', '6H').
+        Time bin for grouping, using pandas frequency string (e.g., '1h', '2h', '4h', '6h').
     cols : list
         List of columns to compute the count distribution for.
     groupby_cols : list

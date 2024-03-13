@@ -31,7 +31,6 @@ def test_install_extensions_notpresent(capsys):
     outputs = capsys.readouterr()
     assert 'not available' in outputs.err, "Extensions did not uninstall"
 
-
     niimpy.util.install_extensions()
     assert os.path.exists(niimpy.util.SQLITE3_EXTENSIONS_FILENAME), "Extension is missing after niimpy.util.install_extensions()"
     outputs = capsys.readouterr()
@@ -42,7 +41,7 @@ def test_install_extensions_notpresent(capsys):
 # TODO: add test for util.aggregate
 def test_aggregate_correct_frequency():
     
-    df = setup_dataframe.create_timeindex_dataframe(nrows=120, ncols=6, freq='T')
+    df = setup_dataframe.create_timeindex_dataframe(nrows=120, ncols=6, freq='min')
     df['user'] = 1234
     res_df = niimpy.util.aggregate(df, method_categorical='mode', freq='h')
     

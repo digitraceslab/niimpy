@@ -16,7 +16,7 @@ class TestEDAMissingness(object):
     
         """
          
-        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
+        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='min')
         
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
@@ -37,7 +37,7 @@ class TestEDAMissingness(object):
 
         """
         
-        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
+        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='min')
 
         # Store information about raised ValueError in exc_info
         with pytest.raises(AssertionError) as exc_info:
@@ -58,9 +58,9 @@ class TestEDAMissingness(object):
 
         """
         
-        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='T')
+        df = setup_dataframe.create_missing_dataframe(nrows=60*24*30, ncols=5, density=0.2, index_type='dt', freq='min')
 
-        fig = missingness.bar_count(df, sampling_freq='H')
+        fig = missingness.bar_count(df, sampling_freq='h')
         
         ticktext = ("00:00:00", "01:00:00", "02:00:00", "03:00:00",
                      "04:00:00", "05:00:00", "06:00:00", "07:00:00",

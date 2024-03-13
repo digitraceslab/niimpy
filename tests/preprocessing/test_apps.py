@@ -29,9 +29,9 @@ def test_app_features():
         app.app_count: {
             "app_column_name": "application_name",
             "screen_column_name": "screen_status",
-            "resample_args": {"rule": "2H"},
+            "resample_args": {"rule": "2h"},
         },
-        app.app_duration: {"resample_args": {"rule": "1H"}},
+        app.app_duration: {"resample_args": {"rule": "1h"}},
     }
     test = app.extract_features_app(data, battery, screen, features=features)
     user_comm = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "comm")]

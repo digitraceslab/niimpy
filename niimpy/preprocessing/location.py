@@ -346,7 +346,7 @@ def location_significant_place_features(df, config={}):
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
-        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
+        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
 
     latitude_column = config.get("latitude_column", "double_latitude")
@@ -444,7 +444,7 @@ def location_distance_features(df, config={}):
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
-        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
+        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     latitude_column = config.get("latitude_column", "double_latitude")
     longitude_column = config.get("longitude_column", "double_latitude")

@@ -12,7 +12,7 @@ import plotly.figure_factory as ff
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 from scipy.spatial.distance import squareform
 
-def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq='H'):
+def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title = '', sampling_freq='h'):
     ''' Display bar chart visualization of the nullity of the given DataFrame.
     
     Parameters
@@ -28,7 +28,7 @@ def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_
     yaxis_title: str, optional
         y_axis's label
     sampling_freq: str, optional
-        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'H', 'T'
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'h', 'min'
 
     Returns
     -------
@@ -42,7 +42,7 @@ def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_
        
     resampled_df = df.resample(sampling_freq).count()
     
-    if sampling_freq == 'H':
+    if sampling_freq == 'h':
         resampled_df = resampled_df.groupby([resampled_df.index.hour])[columns].sum()
         fig = px.bar(resampled_df)
         
@@ -64,7 +64,7 @@ def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_
         )
         
 
-    elif sampling_freq == 'T':
+    elif sampling_freq == 'min':
         resampled_df = resampled_df.groupby([resampled_df.index.minute])[columns].sum()
             
         fig = px.bar(resampled_df)
@@ -104,7 +104,7 @@ def bar(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_title 
     yaxis_title: str, optional
         y_axis's label
     sampling_freq: str, optional
-        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'H', 'T'
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'h', 'min'
     sampling_method: str, optional
         Resampling method. Possible values: 'sum', 'mean'. Default value is 'mean'.
     Returns
@@ -161,7 +161,7 @@ def matrix(df, height=500, title='Data frequency', xaxis_title = '', yaxis_title
     yaxis_title: str, optional
         y_axis's label
     sampling_freq: str, optional
-        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'H', 'T'
+        Frequency to resample the data. Requires the dataframe to have datetime-like index. Possible values: 'h', 'min'
     sampling_method: str, optional
         Resampling method. Possible values: 'sum', 'mean'. Default value is 'mean'.
     Returns

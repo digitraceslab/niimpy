@@ -24,7 +24,7 @@ def get_timerange_(df,resample):
     date_index : pd.DatatimeIndex
         Resampled DatetimeIndex
     """
-    resample_options = ['D','H']
+    resample_options = ['D','h']
     
     assert isinstance(df,pd.DataFrame), "df is not a pandas dataframe"
     assert isinstance(resample,str), "resample is not a string"
@@ -35,12 +35,12 @@ def get_timerange_(df,resample):
     
     if resample == 'D':
         date_index = pd.date_range(start = start.strftime('%Y-%m-%d'), end = end.strftime('%Y-%m-%d'),freq='D')
-    if resample == 'H':
-        date_index = pd.date_range(start = start.strftime('%Y-%m-%d-%H'), end = end.strftime('%Y-%m-%d-%H'),freq='H')
+    if resample == 'h':
+        date_index = pd.date_range(start = start.strftime('%Y-%m-%d-%H'), end = end.strftime('%Y-%m-%d-%H'),freq='h')
             
     return date_index
 
-def combine_dataframe_(df,user_list,columns,res,date_index,agg_func=np.mean):
+def combine_dataframe_(df,user_list,columns,res,date_index,agg_func="mean"):
     """resample values from multiple users into new dataframe
     
     Parameters
@@ -56,8 +56,8 @@ def combine_dataframe_(df,user_list,columns,res,date_index,agg_func=np.mean):
     date_index : pd.date_range
         Date range used as an index
     agg_func : numpy function
-        Aggregation function used with resample. The default is np.mean
-    
+        Aggregation function used with resample. The default is "mean"
+
     Returns
     -------
     df_comb : pd.DataFrame
@@ -129,7 +129,7 @@ def punchcard_(df,title,n_xticks,xtitle,ytitle):
     
     return fig
 
-def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot", resample = 'D', normalize = False, agg_func = np.mean, timerange = False):
+def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot", resample = 'D', normalize = False, agg_func = "mean", timerange = False):
     """Punchcard plot for given users and column with optional resampling
     
     Parameters

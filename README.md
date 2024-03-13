@@ -85,7 +85,7 @@ location = pd.concat([location_control, location_patient])
 location = nilo.filter_location(location)
 
 # Downsample locations (median filter). Bin size is 10 minute.
-location = niimpy.util.aggregate(location, freq='10T', method_numerical='median')
+location = niimpy.util.aggregate(location, freq='10min', method_numerical='median')
 location = location.reset_index(0).dropna()
 
 # Feature extraction

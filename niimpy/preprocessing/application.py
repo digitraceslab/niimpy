@@ -325,7 +325,7 @@ def classify_app(df, config):
 
     df["app_group"] = "na"
     for key, value in config["group_map"].items():
-        df.app_group[df[col_name] == key] = value
+        df.loc[df[col_name] == key, "app_group"] = value
     return df
 
 
@@ -387,7 +387,7 @@ def app_count(df, bat, screen, config={}):
             screen.set_index("index", inplace=True)
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
         shutdown = b.shutdown_info(bat, config)
@@ -397,7 +397,7 @@ def app_count(df, bat, screen, config={}):
             shutdown.set_index("index", inplace=True)
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     df2 = df2[["user", "device", "datetime", "app_group", "application_name"]]
 
@@ -472,7 +472,7 @@ def app_duration(df, bat, screen, config=None):
             screen.set_index("index", inplace=True)
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
         shutdown = b.shutdown_info(bat, config)
@@ -482,7 +482,7 @@ def app_duration(df, bat, screen, config=None):
             shutdown.set_index("index", inplace=True)
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     df2 = df2[["user", "device", "time", "datetime", "app_group"]]
 
@@ -502,7 +502,7 @@ def app_duration(df, bat, screen, config=None):
         return resampled_group
 
     # Apply resampling to each group
-    df2 = df2.groupby(["user", "device"]).apply(resample_group).reset_index(drop=True)
+    df2 = df2.groupby(["user", "device"]).apply(resample_group, include_groups=False).reset_index(["user", "device"])
 
     df2["duration"] = np.nan
     df2["duration"] = df2["datetime"].diff()

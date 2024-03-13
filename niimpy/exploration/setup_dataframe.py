@@ -12,7 +12,7 @@ def create_dataframe():
         
     """
     
-    dti = pd.date_range("2018-01-01", periods=9, freq="H")
+    dti = pd.date_range("2018-01-01", periods=9, freq="h")
     
     d = {'user': ['user_1','user_2','user_3','user_4','user_5','user_6','user_7','user_8','user_9'], 
          'group': ['group_1','group_1','group_1','group_2','group_2','group_2','group_3','group_3','group_3'],
@@ -33,7 +33,7 @@ def create_categorical_dataframe():
         
     """
     
-    dti = pd.date_range("2018-01-01", periods=9, freq="H")
+    dti = pd.date_range("2018-01-01", periods=9, freq="h")
     
     d = {
         'user': ['user_1','user_2','user_3','user_4','user_5','user_6','user_7','user_8','user_9'],
@@ -88,7 +88,7 @@ def create_missing_dataframe():
         
     """
     
-    dti = pd.date_range("2018-01-01", periods=9, freq="H")
+    dti = pd.date_range("2018-01-01", periods=9, freq="h")
     
     d = {'user': ['user_1','user_2','user_3','user_4','user_5','user_6','user_7','user_8','user_9'], 
          'group': ['group_1','group_1','group_1','group_2','group_2','group_2','group_3','group_3','group_3'],
