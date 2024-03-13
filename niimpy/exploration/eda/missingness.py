@@ -43,7 +43,7 @@ def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_
     resampled_df = df.resample(sampling_freq).count()
     
     if sampling_freq == 'h':
-        resampled_df = resampled_df.resample(sampling_freq)[columns].sum()
+        resampled_df = resampled_df.groupby([resampled_df.index.hour])[columns].sum()
         fig = px.bar(resampled_df)
         
         # Define xticks
@@ -61,9 +61,10 @@ def bar_count(df, columns=None, title='Data frequency', xaxis_title = '', yaxis_
                 dtick = 5
             )
         )
-        
+
     elif sampling_freq == 'min':
-        resampled_df = resampled_df.resample(sampling_freq)[columns].sum()
+        resampled_df = resampled_df.groupby([resampled_df.index.minute])[columns].sum()
+            
         fig = px.bar(resampled_df)
         
         # Define xticks
