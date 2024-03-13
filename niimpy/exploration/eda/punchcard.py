@@ -165,9 +165,11 @@ def punchcard_plot(df, user_list = None, columns = None, title = "Punchcard Plot
     assert isinstance(columns, (list,type(None))), "columns is not a list or None"
     assert isinstance(title,str), "title is not a string."
     assert isinstance(resample,str), "resample is not a string."
-    assert callable(agg_func), "agg_function is not a callable."
     assert isinstance(normalize,bool), "normalize is not a boolean."
     assert isinstance(timerange,(bool,tuple)), "timerange is not a boolean or tuple."
+    
+    # The aggregation function can be a string referring to an internal Pandas function
+    # assert callable(agg_func), "agg_function is not a callable."
         
     # one user
     if len(user_list) == 1:
