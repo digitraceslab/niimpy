@@ -17,6 +17,6 @@ jobs:
       - name: install deps
         run: |
           pip install -r requirements.txt -r requirements-dev.txt
-      - name: pytest -w error
+      - name: pytest -W error
         run: |
-          pytest -w error
+          pytest -W error
