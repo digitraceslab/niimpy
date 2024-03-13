@@ -48,7 +48,7 @@ def test_punchcard_two_users_timerange():
     title = 'test_title'
     resample = "D"
     normalize = False
-    agg_function = np.mean
+    agg_function = "mean"
     timerange = ('20171231','20180101')
     
     fig = punchcard.punchcard_plot(df,user_list,columns,title, resample,normalize,agg_function,timerange)
