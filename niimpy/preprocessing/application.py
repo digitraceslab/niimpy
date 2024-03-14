@@ -325,7 +325,7 @@ def classify_app(df, config):
 
     df["app_group"] = "na"
     for key, value in config["group_map"].items():
-        df.app_group[df[col_name] == key] = value
+        df.loc[df[col_name] == key, "app_group"] = value
     return df
 
 
@@ -375,8 +375,8 @@ def app_count(df, bat, screen, config={}):
     else:
         screen_col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule": "30T"}
-
+        config["resample_args"] = {"rule":"30min"}
+    
     df2 = classify_app(df, config)
 
     # Insert missing data due to the screen being off or battery depleated
@@ -387,7 +387,7 @@ def app_count(df, bat, screen, config={}):
             screen.set_index("index", inplace=True)
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
         shutdown = b.shutdown_info(bat, config)
@@ -397,7 +397,7 @@ def app_count(df, bat, screen, config={}):
             shutdown.set_index("index", inplace=True)
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     df2 = df2[["user", "device", "datetime", "app_group", "application_name"]]
 
@@ -406,9 +406,7 @@ def app_count(df, bat, screen, config={}):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = (
-            group_data(df2)["app_group"].resample(**config["resample_args"]).count()
-        )
+        result = group_data(df2)["app_group"].resample(**config["resample_args"], include_groups=False).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         result = reset_groups(result)
 
@@ -462,8 +460,8 @@ def app_duration(df, bat, screen, config=None):
     else:
         screen_col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule": "30T"}
-
+        config["resample_args"] = {"rule":"30min"}
+    
     df2 = classify_app(df, config)
 
     # Insert missing data due to the screen being off or battery depleated
@@ -474,7 +472,7 @@ def app_duration(df, bat, screen, config=None):
             screen.set_index("index", inplace=True)
         df2 = pd.concat([df2, screen])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
         shutdown = b.shutdown_info(bat, config)
@@ -484,7 +482,7 @@ def app_duration(df, bat, screen, config=None):
             shutdown.set_index("index", inplace=True)
         df2 = pd.concat([df2, shutdown])
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
-        df2["app_group"].fillna("off", inplace=True)
+        df2.fillna({"app_group": "off"}, inplace=True)
 
     df2 = df2[["user", "device", "time", "datetime", "app_group"]]
 
@@ -504,7 +502,7 @@ def app_duration(df, bat, screen, config=None):
         return resampled_group
 
     # Apply resampling to each group
-    df2 = df2.groupby(["user", "device"]).apply(resample_group).reset_index(drop=True)
+    df2 = df2.groupby(["user", "device"]).apply(resample_group, include_groups=False).reset_index(["user", "device"])
 
     df2["duration"] = np.nan
     df2["duration"] = df2["datetime"].diff()
@@ -521,7 +519,7 @@ def app_duration(df, bat, screen, config=None):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = group_data(df2)["duration"].resample(**config["resample_args"]).sum()
+        result = group_data(df2)["duration"].resample(**config["resample_args"], include_groups=False).sum()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         return reset_groups(result)
 

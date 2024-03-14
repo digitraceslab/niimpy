@@ -307,7 +307,7 @@ class Data1(object):
             cur = self.conn.cursor()
             for table_ in self.tables():
                 for count, in cur.execute('SELECT count(*) FROM "{table}"'.format(table=table_, **self._sql(user=ALL))):
-                    user_stats['count'][table_] = count
+                    user_stats[table_, 'count'] = count
             return user_stats
         user_stats = pd.DataFrame(index=sorted(self.tables()), columns=sorted(self.users()))
         cur = self.conn.cursor()

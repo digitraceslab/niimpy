@@ -21,7 +21,7 @@ setup(name='niimpy',
       packages=find_packages(where='.'),
       package_data={'niimpy': ['sampledata/*.sqlite3', 'sampledata/*.csv','config/config.ini']},
       include_package_data=True,
-      python_requires=">=3.6",
+      python_requires=">=3.9",
       install_requires=requirements,
       classifiers=[
         "Programming Language :: Python :: 3",

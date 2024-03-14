@@ -20,7 +20,7 @@ def test_calculate_bins():
        '2018-01-01 03:00', '2018-01-01 04:00', '2018-01-01 05:00',
        '2018-01-01 06:00', '2018-01-01 07:00', '2018-01-01 08:00'])
     df = setup_dataframe.create_dataframe()
-    bins = countplot.calculate_bins(df,'H').values
+    bins = countplot.calculate_bins(df,'h').values
     assert (bins == target).all()
     
 def test_countplot_count():
@@ -45,7 +45,7 @@ def test_countplot_value():
                                 aggregation = 'group', 
                                 user = None, 
                                 column='col_1',
-                                binning='H')
+                                binning='h')
     
     assert (type(fig) == plotly.graph_objs._figure.Figure)
     

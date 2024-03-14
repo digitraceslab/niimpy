@@ -52,7 +52,7 @@ def test_correct_rhythms_colname(df):
 
     result = rh.compute_rhythms(
         df,
-        timebin="2H",
+        timebin="2h",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=24,
@@ -75,7 +75,7 @@ def test_correct_daily_rhythm_index(df):
     
     result = rh.compute_rhythms(
         df,
-        timebin="6H",
+        timebin="6h",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=24,
@@ -90,7 +90,7 @@ def test_correct_daily_rhythm_distributions(df):
 
     result = rh.compute_rhythms(
         df,
-        timebin="6H",
+        timebin="6h",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=24,
@@ -111,7 +111,7 @@ def test_correct_weekly_rhythm_index(df):
     
     result = rh.compute_rhythms(
         df,
-        timebin="6H",
+        timebin="6h",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=168,
@@ -121,12 +121,12 @@ def test_correct_weekly_rhythm_index(df):
     expected_index = ["Friday 00", "Friday 06", "Friday 12", "Friday 18"]
     assert len(result) > 0, "The result should not be empty."
     assert all(pd.Series(expected_index).isin(result.index)), "The index does not contain all required values."
-    
-def test_correct_weekly_rhythm_distributions(df):   
-    
+
+
+def test_correct_weekly_rhythm_distributions(df):
     result = rh.compute_rhythms(
         df,
-        timebin="6H",
+        timebin="6h",
         cols=["outgoing_count", "incoming_count"],
         groupby_cols=["user"],
         period=168,
@@ -137,10 +137,8 @@ def test_correct_weekly_rhythm_distributions(df):
     expected_incoming_count_distr = [0.03, 0.06, 0.03, 0.0, 0.09, 0.06, 0.03, 0.0, 0.06, 0.03, 0.06, 0.0, 0.03, 0.06, 0.03, 0.0, 0.06, 0.03, 0.06,
                                      0.0, 0.06, 0.03, 0.06, 0.0, 0.03, 0.06, 0.03, 0.0]
 
-
     outgoing_count_distr = result.query('user == "iGyXetHE3S8u"').outgoing_count_distr.tolist()
     incoming_count_distr = result.query('user == "iGyXetHE3S8u"').incoming_count_distr.tolist()
-
     
     assert len(result) > 0, "The result should not be empty."
     assert np.allclose(outgoing_count_distr, expected_outgoing_count_distr, atol=1e-2), "Incorrect distribution for outgoing_count"

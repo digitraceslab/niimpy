@@ -71,7 +71,7 @@ def battery_mean_level(df, config):
         col_name = config["battery_column_name"]
     
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
@@ -105,7 +105,7 @@ def battery_median_level(df, config):
         col_name = config["battery_column_name"]
     
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
@@ -139,7 +139,7 @@ def battery_std_level(df, config):
         col_name = config["battery_column_name"]
     
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
         
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
@@ -172,7 +172,7 @@ def battery_shutdown_time(df, config):
         col_name = config["battery_column_name"]
     
     if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
 
     def calculate_shutdown(df):
         df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str) 
@@ -220,7 +220,7 @@ def battery_discharge(df, config):
         col_name = config["battery_column_name"]
     
     if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
     
     def calculate_discharge(df):
         df.sort_index(inplace=True)
@@ -272,7 +272,7 @@ def battery_occurrences(df, config):
     assert isinstance(df, pd.DataFrame), "data is not a pandas DataFrame"
 
     if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
 
     if "battery_status" in config.keys():
         battery_status = config["battery_status"]
@@ -292,7 +292,7 @@ def battery_occurrences(df, config):
         
         occurrence_data["time"] = occurrence_data.index
         occurrences = group_data(occurrence_data).resample(
-            **config["resample_args"]
+            **config["resample_args"], include_groups=False
         ).agg({
             "time": "count",
             battery_status_col: count_alive
@@ -301,7 +301,7 @@ def battery_occurrences(df, config):
     else:
         occurrence_data["time"] = occurrence_data.index
         occurrences = group_data(occurrence_data).resample(
-            **config["resample_args"]
+            **config["resample_args"], include_groups=False
         )["time"].count()
         occurrences = occurrences.to_frame(name='occurrences')
 
@@ -330,7 +330,7 @@ def battery_gaps(df, config):
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
 
     if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
 
     if "min_duration_between" in config.keys():
         min_duration_between = config["min_duration_between"]
@@ -347,7 +347,7 @@ def battery_gaps(df, config):
 
         return pd.DataFrame({"battery_gap": delta})
     
-    result = group_data(df).apply(calculate_gaps)
+    result = group_data(df).apply(calculate_gaps, include_groups=False)
     result = reset_groups(result)
     return result
 
@@ -369,7 +369,7 @@ def battery_charge_discharge(df, config):
         battery_level_column = "battery_level"
     
     if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30T"}
+        config["resample_args"] = {"rule":"30min"}
 
     def calculate_discharge(df):
         battery_level = pd.to_numeric(df[battery_level_column])
@@ -384,7 +384,7 @@ def battery_charge_discharge(df, config):
             'charge/discharge': delta
         })
 
-    discharge = group_data(df).apply(calculate_discharge)
+    discharge = group_data(df).apply(calculate_discharge, include_groups=False)
     discharge = reset_groups(discharge)
     return discharge
 

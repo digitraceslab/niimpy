@@ -80,11 +80,11 @@ def test_audio_features():
     assert test_user2.loc[pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_on_durationtotal"] < 0.25
     assert test_user2.loc[pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_off_durationtotal"] < 446000
     
-    features ={sc.screen_duration_min:{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
-               sc.screen_duration_max:{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
-               sc.screen_duration_mean:{"screen_column_name":"screen_status","resample_args":{"rule":"12H"}},
-               sc.screen_duration_median:{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}},
-               sc.screen_duration_std:{"screen_column_name":"screen_status","resample_args":{"rule":"6H"}}}
+    features ={sc.screen_duration_min:{"screen_column_name":"screen_status","resample_args":{"rule":"12h"}},
+               sc.screen_duration_max:{"screen_column_name":"screen_status","resample_args":{"rule":"12h"}},
+               sc.screen_duration_mean:{"screen_column_name":"screen_status","resample_args":{"rule":"12h"}},
+               sc.screen_duration_median:{"screen_column_name":"screen_status","resample_args":{"rule":"6h"}},
+               sc.screen_duration_std:{"screen_column_name":"screen_status","resample_args":{"rule":"6h"}}}
     test = sc.extract_features_screen(data, bat, features=features)
     
     test_user = test[test["user"] == "jd9INuQ5BBlW"]

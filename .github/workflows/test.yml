@@ -7,9 +7,10 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - '3.8'
           - '3.9'
           - '3.10'
+          - '3.11'
+          - '3.12'
     steps:
       - uses: actions/checkout@v2
       - name: setup python
@@ -19,11 +20,6 @@ jobs:
       - name: install deps
         run: |
           pip install -r requirements.txt -r requirements-dev.txt
-      # sqlite3 extension is no urgently needed anymore; no longer required
-      # by default
-      #- name: setup extension
-      #  run: |
-      #    python -c 'import niimpy ; niimpy.util.install_extensions()'
       - name: pytest
         run: |
           pytest

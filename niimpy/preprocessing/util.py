@@ -7,7 +7,6 @@ import re
 import sys
 import warnings
 
-from datetime import date, datetime
 from scipy import stats
 
 
@@ -206,11 +205,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     assert method_numerical in ['mean', 'sum', 'median'], \
         'Cannot recognize sampling method. Possible values: "mean", "sum", "median".'
     if method_numerical == 'sum':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).sum(numeric_only=True)
+        sub_df1 = groupby.resample(freq, **resample_kwargs, include_groups=False).sum(numeric_only=True)
     elif method_numerical == 'mean':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).mean(numeric_only=True)
+        sub_df1 = groupby.resample(freq, **resample_kwargs, include_groups=False).mean(numeric_only=True)
     elif method_numerical == 'median':
-        sub_df1 = groupby.resample(freq, **resample_kwargs).median(numeric_only=True)
+        sub_df1 = groupby.resample(freq, **resample_kwargs, include_groups=False).median(numeric_only=True)
     else:
         print("Can't recognize sampling method")
 
@@ -223,11 +222,11 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     groupby = df[cat_cols].groupby(groups)
     assert method_categorical in ['first', 'mode', 'last']
     if method_categorical == 'first':
-        sub_df2 = groupby.resample(freq, **resample_kwargs).first()
+        sub_df2 = groupby.resample(freq, **resample_kwargs, include_groups=False).first()
     elif method_categorical == 'last':
-        sub_df2 = groupby.resample(freq, **resample_kwargs).last()
+        sub_df2 = groupby.resample(freq, **resample_kwargs, include_groups=False).last()
     elif method_categorical == 'mode':
-        sub_df2 = groupby.resample(freq, **resample_kwargs).agg(lambda x: tuple(stats.mode(x)[0]))
+        sub_df2 = groupby.resample(freq, **resample_kwargs, include_groups=False).agg(lambda x: tuple(stats.mode(x)[0]))
 
     #Merge sub_df1 and sub_df2
     sub_df1 = sub_df1.drop(groups, axis=1, errors='ignore')

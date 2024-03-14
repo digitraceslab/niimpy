@@ -7,9 +7,7 @@ from sklearn.cluster import DBSCAN
 
 from geopy.distance import geodesic
 
-import niimpy
-
-default_freq = "1M"
+default_freq = "1ME"
 
 group_by_columns = set(["user", "device"])
 
@@ -148,8 +146,8 @@ def get_speeds_totaldist(lats, lons, times):
     dists = np.zeros(n_bins)
     time_deltas = np.ones(n_bins)
     for i in range(1, n_bins):
-        loc1 = (lats[i - 1], lons[i - 1])
-        loc2 = (lats[i], lons[i])
+        loc1 = (lats.iloc[i - 1], lons.iloc[i - 1])
+        loc2 = (lats.iloc[i], lons.iloc[i])
 
         time_deltas[i] = (times[i] - times[i - 1]).total_seconds()
         dists[i] = geodesic(loc1, loc2).meters
@@ -299,7 +297,7 @@ def location_number_of_significant_places(df, config={}):
         })
         return row
     
-    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = reset_groups(result)
     return result
 
@@ -348,7 +346,7 @@ def location_significant_place_features(df, config={}):
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
-        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
+        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
 
     latitude_column = config.get("latitude_column", "double_latitude")
@@ -429,7 +427,7 @@ def location_significant_place_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = reset_groups(result)
     return result
 
@@ -446,7 +444,7 @@ def location_distance_features(df, config={}):
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
-        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1H"}.
+        resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     latitude_column = config.get("latitude_column", "double_latitude")
     longitude_column = config.get("longitude_column", "double_latitude")
@@ -491,7 +489,7 @@ def location_distance_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"]).apply(compute_features)
+    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = reset_groups(result)
     return result
 

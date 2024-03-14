@@ -12,5 +12,6 @@ kaleido
 scipy
 tqdm
 beautifulsoup4
+pyarrow
 multi_language_sentiment
 google_takeout_email

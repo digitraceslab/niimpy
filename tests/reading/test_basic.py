@@ -161,7 +161,7 @@ def test_df_normalize():
     df = pd.DataFrame({'time': [0, 3600, 7200], 'x': [2, 3, 5]})
     niimpy.util.df_normalize(df, tz=TZ)
     assert df['x']['1970-01-01 03:00:00'] == 3
-    assert df['datetime'][1].hour == 3
+    assert df.iloc[1]['datetime'].hour == 3
 
     df = pd.DataFrame({'day': (['2018-01-01']*3), 'hour':[2, 3, 4], 'x': [2, 3, 5]})
     print(df)
