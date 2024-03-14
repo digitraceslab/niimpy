@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import math
+import pytest
 
 import niimpy.preprocessing.tracker as tracker
 from niimpy import config
@@ -20,7 +21,7 @@ def test_step_summary():
     assert summary_df['median_sum_step'].values[0], 2 == 6480.0
 
 
-def test_daily_step_distribution():
+def test_step_distribution():
     df = pd.read_csv(config.STEP_SUMMARY_PATH, index_col=0)
     # Converting the index as date
     df.index = pd.to_datetime(df.index)
@@ -30,4 +31,17 @@ def test_daily_step_distribution():
 
     assert isinstance(res, pd.DataFrame)
     assert math.isclose(res.loc[(res["user"] == 'wiam9xme') & (res.index == '2021-07-03 19:00:00')][
-               'daily_distribution'].values[0], 0.025162, rel_tol = 0.0001), "Incorrect daily distribution calculation"
+               'step_distribution'].values[0], 0.025162, rel_tol = 0.0001), "Incorrect daily distribution calculation"
+
+
+def test_daily_step_distribution_with_short_timeframe():
+    df = pd.read_csv(config.STEP_SUMMARY_PATH, index_col=0)
+
+    df.index = pd.to_datetime(df.index)
+    df = df.rename(columns={"subject_id": "user"})
+    
+    with pytest.raises(ValueError) as exc_info:
+        tracker.tracker_step_distribution(df, {
+            "timeframe": '1s',
+            "resample_args": {'rule': '1d'}
+        })
