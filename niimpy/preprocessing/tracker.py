@@ -84,50 +84,65 @@ def step_summary(df, config={}):
     return summary_df
 
 
-def tracker_daily_step_distribution(steps_df, config={}):
-    """Return distribution of steps within each day. 
-    Assuming the step count is recorded at hourly resolution, this function will compute
-    the contribution of each hourly step count into the daily count (percentage wise).
+def tracker_step_distribution(steps_df, config={}):
+    """Return distribution of steps within a time range.
+    The number of step is sampled according to the frequency rule in resample_args.
+    This is divided by the total number of steps in a larger time frame, given by
+    the timeframe argument.
+
+    Using default parameters produces a daily step distribution.
 
     Parameters
     ----------
     steps_df : Pandas Dataframe
-        Dataframe containing the hourly step count of an individual.
+        Dataframe the step distribution of each individual.
+    config: dict
+        Dictionary keys containing optional arguments. These can be:
+
+        steps_column: str. Optional
+            Column contains step values. Default value is "steps".
+        resample_args: dict. Optional
+            Dictionary containing the resample arguments. Default value is {'rule': 'h'}.
+        timeframe: string. Optional
+            Time frame used for computing the distribution. Default value is 'D'.
         
     Returns
     -------
     df: pandas DataFrame
-        A dataframe containing the distribution of step count per day at hourly resolution.
+        A dataframe containing the distribution of step count.
     """
 
     steps_column = config.get("steps_column", "steps")
+    resample_args = config.get("resample_args", {'rule': 'h'})
+    timeframe = config.get("timeframe", 'd')
+
+    # time frame must be longer than resample_args["rule"]
+    to_offset = pd.tseries.frequencies.to_offset
+    if to_offset(timeframe) <= to_offset(resample_args["rule"]):
+        raise ValueError("Time frame must be longer than resample rule")
 
     # Extract date and time columns from timestamp
     df = steps_df.copy()
-    df["date"] = df.index.date 
-    df["time"] = df.index
-
-    # Dummy columns for hour, month, day for easier operations later on
-    df['hour'] = df.index.hour
-    df['month'] = df.index.month
-    df['day'] = df.index.day
 
     # Remove duplicates
     df = df.drop_duplicates(subset=['user', 'date', 'time'], keep='last')
 
-    # Convert the absolute values into distribution. This can be understood as the portion of steps the users took
-    # during each hour
-    df['daily_sum'] = group_data( df,
-        columns = ['day', 'month'] + group_by_columns
-    )[steps_column].transform('sum')  # stores sum of daily step
+    # Convert the absolute values into distribution. This can be understood as the
+    # portion of steps the users took during each hour
+    steps = df.groupby(["user"]).resample(**resample_args, include_groups=False).agg({steps_column: 'sum'})
+    step_sum = steps.reset_index(["user"]).groupby(["user"]).resample(timeframe).agg({steps_column: 'sum'})
+
+    steps["step_sum"] = step_sum[steps_column]
+    # fill down
+    steps["step_sum"] = steps["step_sum"].ffill()
 
     # Divide hourly steps by daily sum to get the distribution
-    df['daily_distribution'] = df[steps_column] / df['daily_sum']
+    steps['step_distribution'] = steps[steps_column] / steps['step_sum']
 
     # Set timestamp index
     df = df.set_index("time")
 
-    return df[["daily_distribution", "daily_sum", "month", "day", "hour", "user"]]
+    return steps[["step_distribution", "step_sum"]]
 
 
 ALL_FEATURES = [globals()[name] for name in globals()
@@ -161,7 +176,7 @@ def extract_features_tracker(df, features=None):
         features = ALL_FEATURES
     for feature_function, kwargs in features.items():
         print(features, kwargs)
-        computed_feature = feature_function(df, **kwargs)
+        computed_feature = feature_function(df, kwargs)
         index_by = list(set(group_by_columns) & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
