@@ -135,42 +135,46 @@ def format_column_names(df):
     df.rename(columns=column_map, inplace=True)
 
 
-def occurrence(series, bin_width=720, grouping_width=3600):
-    """Number of 12-minute
+def occurrence(series, bin_width="12min", grouping_width="1h"):
+    """ Resamples by grouping_width and aggregates by the number of bins
+    with data.
+    
+    With default options, this reproduces the logic of the "occurrence" database
+    function, without needing the database.
 
-    This reproduces the logic of the "occurrence" database function, without needing the database.
+    Parameters
+    ----------
+    series : pandas.Series
+        A pandas series of pandas.Timestamps.
+    bin_width : str
+        Width of the bin formatted as a pandas frequency. Default is "12min".
+    grouping_width : str
+        Width of the grouping formatted as a pandas frequency. Default is "1h".
 
-    inputs: pandas.Series of pandas.Timestamps
-
-    Output: pandas.DataFrame with timestamp index and 'occurance' column.
-
-    TODO: use the grouping_width option.
+    Returns
+    -------
+    pandas.DataFrame
+        Dataframe with timestamp index and 'occurance' column.
     """
-    if grouping_width != 3600:
-        raise ValueError("Changing grouping_width is not currently supported.")
-    if grouping_width % bin_width != 0:
-        raise ValueError("grouping_width must be a multiple of bin_width")
 
     if not isinstance(series, (pd.Series, pd.Index)):
-        raise ValueError("The input to niimpy.util.occurrence must be a "
+        raise ValueError("The input to niimpy.util.occurence must be a "
                          "pandas Series or Index, not a DataFrame.  "
                          "(your input type was: %s)"%type(series))
 
     if not np.issubdtype(series.dtype.base, np.datetime64):
-        df = pd.to_datetime(series, unit='s')
-    df = pd.DataFrame({"time":series})
+        series = pd.to_datetime(series, unit='s')
+    df = pd.DataFrame({"time": series})
+    df.set_index('time', inplace=True)
+    df["occurrence"] = 1
 
-    df['day'] = df['time'].dt.strftime("%Y-%m-%d")
-    df['hour'] = df['time'].dt.hour
-    df['bin'] = df['time'].dt.minute // (bin_width//60)
+    df = df.resample(bin_width).count()
+    print(df)
+    df = df[df['occurrence'] > 0]
+    df = df.resample(grouping_width).count()
 
-    gb1 = df.groupby(by=["day", "hour", "bin"], as_index=False).size()   # everything in the same bin goes to one row
-    gb2 = gb1.groupby(by=["day", "hour"]).size().to_frame()         # count number of bins in an hour
-    gb2.rename({0:"occurrence"}, axis=1, inplace=True)
-    # Following handles cases where there are not enough rows... TODO what is the right thing to do here?
-    gb2.reset_index(inplace=True)
-    gb2.index = gb2.loc[:, ['day', 'hour']].apply(lambda row: pd.Timestamp('%s %s:00'%(row['day'], row['hour'])), axis=1)
-    return gb2
+    return df
+
 
 
 def aggregate(df, freq, method_numerical='mean', method_categorical='first', groups=['user'], **resample_kwargs):
@@ -234,6 +238,6 @@ def aggregate(df, freq, method_numerical='mean', method_categorical='first', gro
     final_df = sub_df1.join(sub_df2)
 
     # Reset the user index, user should be a column
-    final_df.reset_index("user", inplace=True)
+    final_df.reset_index(groups, inplace=True)
 
     return final_df
