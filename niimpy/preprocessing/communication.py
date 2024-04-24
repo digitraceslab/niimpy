@@ -247,15 +247,13 @@ def call_count(df, config={}):
         return pd.DataFrame()
     if call_type_column not in df.columns:
         return pd.DataFrame()
-        
-    df[col_name]=pd.to_numeric(df[col_name])
-    
+            
     if len(df)>0:
-        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).count()
+        outgoing = group_data(df[df[call_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).count()
         outgoing.rename("outgoing_count", inplace=True)
-        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).count()
+        incoming = group_data(df[df[call_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).count()
         incoming.rename("incoming_count", inplace=True)
-        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).count()
+        missed = group_data(df[df[call_type_column]=="missed"])[col_name].resample(**config["resample_args"]).count()
         missed.rename("missed_count", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -333,11 +331,23 @@ def message_count(df, config={}):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    config["communication_column_name"] = config.get("communication_column_name", "message_type")
-    config["message_type_column"]= config.get("message_type_column", "message_type")
+    col_name = config.get("communication_column_name", "message_type")
+    message_type = config.get("message_type_column", "message_type")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
     
-    result = call_count(df, config)
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if message_type not in df.columns:
+        return pd.DataFrame()
+
+    if len(df)>0:
+        outgoing = group_data(df[df[message_type]=="outgoing"])[col_name].resample(**config["resample_args"]).count()
+        outgoing.rename("outgoing_count", inplace=True)
+        incoming = group_data(df[df[message_type]=="incoming"])[col_name].resample(**config["resample_args"]).count()
+        incoming.rename("incoming_count", inplace=True)
+        result = pd.concat([outgoing, incoming], axis=1)
+        result.fillna(0, inplace=True)
+        result = reset_groups(result)
     return result
 
 def message_outgoing_incoming_ratio(df, config={}):
@@ -366,11 +376,23 @@ def message_outgoing_incoming_ratio(df, config={}):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
 
-    config["communication_column_name"] = config.get("communication_column_name", "message_type")
-    config["message_type_column"]= config.get("message_type_column", "message_type")
+    col_name = config.get("communication_column_name", "message_type")
+    message_type = config.get("message_type_column", "message_type")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
     
-    result = call_outgoing_incoming_ratio(df, config)
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if message_type not in df.columns:
+        return pd.DataFrame()
+
+    df2 = message_count(df, config)
+    df2 = df2.set_index(list(group_by_columns & set(df2.columns)), append=True)
+    df2["outgoing_incoming_ratio"] = df2["outgoing_count"]/df2["incoming_count"]
+    df2 = df2["outgoing_incoming_ratio"]
+    df2.fillna(0, inplace=True)
+    result = df2.to_frame(name='outgoing_incoming_ratio')
+    result = reset_groups(result)
+
     return result
     
 
