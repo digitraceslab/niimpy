@@ -377,7 +377,7 @@ def message_outgoing_incoming_ratio(df, config={}):
 CALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]
 CALL_FEATURES = {x: {} for x in CALL_FEATURES}
 
-MESSAGE_FEATURES = [globals()[name] for name in globals() if name.startswith('sms_')]
+MESSAGE_FEATURES = [globals()[name] for name in globals() if name.startswith('message_')]
 MESSAGE_FEATURES = {x: {} for x in MESSAGE_FEATURES}
 
 
