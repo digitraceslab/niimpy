@@ -9,10 +9,9 @@ import niimpy.preprocessing.communication as comms
 from niimpy import config
 
 # read sample data
-data = niimpy.read_csv(config.MULTIUSER_AWARE_CALLS_PATH, tz='Europe/Helsinki')
 
 def test_audio_features():
-    
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_CALLS_PATH, tz='Europe/Helsinki')
     test = comms.extract_features_comms(data, features=None)
     
     test_user = test[test["user"] == "jd9INuQ5BBlW"]
@@ -70,3 +69,13 @@ def test_audio_features():
     assert test_user.loc[pd.Timestamp("2019-08-13 06:00:00", tz='Europe/Helsinki')]["incoming_duration_median"] == 591
     assert test_user.loc[pd.Timestamp("2019-08-13 06:00:00", tz='Europe/Helsinki')]["incoming_duration_std"] == 0
     
+
+def test_message_features():
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_MESSAGES_PATH, tz='Europe/Helsinki')
+    test = comms.extract_features_comms(data, features=None)
+
+    test_user = test[test["user"] == "jd9INuQ5BBlW"]
+    print(test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')])
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["outgoing_count"] == 5
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["incoming_count"] == 5
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 1.0
