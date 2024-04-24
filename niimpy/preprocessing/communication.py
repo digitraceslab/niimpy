@@ -40,21 +40,23 @@ def call_duration_total(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "call_duration"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-        
+    col_name = config.get("communication_column_name", "call_duration")
+    call_type_column = config.get("call_type_column", "call_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if call_type_column not in df.columns:
+        return pd.DataFrame()
+    
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).sum()
+        outgoing = group_data(df[df[call_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).sum()
         outgoing.rename("outgoing_duration_total", inplace=True)
-        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).sum()
+        incoming = group_data(df[df[call_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).sum()
         incoming.rename("incoming_duration_total", inplace=True)
-        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).sum()
+        missed = group_data(df[df[call_type_column]=="missed"])[col_name].resample(**config["resample_args"]).sum()
         missed.rename("missed_duration_total", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -87,12 +89,14 @@ def call_duration_mean(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "call_duration"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("communication_column_name", "call_duration")
+    call_type_column = config.get("call_type_column", "call_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if call_type_column not in df.columns:
+        return pd.DataFrame()
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -136,12 +140,14 @@ def call_duration_median(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "call_duration"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("communication_column_name", "call_duration")
+    call_type_column = config.get("call_type_column", "call_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if call_type_column not in df.columns:
+        return pd.DataFrame()
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -184,12 +190,14 @@ def call_duration_std(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "call_duration"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("communication_column_name", "call_duration")
+    call_type_column = config.get("call_type_column", "call_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if call_type_column not in df.columns:
+        return pd.DataFrame()
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -231,12 +239,14 @@ def call_count(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "call_duration"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("communication_column_name", "call_duration")
+    call_type_column = config.get("call_type_column", "call_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if call_type_column not in df.columns:
+        return pd.DataFrame()
         
     df[col_name]=pd.to_numeric(df[col_name])
     
@@ -278,12 +288,14 @@ def call_outgoing_incoming_ratio(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "call_duration"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("communication_column_name", "call_duration")
+    call_type_column = config.get("call_type_column", "call_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if call_type_column not in df.columns:
+        return pd.DataFrame()
         
     df2 = call_count(df, config)
     df2 = df2.set_index(list(group_by_columns & set(df2.columns)), append=True)
@@ -320,16 +332,18 @@ def sms_count(df, config=None):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "communication_column_name" in config:
-        col_name = "message_type"
-    else:
-        col_name = config["communication_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-        
-    outgoing = group_data(df[df.message_type=="outgoing"])[col_name].resample(**config["resample_args"]).count()
+    col_name = config.get("communication_column_name", "message_type")
+    message_type_column = config.get("call_type_column", "message_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    if col_name not in df.columns:
+        return pd.DataFrame()
+    if message_type_column not in df.columns:
+        return pd.DataFrame()
+    
+    outgoing = group_data(df[df[message_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).count()
     outgoing.rename("outgoing_count", inplace=True)
-    incoming = group_data(df[df.message_type=="incoming"])[col_name].resample(**config["resample_args"]).count()
+    incoming = group_data(df[df[message_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).count()
     incoming.rename("incoming_count", inplace=True)
     result = pd.concat([outgoing, incoming], axis=1)
     result.fillna(0, inplace=True)
@@ -337,8 +351,12 @@ def sms_count(df, config=None):
     
     return result
 
-ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]
-ALL_FEATURES = {x: {} for x in ALL_FEATURES}
+CALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]
+CALL_FEATURES = {x: {} for x in CALL_FEATURES}
+
+SMS_FEATURES = [globals()[name] for name in globals() if name.startswith('sms_')]
+SMS_FEATURES = {x: {} for x in SMS_FEATURES}
+
 
 def extract_features_comms(df, features=None):
     """ This function computes and organizes the selected features for calls 
@@ -366,7 +384,9 @@ def extract_features_comms(df, features=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     
     if features is None:
-        features = ALL_FEATURES
+        features = dict(CALL_FEATURES)
+        for k, i in SMS_FEATURES.items():
+            features[k] = i
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
     
