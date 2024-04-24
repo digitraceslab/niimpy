@@ -101,11 +101,11 @@ def call_duration_mean(df, config={}):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).mean()
+        outgoing = group_data(df[df[call_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).mean()
         outgoing.rename("outgoing_duration_mean", inplace=True)
-        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).mean()
+        incoming = group_data(df[df[call_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).mean()
         incoming.rename("incoming_duration_mean", inplace=True)
-        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).mean()
+        missed = group_data(df[df[call_type_column]=="missed"])[col_name].resample(**config["resample_args"]).mean()
         missed.rename("missed_duration_mean", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -152,11 +152,11 @@ def call_duration_median(df, config={}):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).median()
+        outgoing = group_data(df[df[call_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).median()
         outgoing.rename("outgoing_duration_median", inplace=True)
-        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).median()
+        incoming = group_data(df[df[call_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).median()
         incoming.rename("incoming_duration_median", inplace=True)
-        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).median()
+        missed = group_data(df[df[call_type_column]=="missed"])[col_name].resample(**config["resample_args"]).median()
         missed.rename("missed_duration_median", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
@@ -202,11 +202,11 @@ def call_duration_std(df, config={}):
     df[col_name]=pd.to_numeric(df[col_name])
     
     if len(df)>0:
-        outgoing = group_data(df[df.call_type=="outgoing"])[col_name].resample(**config["resample_args"]).std()
+        outgoing = group_data(df[df[call_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).std()
         outgoing.rename("outgoing_duration_std", inplace=True)
-        incoming = group_data(df[df.call_type=="incoming"])[col_name].resample(**config["resample_args"]).std()
+        incoming = group_data(df[df[call_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).std()
         incoming.rename("incoming_duration_std", inplace=True)
-        missed = group_data(df[df.call_type=="missed"])[col_name].resample(**config["resample_args"]).std()
+        missed = group_data(df[df[call_type_column]=="missed"])[col_name].resample(**config["resample_args"]).std()
         missed.rename("missed_duration_std", inplace=True)
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
