@@ -25,8 +25,8 @@ def call_duration_total(df, config={}):
     df: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -74,8 +74,8 @@ def call_duration_mean(df, config={}):
     df: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -125,8 +125,8 @@ def call_duration_median(df, config={}):
     bat: pandas.DataFrame
         Dataframe with the battery information
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -175,8 +175,8 @@ def call_duration_std(df, config={}):
     df: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -224,8 +224,8 @@ def call_count(df, config={}):
     df: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -273,8 +273,8 @@ def call_outgoing_incoming_ratio(df, config={}):
     df: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -288,7 +288,7 @@ def call_outgoing_incoming_ratio(df, config={}):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    col_name = config.get("communication_column_name", "call_duration")
+    col_name = config.get("communication_column_name", "call_type")
     call_type_column = config.get("call_type_column", "call_type")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
     
@@ -306,7 +306,8 @@ def call_outgoing_incoming_ratio(df, config={}):
     result = reset_groups(result)
     return result
 
-def sms_count(df, config={}):
+
+def message_count(df, config={}):
     """ This function returns the number of times, within the specified timeframe, 
     when an SMS has been sent/received. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number 
@@ -317,8 +318,8 @@ def sms_count(df, config={}):
     df: pandas.DataFrame
         Input data frame
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
         name employed by Aware Framework will be used. To include information about 
         the resampling window, please include the selected parameters from
@@ -332,30 +333,52 @@ def sms_count(df, config={}):
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert isinstance(config, dict), "config is not a dictionary"
     
-    col_name = config.get("communication_column_name", "message_type")
-    message_type_column = config.get("call_type_column", "message_type")
+    config["communication_column_name"] = config.get("communication_column_name", "message_type")
+    config["message_type_column"]= config.get("message_type_column", "message_type")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
     
-    if col_name not in df.columns:
-        return pd.DataFrame()
-    if message_type_column not in df.columns:
-        return pd.DataFrame()
-    
-    outgoing = group_data(df[df[message_type_column]=="outgoing"])[col_name].resample(**config["resample_args"]).count()
-    outgoing.rename("outgoing_count", inplace=True)
-    incoming = group_data(df[df[message_type_column]=="incoming"])[col_name].resample(**config["resample_args"]).count()
-    incoming.rename("incoming_count", inplace=True)
-    result = pd.concat([outgoing, incoming], axis=1)
-    result.fillna(0, inplace=True)
-    result = reset_groups(result)
-    
+    result = call_count(df, config)
     return result
+
+def message_outgoing_incoming_ratio(df, config={}):
+    """ This function returns the ratio of outgoing messages over incoming
+    messages, within the specified timeframe. If there is no specified timeframe,
+    the function sets a 30 min default time window. The function aggregates this number
+    by user, by timewindow.
+
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+    config: dict
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc. The functions
+        needs the column name where the data is stored; if none is given, the default
+        name employed by Aware Framework will be used. To include information about
+        the resampling window, please include the selected parameters from
+        pandas.DataFrame.resample in a dictionary called resample_args.
+    
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    assert isinstance(config, dict), "config is not a dictionary"
+
+    config["communication_column_name"] = config.get("communication_column_name", "message_type")
+    config["message_type_column"]= config.get("message_type_column", "message_type")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    
+    result = call_outgoing_incoming_ratio(df, config)
+    return result
+    
 
 CALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]
 CALL_FEATURES = {x: {} for x in CALL_FEATURES}
 
-SMS_FEATURES = [globals()[name] for name in globals() if name.startswith('sms_')]
-SMS_FEATURES = {x: {} for x in SMS_FEATURES}
+MESSAGE_FEATURES = [globals()[name] for name in globals() if name.startswith('sms_')]
+MESSAGE_FEATURES = {x: {} for x in MESSAGE_FEATURES}
 
 
 def extract_features_comms(df, features=None):
@@ -385,7 +408,7 @@ def extract_features_comms(df, features=None):
     
     if features is None:
         features = dict(CALL_FEATURES)
-        for k, i in SMS_FEATURES.items():
+        for k, i in MESSAGE_FEATURES.items():
             features[k] = i
     else:
         assert isinstance(features, dict), "Please input the features as a dictionary"
