@@ -75,7 +75,6 @@ def test_message_features():
     test = comms.extract_features_comms(data, features=None)
 
     test_user = test[test["user"] == "jd9INuQ5BBlW"]
-    print(test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')])
     assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["outgoing_count"] == 5
     assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["incoming_count"] == 5
     assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 1.0
