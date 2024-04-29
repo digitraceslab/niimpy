@@ -481,7 +481,6 @@ def email_activity(
             if timestamp:
                 timestamp = email.utils.parsedate_to_datetime(timestamp)
             timestamp = pd.to_datetime(timestamp)
-            print(timestamp)
             if start_date is not None and timestamp < start_date:
                 continue
             if end_date is not None and timestamp > end_date:
@@ -536,6 +535,11 @@ def email_activity(
 
         content = email_utils.extract_content(message)
 
+        outgoing = email_utils.strip_address(from_address) == user
+        incoming = user in email_utils.parse_address_list(to_address)
+        if not outgoing and not incoming:
+            warnings.warn(f"Message not sent to or from user")
+
         row = {
             "timestamp": timestamp,
             "received": received,
@@ -546,7 +550,7 @@ def email_activity(
             "message_id": message_id,
             "in_reply_to": in_reply_to,
             "character_count": len(content),
-            "word_count": len(content.split())
+            "word_count": len(content.split()),
         }
         data.append(row)
 
