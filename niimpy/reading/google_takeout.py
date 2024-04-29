@@ -535,11 +535,6 @@ def email_activity(
 
         content = email_utils.extract_content(message)
 
-        outgoing = email_utils.strip_address(from_address) == user
-        incoming = user in email_utils.parse_address_list(to_address)
-        if not outgoing and not incoming:
-            warnings.warn(f"Message not sent to or from user")
-
         row = {
             "timestamp": timestamp,
             "received": received,
@@ -562,6 +557,9 @@ def email_activity(
         user_email = infer_user_email(df)
         df = pseudonymize_addresses(df, user_email)
         df = pseudonymize_message_id(df)
+
+    df["incoming"] = df["from"] != user
+    df["outgoing"] = df["from"] == user
 
     if user is None:
         user = uuid.uuid1()
@@ -688,6 +686,9 @@ def chat(
     df["character_count"] = df["text"].apply(len)
     df["word_count"] = df["text"].apply(lambda x: len(x.split()))
     df["user"] = user
+
+    df["incoming"] = df["creator.email"] != user_email
+    df["outgoing"] = df["creator.email"] == user_email
 
     if pseudonymize:
         addresses = set(df["creator.email"].unique())

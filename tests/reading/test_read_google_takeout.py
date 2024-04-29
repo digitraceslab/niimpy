@@ -285,9 +285,9 @@ def test_read_chat(zipped_data, request):
         )
 
     if sentiment:
-        assert data.shape == (4, 11)
+        assert data.shape == (4, 13)
     else:
-        assert data.shape == (4, 9)
+        assert data.shape == (4, 11)
 
     assert data.index[0] == pd.to_datetime("2024-01-30 13:27:33+00:00")
     assert data.index[1] == pd.to_datetime("2024-01-30 13:29:10+00:00")
@@ -342,9 +342,9 @@ def test_read_chat_start_date(zipped_data, request):
         )
 
     if sentiment:
-        assert data.shape == (3, 11)
+        assert data.shape == (3, 13)
     else:
-        assert data.shape == (3, 9)
+        assert data.shape == (3, 11)
 
 
 def test_read_chat_end_date(zipped_data, request):
@@ -358,9 +358,9 @@ def test_read_chat_end_date(zipped_data, request):
         )
 
     if sentiment:
-        assert data.shape == (1, 11)
+        assert data.shape == (1, 13)
     else:
-        assert data.shape == (1, 9)
+        assert data.shape == (1, 11)
 
 
 def test_read_youtube_watch_history(zipped_data):
