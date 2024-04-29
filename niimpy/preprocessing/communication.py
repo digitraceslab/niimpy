@@ -8,11 +8,13 @@ def group_data(df):
     columns = list(group_by_columns & set(df.columns))
     return df.groupby(columns)
 
+
 def reset_groups(df):
     """ Group the dataframe by a standard set of columns listed in
     group_by_columns."""
     columns = list(group_by_columns & set(df.index.names))
     return df.reset_index(columns)
+
 
 def call_duration_total(df, config={}):  
     """ This function returns the total duration of each call type, within the 
@@ -63,6 +65,7 @@ def call_duration_total(df, config={}):
         result = reset_groups(result)
     return result
     
+
 def call_duration_mean(df, config={}):
     """ This function returns the average duration of each call type, within the 
     specified timeframe. The call types are incoming, outgoing, and missed. If 
@@ -111,6 +114,7 @@ def call_duration_mean(df, config={}):
         result.fillna(0, inplace=True)
         result = reset_groups(result)
     return result
+
 
 def call_duration_median(df, config={}):
     """ This function returns the median duration of each call type, within the 
@@ -163,6 +167,7 @@ def call_duration_median(df, config={}):
         result = reset_groups(result)
     return result
 
+
 def call_duration_std(df, config={}):
     """ This function returns the standard deviation of the duration of each 
     call type, within the specified timeframe. The call types are incoming, 
@@ -213,6 +218,7 @@ def call_duration_std(df, config={}):
         result = reset_groups(result)
     return result
 
+
 def call_count(df, config={}):
     """ This function returns the number of times, within the specified timeframe, 
     when a call has been received, missed, or initiated. If there is no specified 
@@ -259,6 +265,7 @@ def call_count(df, config={}):
         result.fillna(0, inplace=True)
         result = reset_groups(result)
     return result
+
 
 def call_outgoing_incoming_ratio(df, config={}):
     """ This function returns the ratio of outgoing calls over incoming calls, 
@@ -348,7 +355,9 @@ def message_count(df, config={}):
         result = pd.concat([outgoing, incoming], axis=1)
         result.fillna(0, inplace=True)
         result = reset_groups(result)
-    return result
+        return result
+    return pd.DataFrame()
+
 
 def message_outgoing_incoming_ratio(df, config={}):
     """ This function returns the ratio of outgoing messages over incoming
@@ -394,7 +403,7 @@ def message_outgoing_incoming_ratio(df, config={}):
     result = reset_groups(result)
 
     return result
-    
+
 
 CALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]
 CALL_FEATURES = {x: {} for x in CALL_FEATURES}
