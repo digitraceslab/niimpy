@@ -1,4 +1,5 @@
 import pandas as pd
+import warnings
 
 group_by_columns = set(["user", "device"])
 
@@ -14,6 +15,58 @@ def reset_groups(df):
     group_by_columns."""
     columns = list(group_by_columns & set(df.index.names))
     return df.reset_index(columns)
+
+
+def _distribution(df, col_name = None, time_interval="d", bin_interval="h"):
+    """ Calculates the distribution data entries over a time interval.
+
+    If a col_name is provided, data is filtered to remove any NaN values in that
+    column. Otherwise all rows are considered.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+
+    col_name: str
+        If provided, filter out NaN values in this column.
+        If no column name is provided, all rows are considered valid.
+
+    time_interval: str
+        Time interval to calculate the distribution over.
+
+    bin_interval: str
+        The size of a single bin in the distribution.
+
+    Returns
+    -------
+    result: dataframe
+        DataFrame containing a distribution column.
+    """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    assert pd.to_timedelta(bin_interval) < pd.to_timedelta(time_interval), "bin interval must be smaller than time interval"
+
+    if col_name is not None:
+        df = df[~df[col_name].isna()]
+
+    if len(df) == 0:
+        return pd.DataFrame()
+    
+    bins = df[col_name].resample(bin_interval).count()
+    sums = bins.resample(time_interval).sum()
+    df = pd.concat([bins, sums], axis=1, keys=["bin", "sum"])
+
+    # Fill in missing time intervals
+    complete_time_range = pd.date_range(start=df.index.min(), end=df.index.max(), freq=bin_interval)
+    df = df.reindex(complete_time_range)
+    df["bin"] = df["bin"].fillna(0)
+    df["sum"] = df["sum"].ffill()
+
+    df["distribution"] = df["bin"] / df["sum"]
+    df.drop(columns=["bin", "sum"], inplace=True)
+
+    return df
+
 
 
 def call_duration_total(df, config={}):  
@@ -312,6 +365,48 @@ def call_outgoing_incoming_ratio(df, config={}):
     return result
 
 
+def call_distribution(df, config={}):
+    """ Calculates the distribution of calls sent and received over a time
+    interval. The function first aggregates the number of calls over a
+    shorter time interval, the bins, and then calculates the distribution of
+    the message count over a longer interval, the time window.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+
+    config: dict
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc.
+
+        This function accepts col_name (default "call_type"), a time interval
+        (default 1d) and a bin interval (default 1h).
+
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    assert isinstance(config, dict), "config is not a dictionary"
+
+    col_name = config.get("col_name", "call_type")
+    time_interval = config.get("time interval", "1d")
+    bin_interval = config.get("bin interval", "1h")
+
+    if col_name not in df.columns:
+        return pd.DataFrame()
+
+    df = group_data(df).apply(
+        lambda x: _distribution(x, col_name, time_interval, bin_interval),
+        include_groups=False
+    )
+    df = reset_groups(df)
+
+    return df
+
+
 def message_count(df, config={}):
     """ This function returns the number of times, within the specified timeframe, 
     when an SMS has been sent/received. If there is no specified timeframe,
@@ -387,7 +482,7 @@ def message_outgoing_incoming_ratio(df, config={}):
 
     col_name = config.get("communication_column_name", "message_type")
     message_type = config.get("message_type_column", "message_type")
-    config["resample_args"] = config.get("resample_args", {"rule":"30min"}) 
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if col_name not in df.columns:
         return pd.DataFrame()
@@ -403,6 +498,50 @@ def message_outgoing_incoming_ratio(df, config={}):
     result = reset_groups(result)
 
     return result
+
+
+def message_distribution(df, config={}):
+    """ Calculates the distribution of messages sent and received over a time
+    interval. The function first aggregates the number of messages over a
+    shorter time interval, the bins, and then calculates the distribution of
+    the message count over a longer interval, the time window.
+    
+    Parameters
+    ----------
+    df: pandas.DataFrame
+        Input data frame
+
+    config: dict
+        Dictionary keys containing optional arguments for the computation of features.
+        Keys can be column names, other dictionaries, etc.
+
+        This function accepts col_name, a time interval
+        (default 1d) and a bin interval (default 1h).
+
+        if col_name is given, the data is first filtered to remove NaN values in that
+        column.
+
+    Returns
+    -------
+    result: dataframe
+        Resulting dataframe
+    """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    assert isinstance(config, dict), "config is not a dictionary"
+
+    col_name = config.get("col_name", "message_type")
+    time_interval = config.get("time interval", "1d")
+    bin_interval = config.get("bin interval", "1h")
+
+    if col_name not in df.columns:
+        return pd.DataFrame()
+
+    df = group_data(df).apply(
+        lambda x: _distribution(x, col_name, time_interval, bin_interval),
+        include_groups=False
+    )
+    df = reset_groups(df)
+    return df
 
 
 CALL_FEATURES = [globals()[name] for name in globals() if name.startswith('call_')]

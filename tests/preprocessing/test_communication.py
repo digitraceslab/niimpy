@@ -106,3 +106,9 @@ def test_message_features_with_google_chat(google_takeout_zipped):
     print(test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')])
     assert test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')]["outgoing_count"] == 2
 
+
+def test_call_distribution():
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_CALLS_PATH, tz='Europe/Helsinki')
+    test = niimpy.preprocessing.communication.call_distribution(data)
+    test_user = test[test["user"] == "jd9INuQ5BBlW"]
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:00:00", tz='Europe/Helsinki')]["distribution"] == pytest.approx(0.88888888)
