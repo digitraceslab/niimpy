@@ -158,7 +158,7 @@ def occurrence(series, bin_width="12min", grouping_width="1h"):
     """
 
     if not isinstance(series, (pd.Series, pd.Index)):
-        raise ValueError("The input to niimpy.util.occurence must be a "
+        raise ValueError("The input to niimpy.util.occurrence must be a "
                          "pandas Series or Index, not a DataFrame.  "
                          "(your input type was: %s)"%type(series))
 
@@ -169,7 +169,6 @@ def occurrence(series, bin_width="12min", grouping_width="1h"):
     df["occurrence"] = 1
 
     df = df.resample(bin_width).count()
-    print(df)
     df = df[df['occurrence'] > 0]
     df = df.resample(grouping_width).count()
 

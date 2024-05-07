@@ -59,7 +59,7 @@ of 12 minute intervals within an hour when the device was active.
   data.occurrence("HeartRate", user=niimpy.ALL)
 ```
 
-She then removes the data with occurence numbers less than 5.
+She then removes the data with occurrence numbers less than 5.
 
 ... exact commands to filter data by quality thresholds ...
 
