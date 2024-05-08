@@ -9,26 +9,6 @@ import niimpy
 from niimpy import config
 
 
-def create_zip(zip_filename):
-    """ Compress the google takeout folder into a zip file"""
-    test_zip = zipfile.ZipFile(zip_filename, mode="w")
-
-    for dirpath,dirs,files in os.walk(config.GOOGLE_TAKEOUT_DIR):
-        for f in files:
-            filename = os.path.join(dirpath, f)
-            filename_in_zip = filename.replace(config.GOOGLE_TAKEOUT_DIR, "")
-            test_zip.write(filename, filename_in_zip)
-
-    test_zip.close()
-
-
-@pytest.fixture
-def zipped_data():
-    with tempfile.TemporaryDirectory() as ddir:
-        zip_filename = os.path.join(ddir, "test.zip")
-        create_zip(zip_filename)
-        yield zip_filename
-
 @pytest.fixture
 def empty_zip_file():
     with tempfile.TemporaryDirectory() as ddir:
@@ -37,9 +17,9 @@ def empty_zip_file():
         yield zip_filename
 
 
-def test_read_location(zipped_data):
+def test_read_location(google_takeout_zipped):
     """test reading location data from a Google takeout file."""
-    data = niimpy.reading.google_takeout.location_history(zipped_data)
+    data = niimpy.reading.google_takeout.location_history(google_takeout_zipped)
 
     assert data.shape == (7, 20)
     
@@ -56,28 +36,28 @@ def test_read_location(zipped_data):
     assert data['activity_inference_confidence']["2016-08-12T19:30:49.531Z"] == 62
 
 
-def test_read_location_start_date(zipped_data):
+def test_read_location_start_date(google_takeout_zipped):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(
-        zipped_data,
+        google_takeout_zipped,
         start_date=pd.to_datetime("2016-08-12T19:31:00.00Z", format='ISO8601')
     )
     assert data.shape == (5, 20)
 
 
-def test_read_location_end_date(zipped_data):
+def test_read_location_end_date(google_takeout_zipped):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(
-        zipped_data,
+        google_takeout_zipped,
         end_date=pd.to_datetime("2016-08-12T21:16:34.00Z", format='ISO8601')
     )
     assert data.shape == (5, 20)
 
 
-def test_read_location_activity_threshold(zipped_data):
+def test_read_location_activity_threshold(google_takeout_zipped):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.location_history(
-        zipped_data,
+        google_takeout_zipped,
         inferred_activity = "threshold",
     )
 
@@ -101,9 +81,9 @@ def test_read_location_no_location_data(empty_zip_file):
     assert data.empty
 
 
-def test_read_activity(zipped_data):
+def test_read_activity(google_takeout_zipped):
     """test reading activity data from a Google takeout file."""
-    data = niimpy.reading.google_takeout.activity(zipped_data).sort_index()
+    data = niimpy.reading.google_takeout.activity(google_takeout_zipped).sort_index()
 
     assert data.shape == (192, 21)
     
@@ -137,31 +117,35 @@ def test_read_activity_no_activity_data(empty_zip_file):
     assert data.empty
 
 
-def test_read_activity_start_date(zipped_data):
+def test_read_activity_start_date(google_takeout_zipped):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(
-        zipped_data,
+        google_takeout_zipped,
         start_date=pd.to_datetime("2023-11-21T00:00:00.000Z", format="ISO8601")
     )
     assert data.shape == (96, 19)
 
 
-def test_read_activity_end_date(zipped_data):
+def test_read_activity_end_date(google_takeout_zipped):
     """test reading location data from a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(
-        zipped_data,
+        google_takeout_zipped,
         end_date=pd.to_datetime("2023-11-20T00:00:00.000Z", format="ISO8601")
     )
     assert data.shape == (96, 21)
 
 
-def test_read_email_activity(zipped_data):
+def test_read_email_activity(google_takeout_zipped, request):
+    sentiment = request.config.getoption("--run_sentiment")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.email_activity(
-            zipped_data, sentiment=True, sentiment_batch_size = 2
+            google_takeout_zipped, sentiment=sentiment, sentiment_batch_size = 2
         )
 
-    assert data.shape == (5, 12)
+    if sentiment:
+        assert data.shape == (5, 13)
+    else:
+        assert data.shape == (5, 11)
 
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
@@ -184,20 +168,25 @@ def test_read_email_activity(zipped_data):
     assert data.iloc[0]["word_count"] == 6
     assert data.iloc[0]["character_count"] == 33
 
-    assert data.iloc[0]["sentiment"] == "positive"
-    assert data.iloc[1]["sentiment"] == "negative"
-    assert data.iloc[2]["sentiment"] == "negative"
-    assert data.iloc[3]["sentiment"] == "positive"
+    if sentiment:
+        assert data.iloc[0]["sentiment"] == "positive"
+        assert data.iloc[1]["sentiment"] == "negative"
+        assert data.iloc[2]["sentiment"] == "negative"
+        assert data.iloc[3]["sentiment"] == "positive"
 
 
-def test_read_email_activity_mbox_file():
+def test_read_email_activity_mbox_file(request):
+    sentiment = request.config.getoption("--run_sentiment")
     path = os.path.join(config.GOOGLE_TAKEOUT_DIR, "Takeout", "Mail", "All mail Including Spam and Trash.mbox")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.email_activity(
-            path, sentiment=True, sentiment_batch_size = 2
+            path, sentiment=sentiment, sentiment_batch_size = 2
         )
 
-    assert data.shape == (5, 12)
+    if sentiment:
+        assert data.shape == (5, 13)
+    else:
+        assert data.shape == (5, 11)
 
     assert data.index[0] == pd.to_datetime("2023-12-15 12:19:43+00:00")
     assert data.index[1] == pd.to_datetime("2023-12-15 12:29:43+00:00")
@@ -220,10 +209,11 @@ def test_read_email_activity_mbox_file():
     assert data.iloc[0]["word_count"] == 6
     assert data.iloc[0]["character_count"] == 33
 
-    assert data.iloc[0]["sentiment"] == "positive"
-    assert data.iloc[1]["sentiment"] == "negative"
-    assert data.iloc[2]["sentiment"] == "negative"
-    assert data.iloc[3]["sentiment"] == "positive"
+    if sentiment:
+        assert data.iloc[0]["sentiment"] == "positive"
+        assert data.iloc[1]["sentiment"] == "negative"
+        assert data.iloc[2]["sentiment"] == "negative"
+        assert data.iloc[3]["sentiment"] == "positive"
 
 
 def test_read_email_activity_no_email_data(empty_zip_file):
@@ -232,24 +222,32 @@ def test_read_email_activity_no_email_data(empty_zip_file):
     assert data.empty
 
 
-def test_read_email_activity_start_date(zipped_data):
+def test_read_email_activity_start_date(google_takeout_zipped, request):
+    sentiment = request.config.getoption("--run_sentiment")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.email_activity(
-            zipped_data, sentiment=True, sentiment_batch_size = 2,
+            google_takeout_zipped, sentiment=sentiment, sentiment_batch_size = 2,
             start_date = pd.to_datetime("2023-12-15 12:20:00+00:00"),
         )
 
-    assert data.shape == (4, 12)
+    if sentiment:
+        assert data.shape == (4, 13)
+    else:
+        assert data.shape == (4, 11)
 
 
-def test_read_email_activity_end_date(zipped_data):
+def test_read_email_activity_end_date(google_takeout_zipped, request):
+    sentiment = request.config.getoption("--run_sentiment")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.email_activity(
-            zipped_data, sentiment=True, sentiment_batch_size = 2,
+            google_takeout_zipped, sentiment=sentiment, sentiment_batch_size = 2,
             end_date = pd.to_datetime("2023-12-15 12:20:00+00:00"),
         )
 
-    assert data.shape == (1, 12)
+    if sentiment:
+        assert data.shape == (1, 13)
+    else:
+        assert data.shape == (1, 11)
 
 
 def test_read_email_unknown_file():
@@ -257,15 +255,19 @@ def test_read_email_unknown_file():
         niimpy.reading.google_takeout.email_activity("unknown_file")
 
 
-def test_read_chat(zipped_data):
+def test_read_chat(google_takeout_zipped, request):
+    sentiment = request.config.getoption("--run_sentiment")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.chat(
-            zipped_data,
-            sentiment=True,
+            google_takeout_zipped,
+            sentiment=sentiment,
             sentiment_batch_size = 2
         )
 
-    assert data.shape == (4, 11)
+    if sentiment:
+        assert data.shape == (4, 12)
+    else:
+        assert data.shape == (4, 10)
 
     assert data.index[0] == pd.to_datetime("2024-01-30 13:27:33+00:00")
     assert data.index[1] == pd.to_datetime("2024-01-30 13:29:10+00:00")
@@ -295,10 +297,11 @@ def test_read_chat(zipped_data):
     assert data.iloc[2]["character_count"] == 11
     assert data.iloc[3]["character_count"] == 22
 
-    assert data.iloc[0]["sentiment"] == 'none'
-    assert data.iloc[1]["sentiment"] == 'none'
-    assert data.iloc[2]["sentiment"] == 'positive'
-    assert data.iloc[3]["sentiment"] == 'positive'
+    if sentiment:
+        assert data.iloc[0]["sentiment"] == 'none'
+        assert data.iloc[1]["sentiment"] == 'none'
+        assert data.iloc[2]["sentiment"] == 'positive'
+        assert data.iloc[3]["sentiment"] == 'positive'
 
     assert data.iloc[0]["chat_group"] == 0
 
@@ -308,32 +311,40 @@ def test_read_chat_no_chat_data(empty_zip_file):
     assert data.empty
 
 
-def test_read_chat_start_date(zipped_data):
+def test_read_chat_start_date(google_takeout_zipped, request):
+    sentiment = request.config.getoption("--run_sentiment")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.chat(
-            zipped_data,
-            sentiment=True,
+            google_takeout_zipped,
+            sentiment=sentiment,
             sentiment_batch_size = 2,
             start_date = pd.to_datetime("2024-01-30 13:29:00+00:00"),
         )
 
-    assert data.shape == (3, 11)
+    if sentiment:
+        assert data.shape == (3, 12)
+    else:
+        assert data.shape == (3, 10)
 
 
-def test_read_chat_end_date(zipped_data):
+def test_read_chat_end_date(google_takeout_zipped, request):
+    sentiment = request.config.getoption("--run_sentiment")
     with pytest.warns(UserWarning):
         data = niimpy.reading.google_takeout.chat(
-            zipped_data,
-            sentiment=True,
+            google_takeout_zipped,
+            sentiment=sentiment,
             sentiment_batch_size = 2,
             end_date = pd.to_datetime("2024-01-30 13:29:00+00:00"),
         )
 
-    assert data.shape == (1, 11)
+    if sentiment:
+        assert data.shape == (1, 12)
+    else:
+        assert data.shape == (1, 10)
 
 
-def test_read_youtube_watch_history(zipped_data):
-    data = niimpy.reading.google_takeout.youtube_watch_history(zipped_data)
+def test_read_youtube_watch_history(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.youtube_watch_history(google_takeout_zipped)
 
     assert data.shape == (4, 3)
 
@@ -355,16 +366,16 @@ def test_read_youtube_watch_history_no_youtube_data(empty_zip_file):
     assert data.empty
 
 
-def test_read_youtube_watch_history_start_date(zipped_data):
+def test_read_youtube_watch_history_start_date(google_takeout_zipped):
     data = niimpy.reading.google_takeout.youtube_watch_history(
-        zipped_data,
+        google_takeout_zipped,
         start_date = pd.to_datetime("2024-02-13 06:36:00+00:00"),
     )
     assert data.shape == (2, 3)
 
-def test_read_youtube_watch_history_end_date(zipped_data):
+def test_read_youtube_watch_history_end_date(google_takeout_zipped):
     data = niimpy.reading.google_takeout.youtube_watch_history(
-        zipped_data,
+        google_takeout_zipped,
         end_date = pd.to_datetime("2024-02-13 06:36:00+00:00"),
     )
     assert data.shape == (2, 3)

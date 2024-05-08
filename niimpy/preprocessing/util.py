@@ -135,7 +135,7 @@ def format_column_names(df):
     df.rename(columns=column_map, inplace=True)
 
 
-def occurrence(series, bin_width="12min", grouping_width="1h"):
+def occurrence(series, bins=5, interval="1h"):
     """ Resamples by grouping_width and aggregates by the number of bins
     with data.
     
@@ -146,10 +146,10 @@ def occurrence(series, bin_width="12min", grouping_width="1h"):
     ----------
     series : pandas.Series
         A pandas series of pandas.Timestamps.
-    bin_width : str
-        Width of the bin formatted as a pandas frequency. Default is "12min".
-    grouping_width : str
-        Width of the grouping formatted as a pandas frequency. Default is "1h".
+    bins : int
+        The number of bins each time interval is divided into.
+    interval : str
+        Length of the time interval. Default is "1h".
 
     Returns
     -------
@@ -158,20 +158,23 @@ def occurrence(series, bin_width="12min", grouping_width="1h"):
     """
 
     if not isinstance(series, (pd.Series, pd.Index)):
-        raise ValueError("The input to niimpy.util.occurence must be a "
+        raise ValueError("The input to niimpy.util.occurrence must be a "
                          "pandas Series or Index, not a DataFrame.  "
                          "(your input type was: %s)"%type(series))
 
     if not np.issubdtype(series.dtype.base, np.datetime64):
         series = pd.to_datetime(series, unit='s')
+
+    dt = pd.to_timedelta(interval)
+    bin_width = dt/bins
+    
     df = pd.DataFrame({"time": series})
     df.set_index('time', inplace=True)
     df["occurrence"] = 1
 
     df = df.resample(bin_width).count()
-    print(df)
     df = df[df['occurrence'] > 0]
-    df = df.resample(grouping_width).count()
+    df = df.resample(interval).count()
 
     return df
 

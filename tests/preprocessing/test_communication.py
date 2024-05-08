@@ -1,18 +1,18 @@
 import os
+import pytest
 
-import numpy as np
 import pandas as pd
 import numpy as np
+import zipfile
 
 import niimpy
 import niimpy.preprocessing.communication as comms
 from niimpy import config
 
 # read sample data
-data = niimpy.read_csv(config.MULTIUSER_AWARE_CALLS_PATH, tz='Europe/Helsinki')
 
 def test_audio_features():
-    
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_CALLS_PATH, tz='Europe/Helsinki')
     test = comms.extract_features_comms(data, features=None)
     
     test_user = test[test["user"] == "jd9INuQ5BBlW"]
@@ -70,3 +70,45 @@ def test_audio_features():
     assert test_user.loc[pd.Timestamp("2019-08-13 06:00:00", tz='Europe/Helsinki')]["incoming_duration_median"] == 591
     assert test_user.loc[pd.Timestamp("2019-08-13 06:00:00", tz='Europe/Helsinki')]["incoming_duration_std"] == 0
     
+
+def test_message_features():
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_MESSAGES_PATH, tz='Europe/Helsinki')
+    test = comms.extract_features_comms(data, features=None)
+
+    test_user = test[test["user"] == "jd9INuQ5BBlW"]
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["outgoing_count"] == 5
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["incoming_count"] == 5
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:30:00+02:00", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 1.0
+
+
+def test_message_features_with_gmail():
+    path = os.path.join(config.GOOGLE_TAKEOUT_DIR, "Takeout", "Mail", "All mail Including Spam and Trash.mbox")
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.email_activity(
+            path, sentiment_batch_size = 2
+        )
+
+    test = comms.extract_features_comms(data, features=None)
+    assert test.loc[pd.Timestamp("2023-12-15 12:30:00+00:00", tz='Europe/Helsinki')]["outgoing_count"] == 0
+    assert test.loc[pd.Timestamp("2023-12-15 12:30:00+00:00", tz='Europe/Helsinki')]["incoming_count"] == 2
+    assert test.loc[pd.Timestamp("2023-12-15 12:30:00+00:00", tz='Europe/Helsinki')]["outgoing_incoming_ratio"] == 0
+
+
+def test_message_features_with_google_chat(google_takeout_zipped):
+    with pytest.warns(UserWarning):
+        data = niimpy.reading.google_takeout.chat(
+            google_takeout_zipped,
+            sentiment=False,
+            sentiment_batch_size = 2
+        )
+
+    test = comms.extract_features_comms(data, features=None)
+    print(test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')])
+    assert test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')]["outgoing_count"] == 2
+
+
+def test_call_distribution():
+    data = niimpy.read_csv(config.MULTIUSER_AWARE_CALLS_PATH, tz='Europe/Helsinki')
+    test = niimpy.preprocessing.communication.call_distribution(data)
+    test_user = test[test["user"] == "jd9INuQ5BBlW"]
+    assert test_user.loc[pd.Timestamp("2020-01-09 02:00:00", tz='Europe/Helsinki')]["distribution"] == pytest.approx(0.88888888)

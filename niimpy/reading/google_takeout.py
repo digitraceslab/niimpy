@@ -481,7 +481,6 @@ def email_activity(
             if timestamp:
                 timestamp = email.utils.parsedate_to_datetime(timestamp)
             timestamp = pd.to_datetime(timestamp)
-            print(timestamp)
             if start_date is not None and timestamp < start_date:
                 continue
             if end_date is not None and timestamp > end_date:
@@ -546,7 +545,7 @@ def email_activity(
             "message_id": message_id,
             "in_reply_to": in_reply_to,
             "character_count": len(content),
-            "word_count": len(content.split())
+            "word_count": len(content.split()),
         }
         data.append(row)
 
@@ -554,8 +553,12 @@ def email_activity(
 
     df = pd.DataFrame(data)
 
+    user_email = infer_user_email(df)
+    df.loc[df["from"] != user_email, "message_type"] = "incoming"
+    df.loc[df["from"] == user_email, "message_type"] = "outgoing"
+
     if pseudonymize:
-        user_email = infer_user_email(df)
+        
         df = pseudonymize_addresses(df, user_email)
         df = pseudonymize_message_id(df)
 
@@ -683,7 +686,14 @@ def chat(
 
     df["character_count"] = df["text"].apply(len)
     df["word_count"] = df["text"].apply(lambda x: len(x.split()))
-    df["user"] = user
+
+    if user is None:
+        df["user"] = uuid.uuid1()
+    else:
+        df["user"] = user
+
+    df.loc[df["creator.email"] != user_email, "message_type"] = "incoming"
+    df.loc[df["creator.email"] == user_email, "message_type"] = "outgoing"
 
     if pseudonymize:
         addresses = set(df["creator.email"].unique())

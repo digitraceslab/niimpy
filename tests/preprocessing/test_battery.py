@@ -39,13 +39,13 @@ def test_format_battery_data():
 def test_battery_occurrences():
     df = df11.copy()
     k = niimpy.preprocessing.battery.battery_occurrences
-    occurences = niimpy.preprocessing.battery.extract_features_battery(df, features={k: {}})
-    occurences_user = occurences[occurences["user"] == "wAzQNrdKZZax"]
-    assert occurences_user.loc[Timestamp('2019-01-17 09:00:00+02:00')]["occurrences"] == 3
-    occurences_user = occurences[occurences["user"] == "lb983ODxEFUD"]
-    assert occurences_user.loc[Timestamp('2019-01-17 10:00:00+02:00')]["occurrences"] == 1
-    occurences_user = occurences[occurences["user"] == "Afxzi7oI0yyp"]
-    assert occurences_user.loc[Timestamp('2019-01-17 09:30:00+02:00')]["occurrences"] == 3
+    occurrences = niimpy.preprocessing.battery.extract_features_battery(df, features={k: {}})
+    occurrences_user = occurrences[occurrences["user"] == "wAzQNrdKZZax"]
+    assert occurrences_user.loc[Timestamp('2019-01-17 09:00:00+02:00')]["occurrences"] == 3
+    occurrences_user = occurrences[occurrences["user"] == "lb983ODxEFUD"]
+    assert occurrences_user.loc[Timestamp('2019-01-17 10:00:00+02:00')]["occurrences"] == 1
+    occurrences_user = occurrences[occurrences["user"] == "Afxzi7oI0yyp"]
+    assert occurrences_user.loc[Timestamp('2019-01-17 09:30:00+02:00')]["occurrences"] == 3
 
 
 def test_battery_gaps():
