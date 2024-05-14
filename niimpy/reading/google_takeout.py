@@ -6,6 +6,8 @@ import datetime
 import email
 import uuid
 import warnings
+import re
+
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from multi_language_sentiment import sentiment as get_sentiment
@@ -799,6 +801,84 @@ def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date
     return df
 
 
+def fit_list_data(zip_filename):
+    """ List data types in the Google Fit All Data folder.
+
+    parameters
+    ----------
+    zip_filename : str
+        The filename of the zip file.
+
+    returns
+    -------
+    data descriptions : pd.DataFrame
+        A pandas dataframe with data content types and descriptions.
+        It contains the columns 
+        - derived: bool
+
+    """
+
+    all_data_path = "Takeout/Fit/All Data"
+
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            data_types = []
+            for filename in zip_file.namelist():
+                if not filename.startswith(all_data_path):
+                    continue
+                # if the filename contains (NN).json, drop it
+                if re.search(r'\(\d+\).json', filename):
+                    continue
+                filename = filename.replace(all_data_path + "/", "")
+                with zip_file.open(os.path.join(all_data_path, filename)) as file:
+                    data = json.load(file)["Data Source"]
+                    data_types.append(filename+":"+data)
+    except:
+        pd.DataFrame()
+
+    formatted = []
+    for data_source in data_types:
+
+        data = {}
+        entries = data_source.split(":")
+        data["filename"] = entries[0]
+        data["derived"] = entries[1]
+        data["content"] = entries[2]
+        data["source"] = entries[3]
+        data["source type"] = entries[-1]            
+
+        formatted.append(data)
+
+    return pd.DataFrame(formatted)
 
 
+def fit_read_data_file(zip_filename, data_filename):
+    """ Read a data file in the Google Fit All Data folder.
+    """
+
+    all_data_path = "Takeout/Fit/All Data"
+
+    #filename_pattern = data_filename.replace(".json","*.json")
+
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            #filenames = zip_file.namelist()
+            #filenames = [f for f in filenames if f.startswith(all_data_path)]
+            #filenames = 
+            path = os.path.join(all_data_path, data_filename)
+            with zip_file.open(path) as file:
+                data = json.load(file)
+    except:
+        return pd.DataFrame()
+    
+    data = data["Data Points"]
+
+    # normalize
+    data = pd.json_normalize(data)
+    df = pd.DataFrame(data)
+    df["value"] = df["fitValue"].str[0].str["value"].str["fpVal"]
+    df.drop(["fitValue"], axis=1, inplace=True)
+    
+    return df
+    
 

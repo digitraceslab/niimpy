@@ -379,5 +379,3 @@ def test_read_youtube_watch_history_end_date(google_takeout_zipped):
         end_date = pd.to_datetime("2024-02-13 06:36:00+00:00"),
     )
     assert data.shape == (2, 3)
-
-
