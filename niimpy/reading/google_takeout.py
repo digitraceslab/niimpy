@@ -858,21 +858,22 @@ def fit_read_data_file(zip_filename, data_filename):
 
     all_data_path = "Takeout/Fit/All Data"
 
-    #filename_pattern = data_filename.replace(".json","*.json")
+    data_filename = os.path.join(all_data_path, data_filename)
+    filename_pattern = data_filename.replace(".json", r'(.*).json$')
 
     try:
+        data = []
         with ZipFile(zip_filename) as zip_file:
-            #filenames = zip_file.namelist()
-            #filenames = [f for f in filenames if f.startswith(all_data_path)]
-            #filenames = 
-            path = os.path.join(all_data_path, data_filename)
-            with zip_file.open(path) as file:
-                data = json.load(file)
+            filenames = zip_file.namelist()
+            filenames = [f for f in filenames if f.startswith(all_data_path)]
+            filenames = [f for f in filenames if re.search(filename_pattern, f)]
+            for filename in filenames:
+                with zip_file.open(filename) as file:
+                    read_data = json.load(file)["Data Points"]
+                    data.extend(read_data)
     except:
         return pd.DataFrame()
     
-    data = data["Data Points"]
-
     # normalize
     data = pd.json_normalize(data)
     df = pd.DataFrame(data)
