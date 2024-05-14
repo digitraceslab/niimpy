@@ -1,6 +1,7 @@
 import pandas as pd
 import datetime
 
+
 def _align_data(data: pd.DataFrame, period: int, freq: str) -> pd.DataFrame:
     """
     Returns a pandas DataFrame aligned by timestamp, starting either at 00:00 daily or 00:00 of a Monday weekly.
@@ -55,6 +56,7 @@ def _align_data(data: pd.DataFrame, period: int, freq: str) -> pd.DataFrame:
 
     return results
 
+
 def _aggregate(data: pd.DataFrame, groupby_cols: list, freq: str) -> pd.DataFrame:
     """
     Returns a pandas DataFrame aggregated based on the given frequency ('daily' or 'weekly').
@@ -97,6 +99,7 @@ def _aggregate(data: pd.DataFrame, groupby_cols: list, freq: str) -> pd.DataFram
 
     return pd.concat(agg_data)
 
+
 def _compute_distribution(data: pd.DataFrame,  cols: list, groupby_cols: list, freq: str) -> pd.DataFrame:
     """
     Returns a pandas DataFrame with count distribution for each unique value in specified columns, aggregated by frequency.
@@ -132,6 +135,7 @@ def _compute_distribution(data: pd.DataFrame,  cols: list, groupby_cols: list, f
         values_sum = data.groupby(by=groupby_cols)[col].transform('sum')
         data[f'{col}_distr'] = data[col] / values_sum
     return data
+
 
 def compute_rhythms(df: pd.DataFrame, 
                     timebin: str, 
@@ -192,4 +196,85 @@ def compute_rhythms(df: pd.DataFrame,
     rhythms = _compute_distribution(agg_data, cols=cols, groupby_cols=groupby_cols, freq=freq)
 
     return rhythms
+
+
+def rhythm(
+        df,
+        period = "4W",
+        freq = "1W",
+        bin = "1D",
+        cols= [],
+        groupby_cols= None,
+    ):
+    """
+    Compute rhythms from the input data.
+
+    - Resample data to the given frequency.
+    - Aggregate data to the specified period.
+    - Compute the distribution over the frequency for the specified columns.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Input dataframe with a Timestamp index.
+
+    period : str
+        Period for which to compute the rhythm. Default is 'M' for monthly.
+
+    freq : str
+        Frequency for the rhythm. Default is 'W' for weekly.
+
+    bin : str
+        Time bin for the rhythm computation. Defaults to 'D' for daily.
+    
+    cols : list
+        List of columns to compute the count distribution for.
+    
+    groupby_cols : list
+        Columns by which to group the data. Defaults to user and device
+    
+    Returns
+    -------
+    rhythms : pandas.DataFrame
+        Dataframe detailing rhythms.
+    """
+
+    if groupby_cols is None:
+        groupby_cols = ["user", "device"]
+        groupby_cols = [col for col in groupby_cols if col in df.columns]
+
+    df = df[groupby_cols+cols]
+
+    # if column type is not numeric, use count, otherwise sum
+    for col in cols:
+        if df[col].dtype == 'object':
+            df[col] = 1
+
+    df = df.groupby(groupby_cols).resample(bin, include_groups=False).sum()
+    df.reset_index(groupby_cols, inplace=True)
+    
+    freq_in_bins = pd.to_timedelta(freq) // pd.to_timedelta(bin)
+    period_in_bins = pd.to_timedelta(period) // pd.to_timedelta(bin)
+
+    def _get_bin_index(df):
+        df = df.reset_index()
+        df["bin"] = df.index % period_in_bins
+        df = df.set_index("index")
+        return df
+
+    df = df.groupby(groupby_cols).apply(_get_bin_index, include_groups=False)
+    df.reset_index(groupby_cols, inplace=True)
+    
+    df = df.groupby(groupby_cols+["bin"]).sum()
+    df.reset_index(groupby_cols, inplace=True)
+
+    df["freq"] = df.index // freq_in_bins
+    freq_sum = df.groupby(groupby_cols+["freq"], as_index=False).sum()
+    df = pd.merge(df, freq_sum, on=groupby_cols+["freq"], how="left", suffixes=('', '_sum'))
+    for col in cols:
+        df[col+"_rhythm"] = df[col] / df[col+"_sum"]
+        df.fillna(0, inplace=True)
+        df.drop(columns=[col, col+"_sum"], inplace=True)
+    df.drop(columns=["freq"], inplace=True)
+    return df
 
