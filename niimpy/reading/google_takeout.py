@@ -858,28 +858,79 @@ def fit_read_data_file(zip_filename, data_filename):
 
     all_data_path = "Takeout/Fit/All Data"
 
-    data_filename = os.path.join(all_data_path, data_filename)
-    filename_pattern = data_filename.replace(".json", r'(.*).json$')
-
+    if type(data_filename) == str:
+        data_filename = os.path.join(all_data_path, data_filename)
+        filename_pattern = data_filename.replace(".json", r'(.*).json$')
+        try:
+            with ZipFile(zip_filename) as zip_file:
+                filenames = zip_file.namelist()
+        except:
+            return pd.DataFrame()
+        
+        filenames = [f for f in filenames if f.startswith(all_data_path)]
+        filenames = [f for f in filenames if re.search(filename_pattern, f)]
+    elif type(data_filename) == list:
+        filenames = [os.path.join(all_data_path, f) for f in data_filename]
+    else:
+        raise ValueError("data_filename should be a string or a list of strings.")
+    
     try:
         data = []
         with ZipFile(zip_filename) as zip_file:
-            filenames = zip_file.namelist()
-            filenames = [f for f in filenames if f.startswith(all_data_path)]
-            filenames = [f for f in filenames if re.search(filename_pattern, f)]
             for filename in filenames:
                 with zip_file.open(filename) as file:
-                    read_data = json.load(file)["Data Points"]
+                    read_data = json.load(file)
+                    read_data = read_data["Data Points"]
                     data.extend(read_data)
     except:
+        return pd.DataFrame()
+    
+    if len(data) == 0:
         return pd.DataFrame()
     
     # normalize
     data = pd.json_normalize(data)
     df = pd.DataFrame(data)
-    df["value"] = df["fitValue"].str[0].str["value"].str["fpVal"]
-    df.drop(["fitValue"], axis=1, inplace=True)
+
+    def process_unit_value(value):
+        if "fpVal" in value:
+            return float(value["fpVal"])
+        elif "intVal" in value:
+            return int(value["intVal"])
+        return value
+
+    def process_fitValue(row):
+        if(len(row["fitValue"]) > 1):
+            # Multiple values. This can happen, but the meaning
+            # is often unclear. Just label these with numbers 
+            # and leave it to the user to interpret.
+            for i, value in enumerate(row["fitValue"]):
+                value = process_unit_value(value["value"])
+                row[f"value_{i}"] = value
+            return row
+        value = row["fitValue"][0]["value"]
+        row["value"] = process_unit_value(value)
+        return row
+
+    if "fitValue" in df.columns:
+        df = df.apply(process_fitValue, axis=1)
+        df.drop("fitValue", axis=1, inplace=True)
+
+    if "startTimeNanos" in df.columns:
+        df["timestamp"] = pd.to_datetime(df["startTimeNanos"], unit="ns")
+        df["start_time"] = df["timestamp"]
+        df.set_index("timestamp", inplace=True)
+        df.drop("startTimeNanos", axis=1, inplace=True)
     
+    if "endTimeNanos" in df.columns:
+        df["end_time"] = pd.to_datetime(df["endTimeNanos"], unit="ns")
+        df.drop("endTimeNanos", axis=1, inplace=True)
+    
+    if "modifiedTimeMillis" in df.columns:
+        df["modified_time"] = pd.to_datetime(df["modifiedTimeMillis"], unit="ms")
+        df.drop("modifiedTimeMillis", axis=1, inplace=True)
+    
+    util.format_column_names(df)
     return df
     
 
