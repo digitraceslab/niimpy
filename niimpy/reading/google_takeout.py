@@ -843,7 +843,7 @@ def fit_list_data(zip_filename):
         entries = data_source.split(":")
         data["filename"] = entries[0]
         data["derived"] = entries[1]
-        data["content"] = entries[2]
+        data["content"] = re.sub(r'^com\.google\.', '', entries[2])
         data["source"] = entries[3]
         data["source type"] = entries[-1]            
 
@@ -918,7 +918,6 @@ def fit_read_data_file(zip_filename, data_filename):
 
     if "startTimeNanos" in df.columns:
         df["timestamp"] = pd.to_datetime(df["startTimeNanos"], unit="ns")
-        df["start_time"] = df["timestamp"]
         df.set_index("timestamp", inplace=True)
         df.drop("startTimeNanos", axis=1, inplace=True)
     
@@ -929,8 +928,68 @@ def fit_read_data_file(zip_filename, data_filename):
     if "modifiedTimeMillis" in df.columns:
         df["modified_time"] = pd.to_datetime(df["modifiedTimeMillis"], unit="ms")
         df.drop("modifiedTimeMillis", axis=1, inplace=True)
+
+    if "dataTypeName" in df.columns:
+        df["datatype"] = df["dataTypeName"].apply(lambda x: re.sub(r'^com\.google\.', '', x))
+        df.drop("dataTypeName", axis=1, inplace=True)
+
+    if "rawTimestampNanos" in df.columns:
+        if (df["rawTimestampNanos"] == 0).all():
+            df.drop("rawTimestampNanos", axis=1, inplace=True)
+    
+    if "originDataSourceId" in df.columns:
+        if (df["originDataSourceId"] == "").all():
+            df.drop("originDataSourceId", axis=1, inplace=True)
     
     util.format_column_names(df)
     return df
     
+
+def fit_sessions(zip_filename):
+    """ Read all Google Takeout sessions and concatenate them into
+    a dataframe. Each file contains aggregate data for a single 
+    activity session or sleep session.
+    """
+
+    session_data_path = "Takeout/Fit/All Sessions"
+
+    data = []
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            filenames = zip_file.namelist()
+            for filename in filenames:
+                if not filename.startswith(session_data_path):
+                    continue
+                with zip_file.open(filename) as file:
+                    session_data = json.load(file)
+                    if "segment" in session_data:
+                        del session_data["segment"]
+                    if "aggregate" in session_data:
+                        for aggregate in session_data["aggregate"]:
+                            name = aggregate["metricName"]
+                            name = re.sub(r'^com\.google\.', '', name)
+                            if "floatValue" in aggregate:
+                                session_data[name] = aggregate["floatValue"]
+                            elif "intValue" in aggregate:
+                                session_data[name] = aggregate["intValue"]
+                        del session_data["aggregate"]
+                    data.append(session_data)
+                    
+
+    except Exception as e:
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(data)
+    df["timestamp"] = pd.to_datetime(df["startTime"], format='mixed')
+    df["end_time"] = pd.to_datetime(df["endTime"], format='mixed')
+    df.set_index("timestamp", inplace=True)
+    df.drop(["startTime", "endTime"], axis=1, inplace=True)
+
+    if "duration" in df.columns:
+        df["duration"] = pd.to_timedelta(df["duration"])
+
+    util.format_column_names(df)
+
+    return df
+
 
