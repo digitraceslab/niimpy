@@ -852,33 +852,31 @@ def fit_list_data(zip_filename):
     return pd.DataFrame(formatted)
 
 
+def fit_expand_data_filename(zip_filename, filename):
+    """ List files with names filename(NN).json in the Google Fit All Data folder.
+    """
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            filenames = zip_file.namelist()
+    except:
+        return pd.DataFrame()
+
+    all_data_path = "Takeout/Fit/All Data"
+    filename = os.path.join(all_data_path, filename)
+    filename_pattern = filename.replace(".json", r'(.*).json$')
+
+    filenames = [f for f in filenames if f.startswith(all_data_path)]
+    filenames = [f for f in filenames if re.search(filename_pattern, f)]
+    return filenames
+
+
 def fit_read_data_file(zip_filename, data_filename):
     """ Read a data file in the Google Fit All Data folder.
     """
-
-    all_data_path = "Takeout/Fit/All Data"
-
-    if type(data_filename) == str:
-        data_filename = os.path.join(all_data_path, data_filename)
-        filename_pattern = data_filename.replace(".json", r'(.*).json$')
-        try:
-            with ZipFile(zip_filename) as zip_file:
-                filenames = zip_file.namelist()
-        except:
-            return pd.DataFrame()
-        
-        filenames = [f for f in filenames if f.startswith(all_data_path)]
-        filenames = [f for f in filenames if re.search(filename_pattern, f)]
-    elif type(data_filename) == list:
-        filenames = [os.path.join(all_data_path, f) for f in data_filename]
-    else:
-        raise ValueError("data_filename should be a string or a list of strings.")
-    
     try:
         data = []
         with ZipFile(zip_filename) as zip_file:
-            for filename in filenames:
-                with zip_file.open(filename) as file:
+            with zip_file.open(data_filename) as file:
                     read_data = json.load(file)
                     read_data = read_data["Data Points"]
                     data.extend(read_data)
@@ -897,24 +895,43 @@ def fit_read_data_file(zip_filename, data_filename):
             return float(value["fpVal"])
         elif "intVal" in value:
             return int(value["intVal"])
+        elif "stringVal" in value:
+            return value["stringVal"]
         return value
 
-    def process_fitValue(row):
-        if(len(row["fitValue"]) > 1):
-            # Multiple values. This can happen, but the meaning
-            # is often unclear. Just label these with numbers 
-            # and leave it to the user to interpret.
-            for i, value in enumerate(row["fitValue"]):
-                value = process_unit_value(value["value"])
-                row[f"value_{i}"] = value
-            return row
-        value = row["fitValue"][0]["value"]
-        row["value"] = process_unit_value(value)
-        return row
+    def process_fitValue(value, parent_index=None):
+        if type(value) == list:
+            values = []
+            for i, v in enumerate(value):
+                if parent_index is not None:
+                    id = f"{parent_index}_{i}"
+                else:
+                    id = i
+                values += process_fitValue(v, id)
+            return values
+        
+        if type(value) == dict:
+            if "value" in value:
+                id = value.get("key", parent_index)
+                value = value["value"]
+                if "mapVal" in value:
+                    return process_fitValue(value["mapVal"], id)
+                
+                # We are now at bottom level, assuming only
+                # mapVal can be a list
+                value = process_unit_value(value)
+                return [{"id": id, "value": value}]
+
+        print(value)
+        raise ValueError("Unknown value type")
 
     if "fitValue" in df.columns:
-        df = df.apply(process_fitValue, axis=1)
-        df.drop("fitValue", axis=1, inplace=True)
+        df = df.reset_index().rename(columns={'index': 'measurement_index'})
+        df["_fitValue"] = df["fitValue"].apply(process_fitValue)
+        df = df.explode('_fitValue').reset_index(drop=True)
+        new_columns = pd.json_normalize(df['_fitValue'])
+        df = pd.concat([df, new_columns], axis=1)
+        df.drop(["fitValue", "_fitValue"], axis=1, inplace=True)
 
     if "startTimeNanos" in df.columns:
         df["timestamp"] = pd.to_datetime(df["startTimeNanos"], unit="ns")
@@ -943,7 +960,39 @@ def fit_read_data_file(zip_filename, data_filename):
     
     util.format_column_names(df)
     return df
+
     
+def fit_read_data(zip_filename, data_filename):
+    """ Read multiple data files in the Google Fit All Data folder.
+    """
+
+    if type(data_filename) == str:
+        filenames = fit_expand_data_filename(zip_filename, data_filename)
+    else:
+        try:
+            filenames = []
+            for filename in data_filename:
+                filenames.extend(fit_expand_data_filename(zip_filename, filename))
+        except TypeError:
+            raise ValueError("data_filename should be a string or an iterable containign filename strings.")
+    
+    dfs = []
+    for filename in filenames:
+        dfs.append(fit_read_data_file(zip_filename, filename))
+
+    df = pd.concat(dfs)
+    df.sort_index(inplace=True)
+
+    return df
+
+
+def fit_all_data(zip_filename):
+    """ Read all the data in the Google Fit All Data folder.
+    """
+    datafiles = fit_list_data(zip_filename)["filename"]
+    data = fit_read_data(zip_filename, datafiles)
+    return data
+
 
 def fit_sessions(zip_filename):
     """ Read all Google Takeout sessions and concatenate them into
@@ -975,8 +1024,7 @@ def fit_sessions(zip_filename):
                         del session_data["aggregate"]
                     data.append(session_data)
                     
-
-    except Exception as e:
+    except:
         return pd.DataFrame()
     
     df = pd.DataFrame(data)
