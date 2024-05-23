@@ -373,9 +373,19 @@ def test_read_youtube_watch_history_start_date(google_takeout_zipped):
     )
     assert data.shape == (2, 3)
 
+
 def test_read_youtube_watch_history_end_date(google_takeout_zipped):
     data = niimpy.reading.google_takeout.youtube_watch_history(
         google_takeout_zipped,
         end_date = pd.to_datetime("2024-02-13 06:36:00+00:00"),
     )
     assert data.shape == (2, 3)
+
+
+def test_fit_list_data(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.fit_list_data(
+        google_takeout_zipped
+    )
+    assert data.shape == (11, 5)
+    assert data.iloc[0]["filename"] == "raw_com.google.step_count.delta_fi.polar.polar.json"
+

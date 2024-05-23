@@ -1,0 +1,15 @@
+{
+    "Data Source": "raw:com.google.heart_rate.summary:fi.test.testtest:",
+    "Data Points": [
+        {"fitValue":[{"value":{"fpVal":82}},{"value":{"fpVal":83}},{"value":{"fpVal":79}}],"originDataSourceId":"","endTimeNanos":1714493198853000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714493184601000000,"modifiedTimeMillis":1714496621791,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":58}},{"value":{"fpVal":61}},{"value":{"fpVal":56}}],"originDataSourceId":"","endTimeNanos":1714499165520000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714499150017000000,"modifiedTimeMillis":1714500245118,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":0}},{"value":{"fpVal":82}},{"value":{"fpVal":73}}],"originDataSourceId":"","endTimeNanos":1714542600000000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714541400000000000,"modifiedTimeMillis":1714586301024,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":0}},{"value":{"fpVal":92}},{"value":{"fpVal":78}}],"originDataSourceId":"","endTimeNanos":1714548600000000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714542600000000000,"modifiedTimeMillis":1714586301024,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":0}},{"value":{"fpVal":87}},{"value":{"fpVal":78}}],"originDataSourceId":"","endTimeNanos":1714554300000000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714551900000000000,"modifiedTimeMillis":1714586301024,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":0}},{"value":{"fpVal":85}},{"value":{"fpVal":78}}],"originDataSourceId":"","endTimeNanos":1714556400000000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714555500000000000,"modifiedTimeMillis":1714586301024,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":0}},{"value":{"fpVal":85}},{"value":{"fpVal":72}}],"originDataSourceId":"","endTimeNanos":1714568940000000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714568040000000000,"modifiedTimeMillis":1714582692172,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":91}},{"value":{"fpVal":91}},{"value":{"fpVal":90}}],"originDataSourceId":"","endTimeNanos":1714572028381000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714572016003000000,"modifiedTimeMillis":1714578643603,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":88}},{"value":{"fpVal":129}},{"value":{"fpVal":62}}],"originDataSourceId":"","endTimeNanos":1714627283694000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714625217817000000,"modifiedTimeMillis":1714630105526,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":87}},{"value":{"fpVal":108}},{"value":{"fpVal":64}}],"originDataSourceId":"","endTimeNanos":1714651169470000000,"dataTypeName":"com.google.heart_rate.summary","startTimeNanos":1714650547844000000,"modifiedTimeMillis":1714660787914,"rawTimestampNanos":0}
+    ]
+}

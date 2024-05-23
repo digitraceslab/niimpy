@@ -1,0 +1,12 @@
+{
+    "Data Source": "raw:com.google.heart_minutes:com.google.android.apps.fitness:user_input",
+    "Data Points": [
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309160000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309100000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309220000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309160000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309280000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309220000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309340000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309280000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309400000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309340000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309460000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309400000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":1}}],"originDataSourceId":"","endTimeNanos":1700309520000000000,"dataTypeName":"com.google.heart_minutes","startTimeNanos":1700309460000000000,"modifiedTimeMillis":1700571475292,"rawTimestampNanos":0}
+    ]
+}

@@ -829,12 +829,16 @@ def fit_list_data(zip_filename):
                 # if the filename contains (NN).json, drop it
                 if re.search(r'\(\d+\).json', filename):
                     continue
+                full_path = filename
                 filename = filename.replace(all_data_path + "/", "")
-                with zip_file.open(os.path.join(all_data_path, filename)) as file:
-                    data = json.load(file)["Data Source"]
-                    data_types.append(filename+":"+data)
+                try:
+                    with zip_file.open(full_path) as file:
+                        data = json.load(file)["Data Source"]
+                        data_types.append(filename+":"+data)
+                except:
+                    continue
     except:
-        pd.DataFrame()
+        return pd.DataFrame()
 
     formatted = []
     for data_source in data_types:
