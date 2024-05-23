@@ -998,25 +998,27 @@ def fit_all_data(zip_filename):
     return data
 
 
-def _fit_heart_rate_data(zip_filename):
-    """ Read heart rate data.
-    Does not work, I have matching data in two different formats. One
-    has max, min and averate for a given time frame, the other has
-    a single value measured at timestamp.
+def fit_heart_rate_data(zip_filename):
+    """ Read heart rate data from Google Fit All Data folder and
+    format it more nicely.
 
-    So something like this could exist, but the data type needs to be
-    more specific
+    Parameters
+    ----------
+    zip_filename : str
+        The filename of the zip file.
+
+    Returns
+    -------
+    data : pandas.DataFrame
     """
     entries = fit_list_data(zip_filename)
     entries = entries[entries["content"].str.contains("heart_rate")]
+    entries = entries[~entries["content"].str.contains("summary")]
     entries = entries[entries["derived"] == "raw"]
     df = fit_read_data(zip_filename, entries["filename"])
 
-    # format values to columns according to the id column
-    df.reset_index(inplace=True)
-    df.set_index(["measurement_index", "timestamp"], inplace=True)
-    df = df.pivot(columns='id', values='value')
-
+    df = df[["value", "modified_time"]]
+    df.rename(columns={"value": "heart_rate"}, inplace=True)
     return df
 
 
