@@ -977,8 +977,12 @@ def fit_read_data(zip_filename, data_filename):
             raise ValueError("data_filename should be a string or an iterable containign filename strings.")
     
     dfs = []
+    measurement_index = 0
     for filename in filenames:
-        dfs.append(fit_read_data_file(zip_filename, filename))
+        df = fit_read_data_file(zip_filename, filename)
+        df["measurement_index"] += measurement_index
+        measurement_index += df["measurement_index"].max() + 1
+        dfs.append(df)
 
     df = pd.concat(dfs)
     df.sort_index(inplace=True)
@@ -992,6 +996,28 @@ def fit_all_data(zip_filename):
     datafiles = fit_list_data(zip_filename)["filename"]
     data = fit_read_data(zip_filename, datafiles)
     return data
+
+
+def _fit_heart_rate_data(zip_filename):
+    """ Read heart rate data.
+    Does not work, I have matching data in two different formats. One
+    has max, min and averate for a given time frame, the other has
+    a single value measured at timestamp.
+
+    So something like this could exist, but the data type needs to be
+    more specific
+    """
+    entries = fit_list_data(zip_filename)
+    entries = entries[entries["content"].str.contains("heart_rate")]
+    entries = entries[entries["derived"] == "raw"]
+    df = fit_read_data(zip_filename, entries["filename"])
+
+    # format values to columns according to the id column
+    df.reset_index(inplace=True)
+    df.set_index(["measurement_index", "timestamp"], inplace=True)
+    df = df.pivot(columns='id', values='value')
+
+    return df
 
 
 def fit_sessions(zip_filename):
