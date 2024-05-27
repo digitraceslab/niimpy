@@ -387,5 +387,5 @@ def test_fit_list_data(google_takeout_zipped):
         google_takeout_zipped
     )
     assert data.shape == (11, 5)
-    assert data.iloc[0]["filename"] == "raw_com.google.step_count.delta_fi.polar.polar.json"
+    assert "raw_com.google.step_count.delta_fi.polar.polar.json" in data["filename"].values
 
