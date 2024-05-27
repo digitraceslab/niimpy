@@ -985,7 +985,7 @@ def fit_read_data(zip_filename, data_filename):
     for filename in filenames:
         df = fit_read_data_file(zip_filename, filename)
         df["measurement_index"] += measurement_index
-        measurement_index += df["measurement_index"].max() + 1
+        measurement_index = df["measurement_index"].max() + 1
         dfs.append(df)
 
     df = pd.concat(dfs)
