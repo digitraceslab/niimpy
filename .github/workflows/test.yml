@@ -22,4 +22,4 @@ jobs:
           pip install -r requirements.txt -r requirements-dev.txt
       - name: pytest
         run: |
-          pytest
+          pytest --run_sentiment

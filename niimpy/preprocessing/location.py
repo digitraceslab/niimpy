@@ -77,7 +77,7 @@ def distance_matrix(lats, lons):
 def filter_location(location,
                     remove_disabled=True,
                     remove_zeros=True,
-                    remove_network=True,
+                    remove_network=False,
                     latitude_column = "double_latitude",
                     longitude_column = "double_longitude",
                     label_column = "label",
@@ -94,7 +94,7 @@ def filter_location(location,
     remove_disabled : bool
         Remove locations whose `label` is disabled
 
-    remove_zerso : bool
+    remove_zero : bool
         Remove locations which their latitude and longitueds are close to 0
 
     remove_network : bool
