@@ -407,3 +407,43 @@ def test_fit_read_data_file(google_takeout_zipped):
     )
 
     assert data.shape == (1, 6)
+
+
+def test_fit_read_data_with_mapdata(google_takeout_zipped):
+    all_data_path = "Takeout/Fit/All Data"
+    data_path = all_data_path + "/raw_com.google.nutrition_com.fourtechnologies..json"
+    data = niimpy.reading.google_takeout.fit_read_data_file(
+        google_takeout_zipped,
+        data_path
+    )
+
+    assert data.shape == (39, 6)
+
+
+def test_fit_read_data(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.fit_read_data(
+        google_takeout_zipped,
+        "raw_com.google.step_count.delta_fi.polar.polar.json"
+    )
+    assert data.shape == (2, 6)
+
+
+def test_fit_all_data(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.fit_all_data(
+        google_takeout_zipped
+    )
+    assert data.shape == (17549, 7)
+
+def test_fit_heart_rate_data(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.fit_heart_rate_data(
+        google_takeout_zipped
+    )
+    assert data.shape == (10, 2)
+
+
+def test_fit_sessions(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.fit_sessions(
+        google_takeout_zipped
+    )
+    assert data.shape == (3, 9)
+
