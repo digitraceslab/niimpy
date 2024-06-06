@@ -406,4 +406,4 @@ def test_fit_read_data_file(google_takeout_zipped):
         data_path
     )
 
-    assert data.shape == (11, 2)
+    assert data.shape == (1, 6)
