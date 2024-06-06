@@ -458,6 +458,8 @@ def app_duration(df, bat, screen, config=None):
     if not "resample_args" in config.keys():
         config["resample_args"] = {"rule":"30min"}
     
+    outlier_threshold = config.get("outlier_threshold", "10h")
+
     df2 = classify_app(df, config)
 
     # Insert missing data due to the screen being off or battery depleated
@@ -504,9 +506,9 @@ def app_duration(df, bat, screen, config=None):
     df2["duration"] = df2["datetime"].diff()
     df2["duration"] = df2["duration"].shift(-1)
 
-    #Discard any datapoints whose duration are larger than 10 hours or smaller than 0 becaus they may be are artifacts
-    thr = pd.Timedelta("10 hours")
-    df2 = df2[~(df2.duration > thr)]
+    # Filter outliers by duration. Default threshold is 10 hours.
+    outlier_threshold = pd.Timedelta(outlier_threshold)
+    df2 = df2[~(df2.duration > outlier_threshold)]
     df2["duration"] = df2["duration"].dt.total_seconds()
     df2 = df2[~(df2.duration <= 0)]
     
