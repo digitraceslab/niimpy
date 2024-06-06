@@ -455,10 +455,6 @@ def app_duration(df, bat, screen, config=None):
 
     if not "group_map" in config.keys():
         config["group_map"] = MAP_APP
-    if not "screen_column_name" in config.keys():
-        screen_col_name = "screen_status"
-    else:
-        screen_col_name = config["screen_column_name"]
     if not "resample_args" in config.keys():
         config["resample_args"] = {"rule":"30min"}
     
