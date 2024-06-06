@@ -135,6 +135,33 @@ def format_column_names(df):
     df.rename(columns=column_map, inplace=True)
 
 
+def set_encoding(df, to_encoding = 'utf-8', from_encoding = 'iso-8859-1'):
+    """ Recode the dataframe to a different encoding. This is useful when
+    the encoding in a data file is set incorrectly and utf characters are
+    garbled.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        Dataframe to recode
+    to_encoding : str
+        Encoding to convert to. Default is 'utf-8'.
+    from_encoding : str
+        Encoding to convert from. Default is 'iso-8859-1'.
+
+    Returns
+    -------
+    pandas.DataFrame
+        Recoded dataframe.
+    """
+
+    for column in df.columns:
+        if df[column].dtype == 'object':
+            df[column] = df[column].str.encode(from_encoding).str.decode(to_encoding)
+
+    return df
+
+
 def occurrence(series, bins=5, interval="1h"):
     """ Resamples by grouping_width and aggregates by the number of bins
     with data.
@@ -177,7 +204,6 @@ def occurrence(series, bins=5, interval="1h"):
     df = df.resample(interval).count()
 
     return df
-
 
 
 def aggregate(df, freq, method_numerical='mean', method_categorical='first', groups=['user'], **resample_kwargs):
