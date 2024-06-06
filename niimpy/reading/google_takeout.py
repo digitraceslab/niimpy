@@ -885,12 +885,12 @@ def fit_read_data_file(zip_filename, data_filename):
     except:
         return pd.DataFrame()
     
-    if len(data) == 0:
-        return pd.DataFrame()
-    
     # normalize
     data = pd.json_normalize(data)
     df = pd.DataFrame(data)
+    
+    if df.shape[0] == 0:
+        return df
 
     def process_unit_value(value):
         if "fpVal" in value:
@@ -924,7 +924,6 @@ def fit_read_data_file(zip_filename, data_filename):
                 value = process_unit_value(value)
                 return [{"id": id, "value": value}]
 
-        print(value)
         raise ValueError("Unknown value type")
 
     if "fitValue" in df.columns:
@@ -982,6 +981,8 @@ def fit_read_data(zip_filename, data_filename):
     measurement_index = 0
     for filename in filenames:
         df = fit_read_data_file(zip_filename, filename)
+        if df.shape[0] == 0:
+            continue
         df["measurement_index"] += measurement_index
         measurement_index = df["measurement_index"].max() + 1
         dfs.append(df)
