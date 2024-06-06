@@ -389,3 +389,21 @@ def test_fit_list_data(google_takeout_zipped):
     assert data.shape == (11, 5)
     assert "raw_com.google.step_count.delta_fi.polar.polar.json" in data["filename"].values
 
+
+def test_fit_expand_data_filename(google_takeout_zipped):
+    data = niimpy.reading.google_takeout.fit_expand_data_filename(
+        google_takeout_zipped,
+        "raw_com.google.step_count.delta_fi.polar.polar.json"
+    )
+    assert len(data) == 2
+
+
+def test_fit_read_data_file(google_takeout_zipped):
+    all_data_path = "Takeout/Fit/All Data"
+    data_path = all_data_path + "/raw_com.google.step_count.delta_fi.polar.polar.json"
+    data = niimpy.reading.google_takeout.fit_read_data_file(
+        google_takeout_zipped,
+        data_path
+    )
+
+    assert data.shape == (11, 2)

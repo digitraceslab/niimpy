@@ -864,7 +864,7 @@ def fit_expand_data_filename(zip_filename, filename):
             filenames = zip_file.namelist()
     except:
         return pd.DataFrame()
-
+    
     all_data_path = "Takeout/Fit/All Data"
     filename = os.path.join(all_data_path, filename)
     filename_pattern = filename.replace(".json", r'(.*).json$')
@@ -878,12 +878,10 @@ def fit_read_data_file(zip_filename, data_filename):
     """ Read a data file in the Google Fit All Data folder.
     """
     try:
-        data = []
         with ZipFile(zip_filename) as zip_file:
             with zip_file.open(data_filename) as file:
-                    read_data = json.load(file)
-                    read_data = read_data["Data Points"]
-                    data.extend(read_data)
+                read_data = json.load(file)
+                data = read_data["Data Points"]
     except:
         return pd.DataFrame()
     
@@ -1055,7 +1053,7 @@ def fit_sessions(zip_filename):
                                 session_data[name] = aggregate["intValue"]
                         del session_data["aggregate"]
                     data.append(session_data)
-                    
+    
     except:
         return pd.DataFrame()
     
