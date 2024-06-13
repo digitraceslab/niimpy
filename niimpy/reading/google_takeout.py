@@ -6,6 +6,8 @@ import datetime
 import email
 import uuid
 import warnings
+import re
+
 from tqdm import tqdm
 from bs4 import BeautifulSoup
 from multi_language_sentiment import sentiment as get_sentiment
@@ -799,6 +801,274 @@ def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date
     return df
 
 
+def fit_list_data(zip_filename):
+    """ List data types in the Google Fit All Data folder.
 
+    parameters
+    ----------
+    zip_filename : str
+        The filename of the zip file.
+
+    returns
+    -------
+    data descriptions : pd.DataFrame
+        A pandas dataframe with data content types and descriptions.
+        It contains the columns 
+        - derived: bool
+
+    """
+
+    all_data_path = "Takeout/Fit/All Data"
+
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            data_types = []
+            for filename in zip_file.namelist():
+                if not filename.startswith(all_data_path):
+                    continue
+                # if the filename contains (NN).json, drop it
+                if re.search(r'\(\d+\).json', filename):
+                    continue
+                full_path = filename
+                filename = filename.replace(all_data_path + "/", "")
+                try:
+                    with zip_file.open(full_path) as file:
+                        data = json.load(file)["Data Source"]
+                        data_types.append(filename+":"+data)
+                except:
+                    continue
+    except:
+        return pd.DataFrame()
+
+    formatted = []
+    for data_source in data_types:
+
+        data = {}
+        entries = data_source.split(":")
+        data["filename"] = entries[0]
+        data["derived"] = entries[1]
+        data["content"] = re.sub(r'^com\.google\.', '', entries[2])
+        data["source"] = entries[3]
+        data["source type"] = entries[-1]            
+
+        formatted.append(data)
+
+    return pd.DataFrame(formatted)
+
+
+def fit_expand_data_filename(zip_filename, filename):
+    """ List files with names filename(NN).json in the Google Fit All Data folder.
+    """
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            filenames = zip_file.namelist()
+    except:
+        return pd.DataFrame()
+    
+    all_data_path = "Takeout/Fit/All Data"
+    filename = os.path.join(all_data_path, filename)
+    filename_pattern = filename.replace(".json", r'(.*).json$')
+
+    filenames = [f for f in filenames if f.startswith(all_data_path)]
+    filenames = [f for f in filenames if re.search(filename_pattern, f)]
+    return filenames
+
+
+def fit_read_data_file(zip_filename, data_filename):
+    """ Read a data file in the Google Fit All Data folder.
+    """
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            with zip_file.open(data_filename) as file:
+                read_data = json.load(file)
+                data = read_data["Data Points"]
+    except:
+        return pd.DataFrame()
+    
+    # normalize
+    data = pd.json_normalize(data)
+    df = pd.DataFrame(data)
+    
+    if df.shape[0] == 0:
+        return df
+
+    def process_unit_value(value):
+        if "fpVal" in value:
+            return float(value["fpVal"])
+        elif "intVal" in value:
+            return int(value["intVal"])
+        elif "stringVal" in value:
+            return value["stringVal"]
+        return value
+
+    def process_fitValue(value, parent_index=None):
+        if type(value) == list:
+            values = []
+            for i, v in enumerate(value):
+                if parent_index is not None:
+                    id = f"{parent_index}_{i}"
+                else:
+                    id = i
+                values += process_fitValue(v, id)
+            return values
+        
+        if type(value) == dict:
+            if "value" in value:
+                id = value.get("key", parent_index)
+                value = value["value"]
+                if "mapVal" in value:
+                    return process_fitValue(value["mapVal"], id)
+                
+                # We are now at bottom level, assuming only
+                # mapVal can be a list
+                value = process_unit_value(value)
+                return [{"id": id, "value": value}]
+
+        raise ValueError("Unknown value type")
+
+    if "fitValue" in df.columns:
+        df = df.reset_index().rename(columns={'index': 'measurement_index'})
+        df["_fitValue"] = df["fitValue"].apply(process_fitValue)
+        df = df.explode('_fitValue').reset_index(drop=True)
+        new_columns = pd.json_normalize(df['_fitValue'])
+        df = pd.concat([df, new_columns], axis=1)
+        df.drop(["fitValue", "_fitValue"], axis=1, inplace=True)
+
+    if "startTimeNanos" in df.columns:
+        df["timestamp"] = pd.to_datetime(df["startTimeNanos"], unit="ns")
+        df.set_index("timestamp", inplace=True)
+        df.drop("startTimeNanos", axis=1, inplace=True)
+    
+    if "endTimeNanos" in df.columns:
+        df["end_time"] = pd.to_datetime(df["endTimeNanos"], unit="ns")
+        df.drop("endTimeNanos", axis=1, inplace=True)
+    
+    if "modifiedTimeMillis" in df.columns:
+        df["modified_time"] = pd.to_datetime(df["modifiedTimeMillis"], unit="ms")
+        df.drop("modifiedTimeMillis", axis=1, inplace=True)
+
+    if "dataTypeName" in df.columns:
+        df["datatype"] = df["dataTypeName"].apply(lambda x: re.sub(r'^com\.google\.', '', x))
+        df.drop("dataTypeName", axis=1, inplace=True)
+
+    if "rawTimestampNanos" in df.columns:
+        if (df["rawTimestampNanos"] == 0).all():
+            df.drop("rawTimestampNanos", axis=1, inplace=True)
+    
+    if "originDataSourceId" in df.columns:
+        if (df["originDataSourceId"] == "").all():
+            df.drop("originDataSourceId", axis=1, inplace=True)
+    
+    util.format_column_names(df)
+    return df
+
+    
+def fit_read_data(zip_filename, data_filename):
+    """ Read multiple data files in the Google Fit All Data folder.
+    """
+
+    if type(data_filename) == str:
+        filenames = fit_expand_data_filename(zip_filename, data_filename)
+    else:
+        try:
+            filenames = []
+            for filename in data_filename:
+                filenames.extend(fit_expand_data_filename(zip_filename, filename))
+        except TypeError:
+            raise ValueError("data_filename should be a string or an iterable containign filename strings.")
+    
+    dfs = []
+    measurement_index = 0
+    for filename in filenames:
+        df = fit_read_data_file(zip_filename, filename)
+        if df.shape[0] == 0:
+            continue
+        df["measurement_index"] += measurement_index
+        measurement_index = df["measurement_index"].max() + 1
+        dfs.append(df)
+
+    df = pd.concat(dfs)
+    df.sort_index(inplace=True)
+
+    return df
+
+
+def fit_all_data(zip_filename):
+    """ Read all the data in the Google Fit All Data folder.
+    """
+    datafiles = fit_list_data(zip_filename)["filename"]
+    data = fit_read_data(zip_filename, datafiles)
+    return data
+
+
+def fit_heart_rate_data(zip_filename):
+    """ Read heart rate data from Google Fit All Data folder and
+    format it more nicely.
+
+    Parameters
+    ----------
+    zip_filename : str
+        The filename of the zip file.
+
+    Returns
+    -------
+    data : pandas.DataFrame
+    """
+    entries = fit_list_data(zip_filename)
+    entries = entries[entries["content"].str.contains("heart_rate")]
+    entries = entries[~entries["content"].str.contains("summary")]
+    entries = entries[entries["derived"] == "raw"]
+    df = fit_read_data(zip_filename, entries["filename"])
+
+    df = df[["value", "modified_time"]]
+    df.rename(columns={"value": "heart_rate"}, inplace=True)
+    return df
+
+
+def fit_sessions(zip_filename):
+    """ Read all Google Takeout sessions and concatenate them into
+    a dataframe. Each file contains aggregate data for a single 
+    activity session or sleep session.
+    """
+
+    session_data_path = "Takeout/Fit/All Sessions"
+
+    data = []
+    try:
+        with ZipFile(zip_filename) as zip_file:
+            filenames = zip_file.namelist()
+            for filename in filenames:
+                if not filename.startswith(session_data_path):
+                    continue
+                with zip_file.open(filename) as file:
+                    session_data = json.load(file)
+                    if "segment" in session_data:
+                        del session_data["segment"]
+                    if "aggregate" in session_data:
+                        for aggregate in session_data["aggregate"]:
+                            name = aggregate["metricName"]
+                            name = re.sub(r'^com\.google\.', '', name)
+                            if "floatValue" in aggregate:
+                                session_data[name] = aggregate["floatValue"]
+                            elif "intValue" in aggregate:
+                                session_data[name] = aggregate["intValue"]
+                        del session_data["aggregate"]
+                    data.append(session_data)
+    
+    except:
+        return pd.DataFrame()
+    
+    df = pd.DataFrame(data)
+    df["timestamp"] = pd.to_datetime(df["startTime"], format='mixed')
+    df["end_time"] = pd.to_datetime(df["endTime"], format='mixed')
+    df.set_index("timestamp", inplace=True)
+    df.drop(["startTime", "endTime"], axis=1, inplace=True)
+
+    if "duration" in df.columns:
+        df["duration"] = pd.to_timedelta(df["duration"])
+
+    util.format_column_names(df)
+
+    return df
 
 

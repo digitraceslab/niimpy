@@ -1,0 +1,6 @@
+{
+    "Data Source": "raw:com.google.step_count.delta:fi.test.test:2024-04-30T17:59:58.999Z - 2024-04-30T19:17:30.000Z: step count",
+    "Data Points": [
+        {"fitValue":[{"value":{"intVal":8}}],"originDataSourceId":"","endTimeNanos":1714504650000000000,"dataTypeName":"com.google.step_count.delta","startTimeNanos":1714499998999000000,"modifiedTimeMillis":1714507334506,"rawTimestampNanos":0}
+    ]
+}

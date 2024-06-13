@@ -1,0 +1,15 @@
+{
+    "Data Source": "raw:com.google.sleep.segment:com.urbandroid.sleep:saa-generic",
+    "Data Points": [
+        {"fitValue":[{"value":{"intVal":1}}],"originDataSourceId":"","endTimeNanos":1700598156588000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700597806028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":4}}],"originDataSourceId":"","endTimeNanos":1700598627340000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700598156588000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":1}}],"originDataSourceId":"","endTimeNanos":1700598687436000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700598627340000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":4}}],"originDataSourceId":"","endTimeNanos":1700598706028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700598687436000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":5}}],"originDataSourceId":"","endTimeNanos":1700600806028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700598706028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":4}}],"originDataSourceId":"","endTimeNanos":1700601406028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700600806028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":6}}],"originDataSourceId":"","endTimeNanos":1700602306028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700601406028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":4}}],"originDataSourceId":"","endTimeNanos":1700602906028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700602306028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":5}}],"originDataSourceId":"","endTimeNanos":1700603806028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700602906028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"intVal":4}}],"originDataSourceId":"","endTimeNanos":1700604406028000000,"dataTypeName":"com.google.sleep.segment","startTimeNanos":1700603806028000000,"modifiedTimeMillis":1700629329011,"rawTimestampNanos":0}
+    ]
+}

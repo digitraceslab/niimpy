@@ -1,0 +1,15 @@
+{
+    "Data Source": "raw:com.google.heart_rate.bpm:fi.test.test:Test - heart rate",
+    "Data Points": [
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771744000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771743000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771745000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771744000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771746000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771745000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771747000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771746000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771748000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771747000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771749000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771748000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771750000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771749000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771751000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771750000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771752000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771751000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0},
+        {"fitValue":[{"value":{"fpVal":65}}],"originDataSourceId":"","endTimeNanos":1715771753000000000,"dataTypeName":"com.google.heart_rate.bpm","startTimeNanos":1715771752000000000,"modifiedTimeMillis":1715854853649,"rawTimestampNanos":0}
+    ]
+}
