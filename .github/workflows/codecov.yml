@@ -16,7 +16,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install deps
         run: |
-          pip install .[test]
+          pip install .[test,sentiment]
       - name: Run tests and collect coverage
         run: |
           coverage run -m pytest --run_sentiment

@@ -16,7 +16,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install deps
         run: |
-          pip install .[test]
+          pip install .[test,sentiment]
       - name: pytest -W error
         run: |
           pytest -W error --run_sentiment
