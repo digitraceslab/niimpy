@@ -12,7 +12,7 @@ provides many high-level functions for various types of data.
 
 .. toctree::
    :maxdepth: 1
-   :caption: Basics
+   :caption: About
 
    basics/introduction
    basics/installation
@@ -31,27 +31,21 @@ provides many high-level functions for various types of data.
 
 .. toctree::
    :maxdepth: 1
-   :caption: API
+   :caption: User guide
+   
+   user_guide/basic-transformations 
 
-   api/modules
+   user_guide/preprocessing/index
+   user_guide/Exploration
+   user_guide/Analysis
+
 
 
 .. toctree::
    :maxdepth: 1
-   :caption: User guide
-   
-   user_guide/Exploration
-   user_guide/Analysis
-   user_guide/location
-   user_guide/application
-   user_guide/audio
-   user_guide/battery
-   user_guide/basic-transformations 
-   user_guide/communication
-   user_guide/screen
-   user_guide/survey
-   user_guide/tracker
-   user_guide/student_life_example
+   :caption: Demos
+
+   demo/student_life_example
 
 
 .. toctree::
@@ -61,6 +55,12 @@ provides many high-level functions for various types of data.
    data-sources
    aware
    
+.. toctree::
+   :maxdepth: 1
+   :caption: API
+
+   api/modules
+
 
 
 
