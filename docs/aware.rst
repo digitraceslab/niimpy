@@ -15,6 +15,7 @@ but this information is now being moved here.
 Section names in general correspond to the koota-server converter
 name.
 
+
 Standard columns
 ----------------
 
@@ -194,13 +195,13 @@ This table lists all the timestamps collected from every data packet that was se
 
 
 Survey
-======
+------
 
 Provides details about the active data collected from the participants in the form of questionnaires. The survey tables are given below.
 
 
 MMMBackgroundAnswers, MMMBaselineAnswers, MMMDiagnosticPatientAnswers, MMMFeedbackPostActiveAnswers, MMMPostActiveAnswers, MMMSurveyAllAnswers
-----------------------------------------------------------------------------------------------------------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 These 6 tables provide details about questions and answers that were asked to the participants of this study. The answers in each of these 6 tables were collected only once per user.
 
@@ -216,7 +217,7 @@ selected as answers.
 
 
 MMMBackgroundMeta, MMMBaselineMeta, MMMDiagnosticPatientMeta, MMMFeedbackPostActiveMeta, MMMPostActiveMeta, MMMSurveyAllMeta
-----------------------------------------------------------------------------------------------------------------------------
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 These 6 tables provide meta data for their respective set of questionnaires’ answers. Each of these tables summerize the overall information gathered per user for that particular set of questionnaire. All of
 the data in these 6 tables were collected only once.

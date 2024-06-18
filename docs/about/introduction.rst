@@ -22,7 +22,7 @@ Digital behavioral studies using personal digital devices typically produce rich
 How
 ---
 
-The toolbox is divided into four layers by functionality: 1) reading, 2) preprocessing, 3) exploration, and 4) analysis. For more information about the layers, refer the toolbox :doc:`architecture` chapter. The :doc:`quick start <quick-start>` guide is be a good place to start. More detailed demo Jupyter notebooks are provided in the :doc:`user guide <demo_notebooks/Exploration>` chapter. Instructions for individual functions can be found under API chapter :doc:`api/niimpy`.
+The toolbox is divided into four layers by functionality: 1) reading, 2) preprocessing, 3) exploration, and 4) analysis. For more information about the layers, refer the toolbox :doc:`architecture` chapter. The :doc:`quick start </quick-start>` guide is be a good place to start. More detailed demo Jupyter notebooks are provided in the :doc:`user guide </user_guide/Exploration>` chapter. Instructions for individual functions can be found under API chapter :doc:`/api/niimpy`.
 
 This documentation has following chapters:
 
@@ -33,13 +33,12 @@ This documentation has following chapters:
 - Community guide
 - Data documentation
 
-Basic information contain this :ref:`introduction <introduction>`, :doc:`installation instructions<installation>`, :doc:`software architecture and workflow schematics<architecture>`, and information about :doc:`compatible data input-formats<input-formats>` and the :doc:`required data schema<schema>`.
+Basic information contain this :ref:`introduction <introduction-reference>`, :doc:`installation instructions<installation>`, :doc:`software architecture and workflow schematics<architecture>`, and information about :doc:`compatible data input-formats<input-formats>` and the :doc:`required data schema<schema>`.
 
-The :doc:`quickstart guide<quick-start>` provides a minimal working analysis example to get you started.
+The :doc:`quickstart guide </quick-start>` provides a minimal working analysis example to get you started.
 
-The :doc:`API documentation<api/niimpy>` has all technical details, containing instruction about how to use the toolbox functions, classes, return types, arguments and such.
+The :doc:`API documentation</api/niimpy>` has all technical details, containing instruction about how to use the toolbox functions, classes, return types, arguments and such.
 
-The :doc:`user guide<demo_notebooks/Exploration>` provide more thorough examples of each toolbox layer functionalities. The examples are in Jupyter notebook format.
+The :doc:`user guide</user_guide/Exploration>` provide more thorough examples of each toolbox layer functionalities. The examples are in Jupyter notebook format.
 
-The community guide has information :doc:`about the authors<about-us>`, :doc:`community rules<Community-rules>`, :doc:`contribution<adding-features>`, and our :doc:`collaborators <Partners>`.
-
+The community guide has information in the :doc:`contribution_guide<contribution_guide>`.
