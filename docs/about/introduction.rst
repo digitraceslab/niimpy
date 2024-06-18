@@ -33,7 +33,7 @@ This documentation has following chapters:
 - Community guide
 - Data documentation
 
-Basic information contain this :ref:`introduction <introduction-reference>`, :doc:`installation instructions<installation>`, :doc:`software architecture and workflow schematics<architecture>`, and information about :doc:`compatible data input-formats<input-formats>` and the :doc:`required data schema<schema>`.
+Basic information contain this :ref:`introduction <introduction-reference>`, :doc:`installation instructions<installation>`, :doc:`software architecture and workflow schematics<architecture>`, and information about :doc:`compatible data </user_guide/reading>` and the :doc:`required data schema<schema>`.
 
 The :doc:`quickstart guide </quick-start>` provides a minimal working analysis example to get you started.
 
