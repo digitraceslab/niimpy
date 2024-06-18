@@ -14,14 +14,14 @@ provides many high-level functions for various types of data.
    :maxdepth: 1
    :caption: Basics
 
-   introduction
-   installation
-   architecture
-   input-formats
-   schema
-   contribution_guide
-   How-to-cite
-   see-also
+   basics/introduction
+   basics/installation
+   basics/architecture
+   basics/input-formats
+   basics/schema
+   basics/contribution_guide
+   basics/How-to-cite
+   basics/see-also
 
 .. toctree::
    :maxdepth: 1
@@ -52,18 +52,6 @@ provides many high-level functions for various types of data.
    demo_notebooks/survey
    demo_notebooks/tracker
    demo_notebooks/student_life_example
-
-
-.. toctree::
-   :maxdepth: 1
-   :caption: Community
-   
-   adding-features
-.. 
-    about-us
-   Community-rules
-   
-   Partners
 
 
 .. toctree::

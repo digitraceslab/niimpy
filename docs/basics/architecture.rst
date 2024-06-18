@@ -80,6 +80,6 @@ Other possible workflows:
 
 Niimpy workflow diagram
 
-.. image:: images/Flowchart.jpg
+.. image:: /images/Flowchart.jpg
   :width: 800
   :alt: Niimpy toolbox flowchart
