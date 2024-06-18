@@ -40,18 +40,18 @@ provides many high-level functions for various types of data.
    :maxdepth: 1
    :caption: User guide
    
-   demo_notebooks/Exploration
-   demo_notebooks/Analysis
-   demo_notebooks/location
-   demo_notebooks/application
-   demo_notebooks/audio
-   demo_notebooks/battery
-   demo_notebooks/basic-transformations 
-   demo_notebooks/communication
-   demo_notebooks/screen
-   demo_notebooks/survey
-   demo_notebooks/tracker
-   demo_notebooks/student_life_example
+   user_guide/Exploration
+   user_guide/Analysis
+   user_guide/location
+   user_guide/application
+   user_guide/audio
+   user_guide/battery
+   user_guide/basic-transformations 
+   user_guide/communication
+   user_guide/screen
+   user_guide/survey
+   user_guide/tracker
+   user_guide/student_life_example
 
 
 .. toctree::
