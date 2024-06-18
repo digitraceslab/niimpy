@@ -17,7 +17,6 @@ provides many high-level functions for various types of data.
    about/introduction
    about/installation
    about/architecture
-   about/input-formats
    about/schema
    about/contribution_guide
    about/How-to-cite
@@ -33,8 +32,8 @@ provides many high-level functions for various types of data.
    :maxdepth: 1
    :caption: User guide
    
+   user_guide/reading
    user_guide/basic-transformations 
-
    user_guide/preprocessing/index
    user_guide/Exploration
    user_guide/Analysis
@@ -54,7 +53,7 @@ provides many high-level functions for various types of data.
    
 .. toctree::
    :maxdepth: 1
-   :caption: API
+   :caption: API reference
 
    api/modules
 
