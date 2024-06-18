@@ -32,7 +32,7 @@ The toolbox is divided into four layers by functionality: 1) reading, 2) preproc
 
 ## Installation
 
-- Only supports Python 3 (tested on 3.5 and above)
+- Only supports Python 3 (tested on 3.8 and above)
 
 - This is a normal Python package to install. 
 

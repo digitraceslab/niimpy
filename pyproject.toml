@@ -1,0 +1,73 @@
+[build-system]
+requires = ["flit_core >=3.2,<4"]
+build-backend = "flit_core.buildapi"
+
+[tool.flit.module]
+name = "niimpy"
+
+[project]
+name = "niimpy"
+version = "1.1.0"
+readme = "README.md"
+description = "Python module for analysis of behavioral data"
+authors = [
+    {name = 'Digitraceslab', email = 'talayeh.aledavood@aalto.fi'}
+]
+requires-python = ">=3.8"
+
+dependencies = [
+    "python-dateutil",
+    "numpy",
+    "pandas",
+    "matplotlib",
+    "seaborn",
+    "plotly",
+    "scikit-learn",
+    "coverage",
+    "geopy",
+    "kaleido",
+    "scipy",
+    "tqdm",
+    "BeautifulSoup4",
+    "pyarrow",
+    "google_takeout_email",
+    "tqdm"
+]
+
+[project.optional-dependencies]
+sentiment = [
+    "multi_language_sentiment"
+]
+test = [
+    "pytest",
+]
+docs = [
+    "nbdime",
+    "numpydoc",
+    "sphinx_rtd_theme",
+    "sphinx",
+    "nbsphinx",
+    "geopy",
+    "ipykernel"
+]
+
+[project.urls]
+Repository = "https://github.com/digitraceslab/niimpy"
+
+
+[bumpver]
+current_version = "1.1.0"
+version_pattern = "MAJOR.MINOR.PATCH"
+commit_message = "bump version {old_version} -> {new_version}"
+commit = true
+tag = true
+push = true
+
+[bumpver.file_patterns]
+"niimpy/_version.py" = [
+    "__version__ = '{version}'",
+]
+"pyproject.toml" = [
+    'version = "{version}"'
+]
+
