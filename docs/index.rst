@@ -21,7 +21,7 @@ provides many high-level functions for various types of data.
    schema
    contribution_guide
    How-to-cite
-   see-also 
+   see-also
 
 .. toctree::
    :maxdepth: 1
@@ -41,6 +41,7 @@ provides many high-level functions for various types of data.
    :caption: User guide
    
    demo_notebooks/Exploration
+   demo_notebooks/Analysis
    demo_notebooks/location
    demo_notebooks/application
    demo_notebooks/audio
@@ -51,7 +52,6 @@ provides many high-level functions for various types of data.
    demo_notebooks/survey
    demo_notebooks/tracker
    demo_notebooks/student_life_example
-   demo_notebooks/rhythm
 
 
 .. toctree::
@@ -72,7 +72,6 @@ provides many high-level functions for various types of data.
 
    data-sources
    aware
-   survey
    
 
 
