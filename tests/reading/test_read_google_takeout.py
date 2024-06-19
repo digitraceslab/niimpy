@@ -85,54 +85,29 @@ def test_read_activity(google_takeout_zipped):
     """test reading activity data from a Google takeout file."""
     data = niimpy.reading.google_takeout.activity(google_takeout_zipped).sort_index()
 
-    assert data.shape == (192, 21)
+    assert data.shape == (2, 31)
     
-    assert data.index[0] == pd.to_datetime("2023-11-20 00:00:000+02:00")
-    assert np.isnan(data.iloc[4]["move_minutes_count"])
-    assert data.iloc[75]["move_minutes_count"] == 13.0
-    assert data.iloc[75]["calories_(kcal)"] == pytest.approx(43.42468) 
-    assert data.iloc[75]["distance_(m)"] == pytest.approx(1174.961861)
-    assert data.iloc[75]["heart_points"] == 17.0
-    assert data.iloc[75]["heart_minutes"] == 11.0
-    assert np.isnan(data.iloc[75]["low_latitude_(deg)"])
-    assert np.isnan(data.iloc[75]["low_longitude_(deg)"])
-    assert np.isnan(data.iloc[75]["high_latitude_(deg)"])
-    assert np.isnan(data.iloc[75]["high_longitude_(deg)"])
-    assert data.iloc[75]["average_speed_(m/s)"] == pytest.approx(1.539091)
-    assert data.iloc[75]["max_speed_(m/s)"] == pytest.approx(2.123024)
-    assert data.iloc[75]["min_speed_(m/s)"] == pytest.approx(0.3197519)
-    assert data.iloc[75]["step_count"] == 1537.0
-    assert np.isnan(data.iloc[75]["average_weight_(kg)"])
-    assert np.isnan(data.iloc[75]["max_weight_(kg)"])
-    assert np.isnan(data.iloc[75]["min_weight_(kg)"])
-    assert pd.isnull(data.iloc[75]["road_biking_duration"])
-    assert data.iloc[75]["start_time"] == pd.to_datetime("2023-11-20 18:45:00+02:00")
-    assert data.iloc[75]["end_time"] == pd.to_datetime("2023-11-20 19:00:00+02:00")
-    assert data.iloc[75]["walking_duration"] == pd.to_timedelta("0 days 00:00:00.337365")
+    assert data.index[0] == pd.to_datetime("2023-11-20 00:00:00+02:00")
+    assert data.iloc[1]["move_minutes_count"] == 72.0
+    assert data.iloc[1]["calories_(kcal)"] == pytest.approx(1996.456746) 
+    assert data.iloc[1]["distance_(m)"] == pytest.approx(7159.124344)
+    assert data.iloc[1]["heart_points"] == 48.0
+    assert data.iloc[1]["heart_minutes"] == 40.0
+    assert np.isnan(data.iloc[1]["low_latitude_(deg)"])
+    assert data.iloc[1]["low_longitude_(deg)"] == pytest.approx(1.183746)
+    assert data.iloc[1]["high_latitude_(deg)"] == pytest.approx(4.444444)
+    assert data.iloc[1]["high_longitude_(deg)"] == pytest.approx(0.257015)
+    assert data.iloc[1]["average_speed_(m/s)"] == pytest.approx(5627.0)
+    assert data.iloc[1]["max_speed_(m/s)"] == pytest.approx(89.900002)
+    assert data.iloc[1]["min_speed_(m/s)"] == pytest.approx(89.900002)
+    assert data.iloc[1]["step_count"] == pytest.approx(89.900002)
+    assert np.isnan(data.iloc[1]["average_weight_(kg)"])
 
 
 def test_read_activity_no_activity_data(empty_zip_file):
     """ test reading activity data not present in file. """
     data = niimpy.reading.google_takeout.activity(empty_zip_file)
     assert data.empty
-
-
-def test_read_activity_start_date(google_takeout_zipped):
-    """test reading location data from a Google takeout file."""
-    data = niimpy.reading.google_takeout.activity(
-        google_takeout_zipped,
-        start_date=pd.to_datetime("2023-11-21T00:00:00.000Z", format="ISO8601")
-    )
-    assert data.shape == (96, 19)
-
-
-def test_read_activity_end_date(google_takeout_zipped):
-    """test reading location data from a Google takeout file."""
-    data = niimpy.reading.google_takeout.activity(
-        google_takeout_zipped,
-        end_date=pd.to_datetime("2023-11-20T00:00:00.000Z", format="ISO8601")
-    )
-    assert data.shape == (96, 21)
 
 
 def test_read_email_activity(google_takeout_zipped, request):

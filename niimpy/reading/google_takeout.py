@@ -217,7 +217,7 @@ def location_history(
     return data
 
 
-def activity(zip_filename, user=None):
+def activity(zip_filename, user=None, timezone = 'Europe/Helsinki'):
     """ Read activity daily data from a Google Takeout zip file. 
     
     Parameters
@@ -249,10 +249,14 @@ def activity(zip_filename, user=None):
                 filename = f
                 break
 
+        if filename is None:
+            return pd.DataFrame()
+        
         # Read the more fine grained data for each date
         data = pd.read_csv(zip_file.open(filename))
     
-    data["timestamp"] = pd.to_datetime(data["Date"])
+    data["timestamp"] = pd.to_datetime(data["Date"]).dt.tz_localize(timezone)
+
     data.set_index('timestamp', inplace=True)
     util.format_column_names(data)
 
