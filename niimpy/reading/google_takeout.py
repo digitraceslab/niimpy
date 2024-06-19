@@ -10,10 +10,14 @@ import re
 
 from tqdm import tqdm
 from bs4 import BeautifulSoup
-from multi_language_sentiment import sentiment as get_sentiment
 from niimpy.preprocessing import util
 import google_takeout_email as email_utils
 
+try:
+    from multi_language_sentiment import sentiment as get_sentiment
+except ImportError:
+    def get_sentiment(*args, **kwargs):
+        raise ImportError("Sentiment analysis requested, but the optional dependency 'sentiment' is not installed. To install it, run `pip install niimpy[sentiment]`")
 
 
 def format_inferred_activity(data, inferred_activity, activity_threshold):
@@ -214,7 +218,7 @@ def location_history(
 
 
 def activity(zip_filename, user=None, start_date = None, end_date = None):
-    """ Read activity data from a Google Takeout zip file. 
+    """ Read activity daily data from a Google Takeout zip file. 
     
     Parameters
     ----------
@@ -237,31 +241,18 @@ def activity(zip_filename, user=None, start_date = None, end_date = None):
     """
 
     # Read the csv files in the activity directory and concatenate
-    dfs = []
     with ZipFile(zip_filename) as zip_file:
-        for filename in zip_file.namelist():
+        filename = None
+        for f in zip_file.namelist():
             # Skip the file with daily agregated data for now.
-            if filename.endswith('Daily activity metrics.csv'):
-                continue
+            if f.endswith('Daily activity metrics.csv'):
+                filename = f
+                break
 
-            # Read the more fine grained data for each date
-            if filename.startswith("Takeout/Fit/Daily activity metrics/") and filename.endswith(".csv"):
-                date = os.path.basename(filename).replace(".csv", "")
-                if start_date is not None:
-                    if pd.to_datetime(date).tz_localize("UTC") < start_date:
-                        continue
-                if end_date is not None:
-                    if pd.to_datetime(date).tz_localize("UTC") > end_date:
-                        continue
-                with zip_file.open(filename) as csv_file:
-                    data = pd.read_csv(csv_file)
-                    data["date"] = date
-                    dfs.append(data)
+        # Read the more fine grained data for each date
+        data = pd.read_csv(zip_file.open(filename))
 
-    if len(dfs) == 0:
-        return pd.DataFrame()
-    
-    data = pd.concat(dfs)
+    return data
 
     # Format start time and end time columns with date. Set start time as the
     # timestamp
