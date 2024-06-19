@@ -217,7 +217,7 @@ def location_history(
     return data
 
 
-def activity(zip_filename, user=None, start_date = None, end_date = None):
+def activity(zip_filename, user=None):
     """ Read activity daily data from a Google Takeout zip file. 
     
     Parameters
@@ -255,6 +255,10 @@ def activity(zip_filename, user=None, start_date = None, end_date = None):
     data["timestamp"] = pd.to_datetime(data["Date"])
     data.set_index('timestamp', inplace=True)
     util.format_column_names(data)
+
+    if user is None:
+        user = uuid.uuid1()
+    data["user"] = user
 
     return data
 
