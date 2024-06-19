@@ -7,3 +7,6 @@ niimpy/sqlite-extension-functions.*
 MANIFEST
 *.egg-info
 __pycache__
+data/
+.copilotignore
+.coverage
