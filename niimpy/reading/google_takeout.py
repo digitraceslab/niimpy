@@ -251,34 +251,10 @@ def activity(zip_filename, user=None, start_date = None, end_date = None):
 
         # Read the more fine grained data for each date
         data = pd.read_csv(zip_file.open(filename))
-
-    return data
-
-    # Format start time and end time columns with date. Set start time as the
-    # timestamp
-    data["start_time"] = pd.to_datetime(data["date"] + ' ' + data["Start time"])
-    data["end_time"] = pd.to_datetime(data["date"] + ' ' + data["End time"])
-    data["timestamp"] = data["start_time"]
-    data.set_index('timestamp', inplace=True)
-    data.drop(["Start time", "End time", "date"], axis=1, inplace=True)
-
-    # Fix date where end time is midnight
-    row_index = data["end_time"].dt.time == datetime.time(0)
-    data.loc[row_index, "end_time"] = data.loc[row_index, "end_time"] + datetime.timedelta(days=1)
-
-    # Format durations as timedelta
-    for col in data.columns:
-        if col.endswith("duration (ms)"):
-            new_name = col.replace(" (ms)", "")
-            data[new_name] = pd.to_timedelta(data[col], unit="microseconds")
-            data.drop(col, axis=1, inplace=True)
-
-    # Format column names
-    util.format_column_names(data)
     
-    if user is None:
-        user = uuid.uuid1()
-    data["user"] = user
+    data["timestamp"] = pd.to_datetime(data["Date"])
+    data.set_index('timestamp', inplace=True)
+    util.format_column_names(data)
 
     return data
 
