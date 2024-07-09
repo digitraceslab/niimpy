@@ -1,5 +1,5 @@
 import niimpy
-from niimpy.reading import read
+from niimpy.reading import csv
 from niimpy.preprocessing import sampledata
 
 TZ = 'Europe/Helsinki'
