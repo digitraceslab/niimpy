@@ -100,7 +100,7 @@ features = nilo.extract_features(
 
 ## Documentation
 
-Niimpy documentation is hosted at [readthedocs]https://niimpy.readthedocs.io/en/latest/.
+Niimpy documentation is hosted at [readthedocs]https://digitraceslab.github.io/niimpy/.
 
 ## Development
 
