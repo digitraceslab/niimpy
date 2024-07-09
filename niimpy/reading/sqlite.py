@@ -88,7 +88,7 @@ def _get_dataframe(df_or_database, table, user=None):
 
     """
     if isinstance(df_or_database, database.Data1):
-        df = df_or_database.raw(table=table, user=subject)
+        df = df_or_database.raw(table=table, user=user)
     else:
         df = df_or_database
         # questions was *not*  dataframe.
