@@ -305,10 +305,11 @@ def classify_app(df, config):
         Input data frame
     config: dict, optional
         Dictionary keys containing optional arguments for the computation of screen
-        information. Keys can be column names, other dictionaries, etc. It can
-        contain a dictionary called group_map, which has the mapping to define
-        the app groups. Keys should be the app name, values are the app groups
-        (e.g. 'my_app':'my_app_group')
+        information. The following arguments are used:
+
+        app_column_name: Column containing the app name. Defaults to 'application_name'.
+        group_map: A dictionary mapping the app names to app groups. (required)
+                   (e.g. 'my_app':'my_app_group')
 
     Returns
     -------
@@ -348,13 +349,16 @@ def app_count(df, bat, screen, config={}):
         Dataframe with the screen information. If no data is available, an empty
         dataframe should be passed.
     config: dict, optional
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name "" will be used. To include information about
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
+        Dictionary keys containing optional arguments for the computation of screen
+        information. The following arguments are used:
 
+        app_column_name: Column containing the app name. Defaults to 'application_name'.
+        group_map: A dictionary mapping the app names to app groups.
+                   Defaults to niimpy.preprocesing.application.MAP_APP, which maps
+                   several common apps.
+        screen_column_name: Column containing the screen status. Defaults to 'screen_status'.
+        resample_args: parameteres passed to pandas.DataFrame.resample. Defaults to {'rule':'30min'}.
+        
     Returns
     -------
     result: dataframe
@@ -434,11 +438,13 @@ def app_duration(df, bat, screen, config=None):
         dataframe should be passed.
     config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name "application_name" will be used. To include information about
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
+        information. The following arguments are used:
+
+        app_column_name: Column containing the app name. Defaults to 'application_name'.
+        group_map: A dictionary mapping the app names to app groups.
+                   Defaults to niimpy.preprocesing.application.MAP_APP, which maps
+                   several common apps.
+        outlier_threshold: Threshold for filtering out outliers. Defaults to '10h'.
 
     Returns
     -------
