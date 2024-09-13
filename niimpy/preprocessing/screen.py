@@ -8,13 +8,12 @@ group_by_columns = set(["user", "device"])
 
 def group_data(df):
     """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
+    group_by_columns. """
     columns = list(group_by_columns & set(df.columns))
     return df.groupby(columns)
 
 def reset_groups(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
+    """ Reset the grouping, keeping only the original index columns. """
     columns = list(group_by_columns & set(df.index.names))
     return df.reset_index(columns)
 
@@ -31,13 +30,11 @@ def util_screen(df, bat, config):
     bat: pandas.DataFrame
         Dataframe with the battery information
     config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name employed by Aware Framework will be used. To include information about 
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
-        
+        Dictionary keys containing optional arguments for the computation of screen
+        information. The following arguments are used:
+
+        screen_column_name: Column containing the screen status. Default is
+                            "screen_status".
     
     Returns
     -------
@@ -93,17 +90,16 @@ def event_classification_screen(df, config):
         Input data frame
     config: dict
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name employed by Aware Framework will be used. To include information about 
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
+        information. The following arguments are used:
+
+        screen_column_name: Column containing the screen status. Default is
+                            "screen_status".
     
     Returns
     -------
     df: dataframe
         Resulting dataframe
-    """    
+    """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     assert isinstance(config, dict), "config is not a dictionary"
     

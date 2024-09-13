@@ -123,8 +123,7 @@ def group_data(df):
     return df.groupby(columns)
 
 def reset_groups(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
+    """ Reset the grouping, keeping only the original index columns. """
     columns = list(group_by_columns & set(df.index.names))
     return df.reset_index(columns)
 
