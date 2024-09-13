@@ -1,9 +1,11 @@
 Data schema
 ===========
 
-This page documents the expected data schema of Niimpy.  This does
-*not* extend to the contents of data from sensors (yet), but relates
-to the metadata applicable to all sensors.
+This page documents the expected data schema of Niimpy.  This is a
+general description that applies to all different types of data that
+Niimpy can handle, and mainly describes measurement metadata.
+Specific types of data (e.g. location data) will have additional
+columns containing the actual data.
 
 By using a standardized schema (mainly column names), we can promote
 interoperability of various tools.
@@ -15,8 +17,8 @@ Format
 
 Data is in a tabular (relational) format.  A row is an observation,
 and columns are properties of observations.  (At this level of
-abstraction, an "observation" may be one sensor observation, or some
-data which contains a package of multiple observations).
+abstraction, an "observation" may be one measurement, or processed
+combination of multiple measurements).
 
 In Niimpy, this is internally stored and handled as a
 pandas.DataFrame.  The schema naturally maps to the columns/rows of
@@ -24,7 +26,10 @@ the DataFrames.
 
 The on-disk format is currently irrelevant, as long as the producers
 can create a DataFrame of the necessary format.  Currently, we provide
-readers for sqlite3 and csv.  Other standards may be implemented later.
+support sqlite3 and csv.
+
+Additionally, we provide readers for MHealth data and Google Takeout
+data. These readers convert the data to the standard DataFrame format.
 
 
 
@@ -36,6 +41,10 @@ easily operate on diverse data types.
 
 * The **DataFrame index** should be a ``pandas.DatetimeIndex``.
 
+  The index should represent the time the measurement was taken.
+  If the measurement represents a period of time, the index should
+  be the starting time of the period.
+
 * ``user``: opaque identifier for the user.  Often a string or
   integer.
 
@@ -43,7 +52,9 @@ easily operate on diverse data types.
   device type).  For example, a user could have multiple phones, and
   each would have a separate ``device`` identifier.
 
-* ``time``: timestamp of the observation, in unixtime (seconds
+* ``time``: This is optional at runtime but is used in on disk formats.
+  
+  The timestamp of the observation, in unixtime (seconds
   since 00:00 on 1970-01-01), stored as an integer.  Unixtime is a
   globally unique measure
   of an instance of time on Earth, and to get localtime it is combined
@@ -56,31 +67,13 @@ easily operate on diverse data types.
   column is automatically converted to the ``datetime`` column below
   and the DataFrame index.
 
-* ``datetime``: a ``DateTime``-compatible object, such as in pandas a
-  numpy.datetime64 object, used only in in-memory representations (not
-  usually written to portable save files).  This should be an
-  timezone-aware object, and the data loader handles the timezone
-  conversion.  automatically added to DataFrames when loaded.
 
-  It is the responsibility of each loader (or preprocessor) to add
-  this column to the in-memory representation by converting the
-  ``time`` column to this format.  This happens automatically with
-  readers included in ``niimpy``.
 
-* ``timezone``: Timezone in some format.  Not yet used, to be
-  decided.
+Exploration, analysis and exploration modules expect specific input data columns, representing the actual data.
+For example, the location module expects latitude and longitude columns.
+These columns are documented in the User Guide sections for each module.
 
-* For questionaire data
 
-  * ``id``: a question identifier.  String, should be of form
-    ``QUESTIONAIRE_QUESTION``, for example ``PHQ9_01``.  The common
-    prefix is used to group questions of the same series.
-  * ``answer``: the answer to the question.  Opaque identifier.
-
-Sensor-specific schemas are defined elsewhere.  Columns which are not
-defined here are allowed and considered to be part of the sensors,
-most APIs should pass through unknown columns for handling in a future
-layer (sensor analysis).
 
 
 Standard columns in on-disk formats
@@ -88,8 +81,7 @@ Standard columns in on-disk formats
 
 For the most part, this maps directly to the columns you see above.
 An on-disk format should have a ``time`` column (unixtime, integer)
-plus whatever else is needed for that particular sensor, based on the
-above.
+and data columns as described above.
 
 
 
