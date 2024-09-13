@@ -83,17 +83,6 @@ most APIs should pass through unknown columns for handling in a future
 layer (sensor analysis).
 
 
-
-Other standard columns in Niimpy
---------------------------------
-
-These are not part of the primary schema, but are standard in Niimpy.
-
-* ``day``: e.g. ``2021-04-09`` (str)
-* ``hour``: hour of day, e.g. ``15`` (int)
-
-
-
 Standard columns in on-disk formats
 -----------------------------------
 
