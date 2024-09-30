@@ -1,25 +1,12 @@
 import numpy as np
 import pandas as pd
 
-import niimpy
 from niimpy.preprocessing import battery as b
 from niimpy.preprocessing import screen as s
+from niimpy.preprocessing import util
+
 
 group_by_columns = set(["user", "device", "app_group"])
-
-
-def group_data(df):
-    """Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-
-def reset_groups(df):
-    """Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
 
 
 MAP_APP = {
@@ -410,9 +397,9 @@ def app_count(df, bat, screen, config={}):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = group_data(df2)["app_group"].resample(**config["resample_args"], include_groups=False).count()
+        result = util.group_data(df2, columns = group_by_columns)["app_group"].resample(**config["resample_args"], include_groups=False).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        result = reset_groups(result)
+        result = util.reset_groups(result, columns = group_by_columns)
 
         return result
     return None
@@ -523,9 +510,9 @@ def app_duration(df, bat, screen, config=None):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = group_data(df2)["duration"].resample(**config["resample_args"], include_groups=False).sum()
+        result = util.group_data(df2, columns = group_by_columns)["duration"].resample(**config["resample_args"], include_groups=False).sum()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        return reset_groups(result)
+        return util.reset_groups(result, columns = group_by_columns)
 
     return None
 
@@ -574,5 +561,5 @@ def extract_features_app(df, bat, screen, features=None):
 
     computed_features = pd.concat(computed_features, axis=1)
     # index the result only by the original index (datetime)
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features, columns = group_by_columns)
     return computed_features

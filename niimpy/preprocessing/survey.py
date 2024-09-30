@@ -343,7 +343,7 @@ def extract_features_survey(df, features=None):
     computed_features = []
     for features, feature_arg in features.items():
         computed_feature = features(df, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
+        index_by = list(set(group_by_columns) & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
     

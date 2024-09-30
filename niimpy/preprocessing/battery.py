@@ -1,20 +1,9 @@
 import numpy as np
 import pandas as pd
 
-import niimpy
+from niimpy.preprocessing import util
 
 group_by_columns = set(["user", "device"])
-
-def group_data(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-def reset_groups(df):
-    """ Reset the grouping, keeping only the original index columns. """
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
 
 
 def shutdown_info(df, config):
@@ -75,9 +64,9 @@ def battery_mean_level(df, config):
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
     if len(df)>0:
-        result = group_data(df)[col_name].resample(**config["resample_args"]).mean()
+        result = util.group_data(df)[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='battery_mean_level')
-        result = reset_groups(result)
+        result = util.reset_groups(result)
     return result
 
 
@@ -109,9 +98,9 @@ def battery_median_level(df, config):
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
     if len(df)>0:
-        result = group_data(df)[col_name].resample(**config["resample_args"]).median()
+        result = util.group_data(df)[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='battery_median_level')
-        result = reset_groups(result)
+        result = util.reset_groups(result)
     return result
 
 
@@ -143,9 +132,9 @@ def battery_std_level(df, config):
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
     if len(df)>0:
-        result = group_data(df)[col_name].resample(**config["resample_args"]).std()
+        result = util.group_data(df)[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='battery_std_level')
-        result = reset_groups(result)
+        result = util.reset_groups(result)
     return result
 
 def battery_shutdown_time(df, config):
@@ -191,8 +180,8 @@ def battery_shutdown_time(df, config):
         result = result.to_frame(name='shutdown_time')
         return result
 
-    result = group_data(df).apply(calculate_shutdown)
-    result = reset_groups(result)
+    result = util.group_data(df).apply(calculate_shutdown)
+    result = util.reset_groups(result)
     return result
     
 
@@ -237,8 +226,8 @@ def battery_discharge(df, config):
             result = result.to_frame(name='battery_discharge')
         return result
     
-    result = group_data(df).apply(calculate_discharge)
-    result = reset_groups(result)
+    result = util.group_data(df).apply(calculate_discharge)
+    result = util.reset_groups(result)
     return result
 
 
@@ -290,7 +279,7 @@ def battery_occurrences(df, config):
             return ((series == '-1') | (series == '-2') | (series == '-3')).sum()
         
         occurrence_data["time"] = occurrence_data.index
-        occurrences = group_data(occurrence_data).resample(
+        occurrences = util.group_data(occurrence_data).resample(
             **config["resample_args"], include_groups=False
         ).agg({
             "time": "count",
@@ -299,12 +288,12 @@ def battery_occurrences(df, config):
 
     else:
         occurrence_data["time"] = occurrence_data.index
-        occurrences = group_data(occurrence_data).resample(
+        occurrences = util.group_data(occurrence_data).resample(
             **config["resample_args"], include_groups=False
         )["time"].count()
         occurrences = occurrences.to_frame(name='occurrences')
 
-    occurrences = reset_groups(occurrences)
+    occurrences = util.reset_groups(occurrences)
     return occurrences
 
 
@@ -346,8 +335,8 @@ def battery_gaps(df, config):
 
         return pd.DataFrame({"battery_gap": delta})
     
-    result = group_data(df).apply(calculate_gaps, include_groups=False)
-    result = reset_groups(result)
+    result = util.group_data(df).apply(calculate_gaps, include_groups=False)
+    result = util.reset_groups(result)
     return result
 
 
@@ -383,8 +372,8 @@ def battery_charge_discharge(df, config):
             'charge/discharge': delta
         })
 
-    discharge = group_data(df).apply(calculate_discharge, include_groups=False)
-    discharge = reset_groups(discharge)
+    discharge = util.group_data(df).apply(calculate_discharge, include_groups=False)
+    discharge = util.reset_groups(discharge)
     return discharge
 
 
@@ -506,5 +495,5 @@ def extract_features_battery(df, features=None):
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features

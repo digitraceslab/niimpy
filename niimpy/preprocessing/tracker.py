@@ -1,18 +1,7 @@
 import pandas as pd
+from niimpy.preprocessing import util
 
 group_by_columns = ["user", "device"]
-
-def group_data(df, columns = group_by_columns):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    found_columns = list(set(columns) & set(df.columns))
-    return df.groupby(found_columns)
-
-def reset_groups(df, columns = group_by_columns):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    found_columns = list(set(columns) & set(df.index.names))
-    return df.reset_index(found_columns)
 
 
 def step_summary(df, config={}):
@@ -65,7 +54,7 @@ def step_summary(df, config={}):
     df['day'] = df.index.day
 
     # Calculate sum of steps for each date
-    df['daily_sum'] = group_data( df,
+    df['daily_sum'] = util.group_data( df,
         columns = ['day', 'month'] + group_by_columns
     )[value_col].transform('sum')
 
@@ -74,13 +63,13 @@ def step_summary(df, config={}):
 
     summary_df = pd.DataFrame()
     
-    summary_df['median_sum_step'] = group_data(df)['daily_sum'].median()
-    summary_df['avg_sum_step'] = group_data(df)['daily_sum'].mean()
-    summary_df['std_sum_step'] = group_data(df)['daily_sum'].std()
-    summary_df['min_sum_step'] = group_data(df)['daily_sum'].min()
-    summary_df['max_sum_step'] = group_data(df)['daily_sum'].max()
+    summary_df['median_sum_step'] = util.group_data(df)['daily_sum'].median()
+    summary_df['avg_sum_step'] = util.group_data(df)['daily_sum'].mean()
+    summary_df['std_sum_step'] = util.group_data(df)['daily_sum'].std()
+    summary_df['min_sum_step'] = util.group_data(df)['daily_sum'].min()
+    summary_df['max_sum_step'] = util.group_data(df)['daily_sum'].max()
 
-    summary_df = reset_groups(summary_df)
+    summary_df = util.reset_groups(summary_df)
     return summary_df
 
 
@@ -186,6 +175,6 @@ def extract_features_tracker(df, features=None):
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features
 

@@ -170,6 +170,19 @@ def format_column_names(df):
     df.rename(columns=column_map, inplace=True)
 
 
+def group_data(df, columns=["user", "device"]):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(set(columns) & set(df.columns))
+    return df.groupby(columns)
+
+
+def reset_groups(df, columns = set(["user", "device"])):
+    """ Reset the grouping, keeping only the original index columns. """
+    columns = list(set(columns) & set(df.index.names))
+    return df.reset_index(columns)
+
+
 def set_encoding(df, to_encoding = 'utf-8', from_encoding = 'iso-8859-1'):
     """ Recode the dataframe to a different encoding. This is useful when
     the encoding in a data file is set incorrectly and utf characters are

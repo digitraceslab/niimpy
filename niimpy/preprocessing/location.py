@@ -4,23 +4,13 @@ import pandas as pd
 import numpy as np
 import scipy.stats
 from sklearn.cluster import DBSCAN
-
 from geopy.distance import geodesic
+
+from niimpy.preprocessing import util
 
 default_freq = "1ME"
 
 group_by_columns = set(["user", "device"])
-
-def group_data(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-def reset_groups(df):
-    """ Reset the grouping, keeping only the original index columns. """
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
 
 
 def distance_matrix(lats, lons):
@@ -296,8 +286,8 @@ def location_number_of_significant_places(df, config={}):
         })
         return row
     
-    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
-    result = reset_groups(result)
+    result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
+    result = util.reset_groups(result)
     return result
 
 
@@ -426,8 +416,8 @@ def location_significant_place_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
-    result = reset_groups(result)
+    result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
+    result = util.reset_groups(result)
     return result
 
 
@@ -488,8 +478,8 @@ def location_distance_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
-    result = reset_groups(result)
+    result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
+    result = util.reset_groups(result)
     return result
 
 ALL_FEATURES = [globals()[name] for name in globals()
@@ -542,5 +532,5 @@ def extract_features_location(df, features=None):
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features
