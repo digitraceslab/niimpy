@@ -12,7 +12,6 @@ jobs:
           - '3.11'
           - '3.12'
         pandas-version:
-          - '2.1'
           - '2.2'
     steps:
       - uses: actions/checkout@v2
