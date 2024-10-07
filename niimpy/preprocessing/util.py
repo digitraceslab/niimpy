@@ -10,6 +10,13 @@ import warnings
 from scipy import stats
 
 
+def ensure_dataframe(df):
+    if df is None:
+        return pd.DataFrame()
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    return df
+
+
 def date_range(df, start, end):
     """Extract out a certain date range from a DataFrame.
 
@@ -89,7 +96,42 @@ def uninstall_extensions():
     unlink_if_exists(SQLITE3_EXTENSIONS_FILENAME)
 
 
-#TODO: reanme to data.py
+def read_preprocess(df, add_group=None):
+    """Standard preprocessing arguments when reading.
+
+    This is a preprocessing filter which handles some standard arguments
+    when reading files.  This should be considered a private, unstable
+    function.
+
+
+    Parameters
+    ----------
+
+    df: pandas.DataFrame
+
+        Input data frame
+
+    add_group: string, optional
+
+        If given, add a new 'group' column with all values set to this
+        given identifier.
+
+
+    Returns
+    -------
+
+    df: dataframe
+
+        Resulting dataframe (modified in-place if possible, but may also
+        be a copy)
+
+    """
+    if add_group is not None:
+        df['group'] = add_group
+        #df['group'] = df['group'].astype('category')
+        #pd.Categorical(add_group)
+    return df
+
 
 def df_normalize(df, tz=None, old_tz=None):
     """Normalize a df (from sql) before presenting it to the user.
@@ -133,6 +175,19 @@ def format_column_names(df):
         formatted_name = re.sub(r'[^a-zA-Z0-9_()/]+', '_', formatted_name)
         column_map[column] = formatted_name
     df.rename(columns=column_map, inplace=True)
+
+
+def group_data(df, columns=["user", "device"]):
+    """ Group the dataframe by a standard set of columns listed in
+    group_by_columns."""
+    columns = list(set(columns) & set(df.columns))
+    return df.groupby(columns)
+
+
+def reset_groups(df, columns = set(["user", "device"])):
+    """ Reset the grouping, keeping only the original index columns. """
+    columns = list(set(columns) & set(df.index.names))
+    return df.reset_index(columns)
 
 
 def set_encoding(df, to_encoding = 'utf-8', from_encoding = 'iso-8859-1'):

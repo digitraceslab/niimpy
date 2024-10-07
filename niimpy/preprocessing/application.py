@@ -1,25 +1,12 @@
 import numpy as np
 import pandas as pd
 
-import niimpy
 from niimpy.preprocessing import battery as b
 from niimpy.preprocessing import screen as s
+from niimpy.preprocessing import util
+
 
 group_by_columns = set(["user", "device", "app_group"])
-
-
-def group_data(df):
-    """Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-
-def reset_groups(df):
-    """Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
 
 
 MAP_APP = {
@@ -295,7 +282,7 @@ MAP_APP = {
 }
 
 
-def classify_app(df, config):
+def classify_app(df, config=None):
     """This function is a helper function for other screen preprocessing.
     The function classifies the screen events into the groups specified by group_map.
 
@@ -305,10 +292,11 @@ def classify_app(df, config):
         Input data frame
     config: dict, optional
         Dictionary keys containing optional arguments for the computation of screen
-        information. Keys can be column names, other dictionaries, etc. It can
-        contain a dictionary called group_map, which has the mapping to define
-        the app groups. Keys should be the app name, values are the app groups
-        (e.g. 'my_app':'my_app_group')
+        information. The following arguments are used:
+
+        app_column_name: Column containing the app name. Defaults to 'application_name'.
+        group_map: A dictionary mapping the app names to app groups. (required)
+                   (e.g. 'my_app':'my_app_group')
 
     Returns
     -------
@@ -316,12 +304,12 @@ def classify_app(df, config):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    if not "app_column_name" in config.keys():
-        col_name = "application_name"
-    else:
-        col_name = config["app_column_name"]
+    col_name = config.get("app_column_name", "application_name")
+    config["group_map"] = config.get("group_map", MAP_APP)
 
     df["app_group"] = "na"
     for key, value in config["group_map"].items():
@@ -329,7 +317,7 @@ def classify_app(df, config):
     return df
 
 
-def app_count(df, bat, screen, config={}):
+def app_count(df, bat=None, screen=None, config=None):
     """This function returns the number of times each app group has been used,
     within the specified timeframe. The app groups are defined as a dictionary
     within the config variable. Examples of app groups are social
@@ -341,20 +329,23 @@ def app_count(df, bat, screen, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information. If no data is available, an empty
         dataframe should be passed.
-    screen: pandas.DataFrame
+    screen: pandas.DataFrame, optional
         Dataframe with the screen information. If no data is available, an empty
         dataframe should be passed.
     config: dict, optional
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name "" will be used. To include information about
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
+        Dictionary keys containing optional arguments for the computation of screen
+        information. The following arguments are used:
 
+        app_column_name: Column containing the app name. Defaults to 'application_name'.
+        group_map: A dictionary mapping the app names to app groups.
+                   Defaults to niimpy.preprocesing.application.MAP_APP, which maps
+                   several common apps.
+        screen_column_name: Column containing the screen status. Defaults to 'screen_status'.
+        resample_args: parameteres passed to pandas.DataFrame.resample. Defaults to {'rule':'30min'}.
+        
     Returns
     -------
     result: dataframe
@@ -362,20 +353,14 @@ def app_count(df, bat, screen, config={}):
     """
 
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(
-        screen, pd.DataFrame
-    ), "Please input data as a pandas DataFrame type"
+    bat = util.ensure_dataframe(bat)
+    screen = util.ensure_dataframe(screen)
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    if not "group_map" in config.keys():
-        config["group_map"] = MAP_APP
-    if not "screen_column_name" in config.keys():
-        screen_col_name = "screen_status"
-    else:
-        screen_col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    config["group_map"] = config.get("group_map", MAP_APP)
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     df2 = classify_app(df, config)
 
@@ -406,15 +391,15 @@ def app_count(df, bat, screen, config={}):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = group_data(df2)["app_group"].resample(**config["resample_args"], include_groups=False).count()
+        result = util.group_data(df2, columns = group_by_columns)["app_group"].resample(**config["resample_args"], include_groups=False).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        result = reset_groups(result)
+        result = util.reset_groups(result, columns = group_by_columns)
 
         return result
     return None
 
 
-def app_duration(df, bat, screen, config=None):
+def app_duration(df, bat=None, screen=None, config=None):
     """This function returns the duration of use of different app groups, within the
     specified timeframe. The app groups are defined as a dictionary within the
     config variable. Examples of app groups are social media, sports,
@@ -426,19 +411,21 @@ def app_duration(df, bat, screen, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information. If no data is available, an empty
         dataframe should be passed.
-    screen: pandas.DataFrame
+    screen: pandas.DataFrame, optional
         Dataframe with the screen information. If no data is available, an empty
         dataframe should be passed.
     config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name "application_name" will be used. To include information about
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
+        information. The following arguments are used:
+
+        app_column_name: Column containing the app name. Defaults to 'application_name'.
+        group_map: A dictionary mapping the app names to app groups.
+                   Defaults to niimpy.preprocesing.application.MAP_APP, which maps
+                   several common apps.
+        outlier_threshold: Threshold for filtering out outliers. Defaults to '10h'.
 
     Returns
     -------
@@ -447,17 +434,14 @@ def app_duration(df, bat, screen, config=None):
     """
 
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(
-        screen, pd.DataFrame
-    ), "Please input data as a pandas DataFrame type"
+    bat = util.ensure_dataframe(bat)
+    screen = util.ensure_dataframe(screen)
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    if not "group_map" in config.keys():
-        config["group_map"] = MAP_APP
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
+    config["group_map"] = config.get("group_map", MAP_APP)
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     outlier_threshold = config.get("outlier_threshold", "10h")
 
     df2 = classify_app(df, config)
@@ -500,7 +484,8 @@ def app_duration(df, bat, screen, config=None):
         return resampled_group
 
     # Apply resampling to each group
-    df2 = df2.groupby(["user", "device"]).apply(resample_group, include_groups=False).reset_index(["user", "device"])
+    df2 = util.group_data(df2).apply(resample_group, include_groups=False)
+    df2 = util.reset_groups(df2)
 
     df2["duration"] = np.nan
     df2["duration"] = df2["datetime"].diff()
@@ -517,9 +502,9 @@ def app_duration(df, bat, screen, config=None):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = group_data(df2)["duration"].resample(**config["resample_args"], include_groups=False).sum()
+        result = util.group_data(df2, columns = group_by_columns)["duration"].resample(**config["resample_args"], include_groups=False).sum()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        return reset_groups(result)
+        return util.reset_groups(result, columns = group_by_columns)
 
     return None
 
@@ -528,7 +513,7 @@ ALL_FEATURES = [globals()[name] for name in globals() if name.startswith("app_")
 ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 
-def extract_features_app(df, bat, screen, features=None):
+def extract_features_app(df, bat=None, screen=None, features=None):
     """This function computes and organizes the selected features for application
     events. The function aggregates the features by user, by app group,
     by time window. If no time window is specified, it will automatically aggregate
@@ -552,6 +537,8 @@ def extract_features_app(df, bat, screen, features=None):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    bat = util.ensure_dataframe(bat)
+    screen = util.ensure_dataframe(screen)
 
     if features is None:
         features = ALL_FEATURES
@@ -568,5 +555,5 @@ def extract_features_app(df, bat, screen, features=None):
 
     computed_features = pd.concat(computed_features, axis=1)
     # index the result only by the original index (datetime)
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features, columns = group_by_columns)
     return computed_features
