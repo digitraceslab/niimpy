@@ -228,6 +228,8 @@ def screen_count(df, bat=None, config=None):
     if config is None:
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
+
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)
