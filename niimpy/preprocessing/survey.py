@@ -134,6 +134,8 @@ def clean_survey_column_names(df):
         df : pandas.DataFrame
           The DataFrame with cleaned column names.
     """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+
     for char in ['.', ',', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}']:
         df.columns = df.columns.str.replace(char, "")
     for char in ['-', '_', '—']:
@@ -194,7 +196,7 @@ def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
             df[col] = df[col].map(map)
     return df
 
-def survey_statistic(df, config):
+def survey_statistic(df, config=None):
     '''
     Return statistics for a single survey question or a list of questions.
     Assuming that each of the columns contains numerical values representing
@@ -205,7 +207,7 @@ def survey_statistic(df, config):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of screen
         information
 
@@ -222,12 +224,15 @@ def survey_statistic(df, config):
     dict: pandas.DataFrame
         A dataframe containing summaries of each questionaire.
     '''
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     columns = config.get('columns', None)
     prefix = config.get('prefix', None)
     resample_args = config.get('resample_args', {"rule":"1D"})    
     
-    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     if columns is not None:
         assert type(columns) == str or type(columns) == list, "columns is not a string or a list of strings."
     if prefix is not None:
@@ -244,7 +249,7 @@ def survey_statistic(df, config):
             columns = [c for c in df.columns if c.startswith(prefix)]
     
     if type(columns) == str:
-        columns = [columns] 
+        columns = [columns]
     
     def calculate_statistic(df):
         result = {}
@@ -282,7 +287,7 @@ def sum_survey_scores(df, survey_prefix=None):
     survey_score: pandas DataFrame
         DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
-
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert type(survey_prefix) == str or type(survey_prefix) == list, "survey_prefix is not a string or a list of strings."
 
     result = pd.DataFrame(df["user"])

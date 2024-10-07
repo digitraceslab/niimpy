@@ -4,7 +4,7 @@ from niimpy.preprocessing import util
 group_by_columns = ["user", "device"]
 
 
-def step_summary(df, config={}):
+def step_summary(df, config=None):
     # value_col='values', user_id=None, start_date=None, end_date=None):
     """Return the summary of step count in a time range. The summary includes the following information
     of step count per day: mean, standard deviation, min, max
@@ -13,7 +13,7 @@ def step_summary(df, config={}):
     ----------
     df : Pandas Dataframe
         Dataframe containing the hourly step count of an individual. The dataframe must be date time index.
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments. These can be:
 
         value_col: str.
@@ -33,6 +33,9 @@ def step_summary(df, config={}):
 
     assert 'user' in df.columns, 'User column does not exist'
     assert df.index.inferred_type == 'datetime64', "Dataframe must have a datetime index"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     value_col = config.get("value_col", "values")
     user_id = config.get("user_id", None)
@@ -73,7 +76,7 @@ def step_summary(df, config={}):
     return summary_df
 
 
-def tracker_step_distribution(steps_df, config={}):
+def tracker_step_distribution(steps_df, config=None):
     """Return distribution of steps within a time range.
     The number of step is sampled according to the frequency rule in resample_args.
     This is divided by the total number of steps in a larger time frame, given by
@@ -85,7 +88,7 @@ def tracker_step_distribution(steps_df, config={}):
     ----------
     steps_df : Pandas Dataframe
         Dataframe the step distribution of each individual.
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments. These can be:
 
         steps_column: str. Optional
@@ -100,6 +103,10 @@ def tracker_step_distribution(steps_df, config={}):
     df: pandas DataFrame
         A dataframe containing the distribution of step count.
     """
+    assert isinstance(steps_df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     steps_column = config.get("steps_column", "steps")
     resample_args = config.get("resample_args", {'rule': 'h'})
