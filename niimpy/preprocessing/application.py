@@ -434,11 +434,11 @@ def app_duration(df, bat=None, screen=None, config=None):
     """
 
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
     bat = util.ensure_dataframe(bat)
     screen = util.ensure_dataframe(screen)
     if config is None:
         config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     config["group_map"] = config.get("group_map", MAP_APP)
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})

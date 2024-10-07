@@ -263,12 +263,16 @@ def number_of_significant_places(lats, lons, times):
     return np.nanmedian(sps)
 
 
-def location_number_of_significant_places(df, config={}):
+def location_number_of_significant_places(df, config=None):
     """Computes number of significant places """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
+    
     latitude_column = config.get("latitude_column", "double_latitude")
     longitude_column = config.get("longitude_column", "double_longitude")
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":default_freq}
+    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
         df = df.sort_index()  # sort based on time
@@ -323,7 +327,7 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def location_significant_place_features(df, config={}):
+def location_significant_place_features(df, config=None):
     """Calculates features related to Significant Places.
     
     Parameters
@@ -337,14 +341,16 @@ def location_significant_place_features(df, config={}):
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     latitude_column = config.get("latitude_column", "double_latitude")
     longitude_column = config.get("longitude_column", "double_latitude")
     speed_column = config.get("speed_column", "double_speed")
     speed_threshold = config.get("speed_threshold", 0.277)
-    
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule": default_freq}
+    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -421,7 +427,7 @@ def location_significant_place_features(df, config={}):
     return result
 
 
-def location_distance_features(df, config={}):
+def location_distance_features(df, config=None):
     """Calculates features related to distance and speed.
     
     Parameters
@@ -435,11 +441,15 @@ def location_distance_features(df, config={}):
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
+
     latitude_column = config.get("latitude_column", "double_latitude")
     longitude_column = config.get("longitude_column", "double_latitude")
     speed_column = config.get("speed_column", "double_speed")
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":default_freq}
+    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
         """Compute features for a single user and given time interval"""

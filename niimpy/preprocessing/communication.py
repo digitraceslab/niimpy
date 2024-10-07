@@ -58,7 +58,7 @@ def _distribution(df, col_name = None, time_interval="d", bin_interval="h"):
 
 
 
-def call_duration_total(df, config={}):  
+def call_duration_total(df, config=None):  
     """ This function returns the total duration of each call type, within the 
     specified timeframe. The call types are incoming, outgoing, and missed. If 
     there is no specified timeframe, the function sets a 30 min default time 
@@ -68,7 +68,7 @@ def call_duration_total(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -82,6 +82,8 @@ def call_duration_total(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "call_duration")
@@ -108,7 +110,7 @@ def call_duration_total(df, config={}):
     return result
     
 
-def call_duration_mean(df, config={}):
+def call_duration_mean(df, config=None):
     """ This function returns the average duration of each call type, within the 
     specified timeframe. The call types are incoming, outgoing, and missed. If 
     there is no specified timeframe, the function sets a 30 min default time 
@@ -118,7 +120,7 @@ def call_duration_mean(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -132,6 +134,8 @@ def call_duration_mean(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "call_duration")
@@ -158,7 +162,7 @@ def call_duration_mean(df, config={}):
     return result
 
 
-def call_duration_median(df, config={}):
+def call_duration_median(df, config=None):
     """ This function returns the median duration of each call type, within the 
     specified timeframe. The call types are incoming, outgoing, and missed. If 
     there is no specified timeframe, the function sets a 30 min default time 
@@ -170,7 +174,7 @@ def call_duration_median(df, config={}):
         Input data frame
     bat: pandas.DataFrame
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -184,6 +188,8 @@ def call_duration_median(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "call_duration")
@@ -210,7 +216,7 @@ def call_duration_median(df, config={}):
     return result
 
 
-def call_duration_std(df, config={}):
+def call_duration_std(df, config=None):
     """ This function returns the standard deviation of the duration of each 
     call type, within the specified timeframe. The call types are incoming, 
     outgoing, and missed. If there is no specified timeframe, the function sets 
@@ -221,7 +227,7 @@ def call_duration_std(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -235,6 +241,8 @@ def call_duration_std(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "call_duration")
@@ -261,7 +269,7 @@ def call_duration_std(df, config={}):
     return result
 
 
-def call_count(df, config={}):
+def call_count(df, config=None):
     """ This function returns the number of times, within the specified timeframe, 
     when a call has been received, missed, or initiated. If there is no specified 
     timeframe, the function sets a 30 min default time window. The function 
@@ -271,7 +279,7 @@ def call_count(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -285,6 +293,8 @@ def call_count(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "call_duration")
@@ -309,7 +319,7 @@ def call_count(df, config={}):
     return result
 
 
-def call_outgoing_incoming_ratio(df, config={}):
+def call_outgoing_incoming_ratio(df, config=None):
     """ This function returns the ratio of outgoing calls over incoming calls, 
     within the specified timeframe. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number 
@@ -319,7 +329,7 @@ def call_outgoing_incoming_ratio(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -333,6 +343,8 @@ def call_outgoing_incoming_ratio(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "call_type")
@@ -354,7 +366,7 @@ def call_outgoing_incoming_ratio(df, config={}):
     return result
 
 
-def call_distribution(df, config={}):
+def call_distribution(df, config=None):
     """ Calculates the distribution of calls sent and received over a time
     interval. The function first aggregates the number of calls over a
     shorter time interval, the bins, and then calculates the distribution of
@@ -365,7 +377,7 @@ def call_distribution(df, config={}):
     df: pandas.DataFrame
         Input data frame
 
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc.
 
@@ -378,6 +390,8 @@ def call_distribution(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
     col_name = config.get("col_name", "call_type")
@@ -396,7 +410,7 @@ def call_distribution(df, config={}):
     return df
 
 
-def message_count(df, config={}):
+def message_count(df, config=None):
     """ This function returns the number of times, within the specified timeframe, 
     when an SMS has been sent/received. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number 
@@ -406,7 +420,7 @@ def message_count(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -420,6 +434,8 @@ def message_count(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("communication_column_name", "message_type")
@@ -443,7 +459,7 @@ def message_count(df, config={}):
     return pd.DataFrame()
 
 
-def message_outgoing_incoming_ratio(df, config={}):
+def message_outgoing_incoming_ratio(df, config=None):
     """ This function returns the ratio of outgoing messages over incoming
     messages, within the specified timeframe. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number
@@ -453,7 +469,7 @@ def message_outgoing_incoming_ratio(df, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -467,6 +483,8 @@ def message_outgoing_incoming_ratio(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
     col_name = config.get("communication_column_name", "message_type")
@@ -489,7 +507,7 @@ def message_outgoing_incoming_ratio(df, config={}):
     return result
 
 
-def message_distribution(df, config={}):
+def message_distribution(df, config=None):
     """ Calculates the distribution of messages sent and received over a time
     interval. The function first aggregates the number of messages over a
     shorter time interval, the bins, and then calculates the distribution of
@@ -500,7 +518,7 @@ def message_distribution(df, config={}):
     df: pandas.DataFrame
         Input data frame
 
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of features.
         Keys can be column names, other dictionaries, etc.
 
@@ -516,6 +534,8 @@ def message_distribution(df, config={}):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
     col_name = config.get("col_name", "message_type")
