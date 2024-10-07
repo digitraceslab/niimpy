@@ -6,7 +6,7 @@ from niimpy.preprocessing import util
 group_by_columns = set(["user", "device"])
 
 
-def shutdown_info(df, config):
+def shutdown_info(df, config=None):
     """ Returns a pandas DataFrame with battery information for the timestamps when the phone
     has shutdown.
     This includes both events, when the phone has shut down and when the phone
@@ -24,19 +24,18 @@ def shutdown_info(df, config):
     -------
     shutdown: pandas series
     """
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    if not "battery_column_name" in config.keys():
-        col_name = "battery_status"
-    else:
-        col_name = config["battery_column_name"]
+    col_name = config.get("battery_column_name", "battery_status")
 
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
 
     shutdown = df[df[col_name].between(-3, 0, inclusive="neither")]
     return shutdown
 
-def battery_mean_level(df, config):
+def battery_mean_level(df, config=None):
     """ This function returns the mean battery level within the specified timeframe. 
     If there is no specified timeframe, the function sets a 30 min default time window. 
     The function aggregates this number by user, by timewindow.
@@ -51,16 +50,13 @@ def battery_mean_level(df, config):
     -------
     result: dataframe
     """
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "battery_column_name" in config.keys():
-        col_name = "battery_level"
-    else:
-        col_name = config["battery_column_name"]
-    
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-        
+
+    col_name = config.get("battery_column_name", "battery_level")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
+
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
     if len(df)>0:
@@ -70,7 +66,7 @@ def battery_mean_level(df, config):
     return result
 
 
-def battery_median_level(df, config):
+def battery_median_level(df, config=None):
     """ This function returns the median battery level within the specified timeframe. 
     If there is no specified timeframe, the function sets a 30 min default time window. 
     The function aggregates this number by user, by timewindow.
@@ -85,15 +81,12 @@ def battery_median_level(df, config):
     -------
     result: dataframe
     """
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "battery_column_name" in config.keys():
-        col_name = "battery_level"
-    else:
-        col_name = config["battery_column_name"]
-    
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("battery_column_name", "battery_level")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
         
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
@@ -104,7 +97,7 @@ def battery_median_level(df, config):
     return result
 
 
-def battery_std_level(df, config):
+def battery_std_level(df, config=None):
     """ This function returns the standard deviation battery level within the specified timeframe. 
     If there is no specified timeframe, the function sets a 30 min default time window. 
     The function aggregates this number by user, by timewindow.
@@ -119,16 +112,13 @@ def battery_std_level(df, config):
     -------
     result: dataframe
     """
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
+
+    col_name = config.get("battery_column_name", "battery_level")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
-    if not "battery_column_name" in config.keys():
-        col_name = "battery_level"
-    else:
-        col_name = config["battery_column_name"]
-    
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-        
     df[col_name] = pd.to_numeric(df[col_name]) #convert to numeric in case it is not
     
     if len(df)>0:
@@ -137,7 +127,8 @@ def battery_std_level(df, config):
         result = util.reset_groups(result)
     return result
 
-def battery_shutdown_time(df, config):
+
+def battery_shutdown_time(df, config=None):
     """ This function returns the total time the phone has been turned off within a specified time window. 
     If there is no specified timeframe, the function sets a 30 min default time window. 
     The function aggregates this number by user, by timewindow.
@@ -152,15 +143,12 @@ def battery_shutdown_time(df, config):
     -------
     result: dataframe
     """
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "battery_column_name" in config.keys():
-        col_name = "battery_status"
-    else:
-        col_name = config["battery_column_name"]
-    
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("battery_column_name", "battery_status")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
 
     def calculate_shutdown(df):
         df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str) 
@@ -185,7 +173,7 @@ def battery_shutdown_time(df, config):
     return result
     
 
-def battery_discharge(df, config):
+def battery_discharge(df, config=None):
     """ This function returns the mean discharge rate of the battery within a specified time window. 
     If there is no specified timeframe, the function sets a 30 min default time window. 
     The function aggregates this number by user, by timewindow.
@@ -200,15 +188,12 @@ def battery_discharge(df, config):
     -------
     result: dataframe
     """
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if "battery_column_name" not in config.keys():
-        col_name = "battery_level"
-    else:
-        col_name = config["battery_column_name"]
-    
-    if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("battery_column_name", "battery_level")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     def calculate_discharge(df):
         df.sort_index(inplace=True)
@@ -231,22 +216,18 @@ def battery_discharge(df, config):
     return result
 
 
-def format_battery_data(df, config):
+def format_battery_data(df, config=None):
     """ Returns a DataFrame with battery data for a user.
     Parameters
     ----------
     battery: DataFrame with battery data
     """
 
-    if "batterylevel_column" in config.keys():
-        batterylevel_column = config["batterylevel_column"]
-    else:
-        batterylevel_column = "battery_level"
-
+    batterylevel_column = config.get("batterylevel_column", "battery_level")
     df[batterylevel_column] = pd.to_numeric(df[batterylevel_column])
     return df
 
-def battery_occurrences(df, config):
+def battery_occurrences(df, config=None):
     """ Returns a dataframe showing the amount of battery data points found within a specified time window.
     If there is no specified timeframe, the function sets a 30 min default time window.
     Parameters
@@ -258,19 +239,13 @@ def battery_occurrences(df, config):
         information. Keys can be column names, other dictionaries, etc. 
     """
     assert isinstance(df, pd.DataFrame), "data is not a pandas DataFrame"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
-    if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-
-    if "battery_status" in config.keys():
-        battery_status = config["battery_status"]
-    else:
-        battery_status = False
-
-    if "battery_status_column_name" not in config.keys():
-        battery_status_col = "battery_status"
-    else:
-        battery_status_col = config["battery_status_column_name"]
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
+    battery_status = config.get("battery_status", False)
+    battery_status_col = config.get("battery_status_column_name", "battery_status")
 
     occurrence_data = df.drop_duplicates(subset=['datetime', 'device', battery_status_col], keep='last')
 
@@ -297,7 +272,7 @@ def battery_occurrences(df, config):
     return occurrences
 
 
-def battery_gaps(df, config):
+def battery_gaps(df, config=None):
     '''Returns a DataFrame with the mean time difference between consecutive battery
     timestamps. The mean is calculated within intervals specified in config.
     The minimum size of the considered deltas can be decided with the min_duration_between
@@ -316,14 +291,12 @@ def battery_gaps(df, config):
     '''
     assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
-    if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-
-    if "min_duration_between" in config.keys():
-        min_duration_between = config["min_duration_between"]
-    else:
-        min_duration_between = None
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
+    min_duration_between = config.get("min_duration_between", None)
 
     def calculate_gaps(df):
         tvalue = df.index.to_series()
@@ -340,7 +313,7 @@ def battery_gaps(df, config):
     return result
 
 
-def battery_charge_discharge(df, config):
+def battery_charge_discharge(df, config=None):
     '''Returns a DataFrame showing the mean difference in battery values and mean battery
     charge/discharge rate within specified time windows.
     If there is no specified timeframe, the function sets a 30 min default time window.
@@ -350,14 +323,12 @@ def battery_charge_discharge(df, config):
     '''
     assert isinstance(df, pd.core.frame.DataFrame), "df is not a pandas DataFrame"
     assert isinstance(df.index, pd.core.indexes.datetimes.DatetimeIndex), "df index is not DatetimeIndex"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
-    if "battery_level_column" in config.keys():
-        battery_level_column = config["battery_level_column"]
-    else:
-        battery_level_column = "battery_level"
-    
-    if "resample_args" not in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    battery_level_column = config.get("battery_level_column", "battery_level")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
 
     def calculate_discharge(df):
         battery_level = pd.to_numeric(df[battery_level_column])
@@ -377,7 +348,7 @@ def battery_charge_discharge(df, config):
     return discharge
 
 
-def find_real_gaps(battery_df, other_df, config):
+def find_real_gaps(battery_df, other_df, config=None):
     """ Returns a dataframe showing the gaps found both in the battery data and the other data.
     The default interval is 6 hours.
     Parameters
@@ -392,7 +363,10 @@ def find_real_gaps(battery_df, other_df, config):
                       pd.core.indexes.datetimes.DatetimeIndex), "battery_df index is not DatetimeIndex"
     assert isinstance(other_df.index,
                       pd.core.indexes.datetimes.DatetimeIndex), "other_df index is not DatetimeIndex"
-
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
+    
     battery = battery_occurrences(battery_df, config)
     battery.rename({'occurrences': 'battery_occurrences'}, axis=1, inplace=True)
     other = battery_occurrences(other_df, config)
@@ -403,7 +377,7 @@ def find_real_gaps(battery_df, other_df, config):
     return gaps
 
 
-def find_non_battery_gaps(battery_df, other_df, config):
+def find_non_battery_gaps(battery_df, other_df, config=None):
     """ Returns a dataframe showing the gaps found only in the other data.
     The default interval is 6 hours.
     Parameters
@@ -418,6 +392,9 @@ def find_non_battery_gaps(battery_df, other_df, config):
                       pd.core.indexes.datetimes.DatetimeIndex), "battery_df index is not DatetimeIndex"
     assert isinstance(other_df.index,
                       pd.core.indexes.datetimes.DatetimeIndex), "other_df index is not DatetimeIndex"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     battery = battery_occurrences(battery_df, config)
     battery.rename({'occurrences': 'battery_occurrences'}, axis=1, inplace=True)
@@ -443,6 +420,9 @@ def find_battery_gaps(battery_df, other_df, config):
                       pd.core.indexes.datetimes.DatetimeIndex), "battery_df index is not DatetimeIndex"
     assert isinstance(other_df.index,
                       pd.core.indexes.datetimes.DatetimeIndex), "other_df index is not DatetimeIndex"
+    if config is None:
+        config = {}
+    assert isinstance(config, dict), "config is not a dictionary"
 
     battery = battery_occurrences(battery_df, config)
     battery.rename({'occurrences': 'battery_occurrences'}, axis=1, inplace=True)
@@ -480,6 +460,8 @@ def extract_features_battery(df, features=None):
         Dataframe of computed features where the index is users and columns
         are the the features.
     """
+    assert isinstance(df, pd.DataFrame), "df is not a pandas DataFrame"
+
     computed_features = []
     if features is None:
         features = ALL_FEATURES

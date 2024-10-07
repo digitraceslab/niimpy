@@ -10,6 +10,13 @@ import warnings
 from scipy import stats
 
 
+def ensure_dataframe(df):
+    if df is None:
+        return pd.DataFrame()
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    return df
+
+
 def date_range(df, start, end):
     """Extract out a certain date range from a DataFrame.
 

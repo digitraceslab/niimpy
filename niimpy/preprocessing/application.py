@@ -282,7 +282,7 @@ MAP_APP = {
 }
 
 
-def classify_app(df, config):
+def classify_app(df, config=None):
     """This function is a helper function for other screen preprocessing.
     The function classifies the screen events into the groups specified by group_map.
 
@@ -304,12 +304,12 @@ def classify_app(df, config):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    if not "app_column_name" in config.keys():
-        col_name = "application_name"
-    else:
-        col_name = config["app_column_name"]
+    col_name = config.get("app_column_name", "application_name")
+    config["group_map"] = config.get("group_map", MAP_APP)
 
     df["app_group"] = "na"
     for key, value in config["group_map"].items():
@@ -317,7 +317,7 @@ def classify_app(df, config):
     return df
 
 
-def app_count(df, bat, screen, config={}):
+def app_count(df, bat=None, screen=None, config=None):
     """This function returns the number of times each app group has been used,
     within the specified timeframe. The app groups are defined as a dictionary
     within the config variable. Examples of app groups are social
@@ -329,10 +329,10 @@ def app_count(df, bat, screen, config={}):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information. If no data is available, an empty
         dataframe should be passed.
-    screen: pandas.DataFrame
+    screen: pandas.DataFrame, optional
         Dataframe with the screen information. If no data is available, an empty
         dataframe should be passed.
     config: dict, optional
@@ -353,20 +353,14 @@ def app_count(df, bat, screen, config={}):
     """
 
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(
-        screen, pd.DataFrame
-    ), "Please input data as a pandas DataFrame type"
+    bat = util.ensure_dataframe(bat)
+    screen = util.ensure_dataframe(screen)
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    if not "group_map" in config.keys():
-        config["group_map"] = MAP_APP
-    if not "screen_column_name" in config.keys():
-        screen_col_name = "screen_status"
-    else:
-        screen_col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    config["group_map"] = config.get("group_map", MAP_APP)
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     df2 = classify_app(df, config)
 
@@ -405,7 +399,7 @@ def app_count(df, bat, screen, config={}):
     return None
 
 
-def app_duration(df, bat, screen, config=None):
+def app_duration(df, bat=None, screen=None, config=None):
     """This function returns the duration of use of different app groups, within the
     specified timeframe. The app groups are defined as a dictionary within the
     config variable. Examples of app groups are social media, sports,
@@ -417,10 +411,10 @@ def app_duration(df, bat, screen, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information. If no data is available, an empty
         dataframe should be passed.
-    screen: pandas.DataFrame
+    screen: pandas.DataFrame, optional
         Dataframe with the screen information. If no data is available, an empty
         dataframe should be passed.
     config: dict, optional
@@ -440,17 +434,14 @@ def app_duration(df, bat, screen, config=None):
     """
 
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(
-        screen, pd.DataFrame
-    ), "Please input data as a pandas DataFrame type"
     assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
+    screen = util.ensure_dataframe(screen)
+    if config is None:
+        config = {}
 
-    if not "group_map" in config.keys():
-        config["group_map"] = MAP_APP
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
+    config["group_map"] = config.get("group_map", MAP_APP)
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     outlier_threshold = config.get("outlier_threshold", "10h")
 
     df2 = classify_app(df, config)
@@ -493,7 +484,8 @@ def app_duration(df, bat, screen, config=None):
         return resampled_group
 
     # Apply resampling to each group
-    df2 = df2.groupby(["user", "device"]).apply(resample_group, include_groups=False).reset_index(["user", "device"])
+    df2 = util.group_data(df2).apply(resample_group, include_groups=False)
+    df2 = util.reset_groups(df2)
 
     df2["duration"] = np.nan
     df2["duration"] = df2["datetime"].diff()
@@ -521,7 +513,7 @@ ALL_FEATURES = [globals()[name] for name in globals() if name.startswith("app_")
 ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
 
-def extract_features_app(df, bat, screen, features=None):
+def extract_features_app(df, bat=None, screen=None, features=None):
     """This function computes and organizes the selected features for application
     events. The function aggregates the features by user, by app group,
     by time window. If no time window is specified, it will automatically aggregate
@@ -545,6 +537,8 @@ def extract_features_app(df, bat, screen, features=None):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    bat = util.ensure_dataframe(bat)
+    screen = util.ensure_dataframe(screen)
 
     if features is None:
         features = ALL_FEATURES
