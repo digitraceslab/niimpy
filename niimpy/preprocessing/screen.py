@@ -110,7 +110,7 @@ def event_classification_screen(df, config=None):
     
     index_name = df.index.name
     df.reset_index(inplace=True)
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False) 
+    df = df.groupby(["device"]).apply(lambda x: x.iloc[:-1], include_groups=False) 
     
     df["use"] =  df["on"] = df["na"] = df["off"] = 0
     df.loc[(df.next=='30') | (df.next=='31') | (df.next=='32'), "use"]=1 #in use
@@ -122,9 +122,9 @@ def event_classification_screen(df, config=None):
     
     #Discard the first and last row because they do not have all info. We do not
     #know what happened before or after these points.
-    df = df.groupby("user", group_keys=False).apply(lambda x: x.iloc[1:], include_groups=False)
-    df = df.groupby("user", group_keys=False).apply(lambda x: x.iloc[:-1], include_groups=False)
-    df.reset_index(["user"], inplace=True)
+    df = df.groupby(["device"], group_keys=False).apply(lambda x: x.iloc[1:], include_groups=False)
+    df = df.groupby(["device"], group_keys=False).apply(lambda x: x.iloc[:-1], include_groups=False)
+    df.reset_index(["device"], inplace=True)
     
     # Set the original index. If the origianal name was none, the 
     # default value is "index"
@@ -291,7 +291,6 @@ def screen_duration(df, bat=None, config=None):
     
     df2 = util_screen(df, bat, config)
     df2 = event_classification_screen(df2, config)
-    print(df2)     
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
