@@ -94,6 +94,7 @@ def event_classification_screen(df, config=None):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    assert "user" in df.columns
     if config is None:
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
@@ -103,26 +104,35 @@ def event_classification_screen(df, config=None):
     #Classify the event 
     df.sort_index(inplace=True)
     df.sort_values(by=["user","device"], inplace=True)
-    df['next'] = df[col_name].shift(-1)
-    df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str)   
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False) #Discard transitions between subjects
-    df = df.reset_index().set_index("level_1")
-    df["use"] =  df["on"] = df["na"] = df["off"] = 0
+    col_as_str = df[col_name].astype(int).astype(str)
+    next_as_str = col_as_str.shift(-1).fillna("0")
+    df['next'] = col_as_str + next_as_str
     
+    index_name = df.index.name
+    df.reset_index(inplace=True)
+    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False) 
+    
+    df["use"] =  df["on"] = df["na"] = df["off"] = 0
     df.loc[(df.next=='30') | (df.next=='31') | (df.next=='32'), "use"]=1 #in use
     df.loc[(df.next=='10') | (df.next=='12') | (df.next=='13') | (df.next=='20'), "on"]=1 #on
     df.loc[(df.next=='21') | (df.next=='23'), "na"]=1 #irrelevant. It seems like from 2 to 1 is from off to on (i.e. the screen goes to off and then it locks)
     df.loc[(df.next=='01') | (df.next=='02') | (df.next=='03'), "off"]=1 #off
     
-    df.drop(columns=["next",col_name], inplace=True)   
+    df.drop(columns=["next",col_name], inplace=True)
     
     #Discard the first and last row because they do not have all info. We do not
     #know what happened before or after these points.
-    df.index = df.index.set_names(['level_1'])
-    df = df.groupby("user").apply(lambda x: x.iloc[1:], include_groups=False)
-    df = df.reset_index().set_index("level_1")
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False)
-    df = df.reset_index().set_index("level_1")
+    df = df.groupby("user", group_keys=False).apply(lambda x: x.iloc[1:], include_groups=False)
+    df = df.groupby("user", group_keys=False).apply(lambda x: x.iloc[:-1], include_groups=False)
+    df.reset_index(["user"], inplace=True)
+    
+    # Set the original index. If the origianal name was none, the 
+    # default value is "index"
+    if index_name is not None:
+        df.set_index(index_name, inplace=True)
+    else:
+        df.set_index("index", inplace=True)
+        df.index.name = None
     return df
 
 
@@ -280,7 +290,8 @@ def screen_duration(df, bat=None, config=None):
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = event_classification_screen(df2, config)
+    print(df2)     
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
