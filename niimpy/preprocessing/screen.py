@@ -155,13 +155,14 @@ def duration_util_screen(df):
             
     df.sort_index(inplace=True)
     df.sort_values(by=["user","device"], inplace=True)
-    df['duration']=np.nan
-    df['duration']=df.index.to_series().diff()
+    df['duration'] = np.nan
+    df['duration'] = df.index.to_series().diff()
     df['duration'] = df['duration'].shift(-1)
     
     #Discard transitions between subjects
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False)
-    df = df.reset_index().set_index("level_1")
+    index_name = df.index.name
+    df = df.groupby(["user", "device"]).apply(lambda x: x.iloc[:-1], include_groups=False)
+    df.reset_index(["user", "device"], inplace=True)
     
     #Discard any datapoints whose duration in “ON” and "IN USE" states are 
     #longer than 10 hours becaus they may be artifacts
