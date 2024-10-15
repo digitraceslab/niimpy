@@ -11,6 +11,9 @@ battery = niimpy.read_csv(config.MULTIUSER_AWARE_BATTERY_PATH, tz="Europe/Helsin
 
 def test_app_features():
     # TEST 1
+    data["group"] = "group1"
+    screen["group"] = "group1"
+    battery["group"] = "group1"
     test = app.extract_features_app(data, battery, screen, features=None)
 
     user_comm = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "comm")]
@@ -37,6 +40,7 @@ def test_app_features():
     user_comm = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "comm")]
     user_work = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "work")]
 
+    #assert user_comm.loc["2019-08-05 20:00:00+03:00"]["group"] == "group1"
     assert user_comm.loc["2019-08-05 20:00:00+03:00"]["count"] == 3
     assert user_work.loc["2019-08-06 04:00:00+03:00"]["count"] == 2
     assert user_comm.loc["2019-08-05 20:00:00+03:00"]["duration"] == 3569.00

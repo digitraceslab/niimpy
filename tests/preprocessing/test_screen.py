@@ -1,6 +1,3 @@
-import os
-
-import numpy as np
 import pandas as pd
 import numpy as np
 
@@ -11,6 +8,8 @@ from niimpy import config
 # read sample data
 data = niimpy.read_csv(config.MULTIUSER_AWARE_SCREEN_PATH, tz='Europe/Helsinki')
 bat = niimpy.read_csv(config.MULTIUSER_AWARE_BATTERY_PATH, tz='Europe/Helsinki')
+data["group"] = "group1"
+bat["group"] = "group1"
 
 def test_audio_features():
     
@@ -40,6 +39,7 @@ def test_audio_features():
     assert test_user.loc[time]["screen_use_durationmean"] < 47
     assert test_user.loc[time]["screen_use_durationmedian"] < 47
     assert test_user.loc[time]["screen_use_durationstd"] < 11
+    assert test_user.loc[time]["group"] == "group1"
     
     time = pd.Timestamp("2019-08-08 22:30:00", tz='Europe/Helsinki')
     
@@ -65,6 +65,7 @@ def test_audio_features():
     assert test_user2.loc[time]["screen_use_durationmean"] < 0.2
     assert test_user2.loc[time]["screen_use_durationmedian"] < 0.2
     assert test_user2.loc[time]["screen_use_durationstd"] < 0.1
+    assert test_user2.loc[time]["group"] == "group1"
     
     
     features ={sc.screen_count:{"screen_column_name":"screen_status","resample_args":{"rule":"1D"}},
@@ -79,6 +80,7 @@ def test_audio_features():
     assert test_user2.loc[pd.Timestamp("2019-08-08", tz='Europe/Helsinki')]["screen_use_count"] == 6
     assert test_user2.loc[pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_on_durationtotal"] < 0.25
     assert test_user2.loc[pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["screen_off_durationtotal"] < 446000
+    assert test_user2.loc[pd.Timestamp("2019-08-31", tz='Europe/Helsinki')]["group"] == "group1"
     
     features ={sc.screen_duration_min:{"screen_column_name":"screen_status","resample_args":{"rule":"12h"}},
                sc.screen_duration_max:{"screen_column_name":"screen_status","resample_args":{"rule":"12h"}},
@@ -94,3 +96,4 @@ def test_audio_features():
     assert test_user2.loc[pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["screen_on_durationmedian"] < 18.5
     assert test_user2.loc[pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["screen_use_durationmedian"] < 0.35
     assert test_user2.loc[pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["screen_off_durationmaximum"] < 182350
+    assert test_user2.loc[pd.Timestamp("2019-08-15 12:00:00", tz='Europe/Helsinki')]["group"] == "group1"

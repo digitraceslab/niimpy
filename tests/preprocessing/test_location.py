@@ -1,7 +1,4 @@
-import os
-
 import numpy as np
-import pandas as pd
 
 from geopy.distance import distance
 
@@ -11,6 +8,7 @@ from niimpy import config
 
 # read sample data
 data = niimpy.read_csv(config.GPS_PATH, tz='et')
+data["group"] = "group1"
 
 def test_distance_matrix():
     
@@ -33,9 +31,6 @@ def test_distance_matrix():
     
 
 def test_location_features():
-
-    assert data.shape[0] >= data.shape[0], "Number of rows should not increase"
-    
     # extract featuers
     features = nilo.extract_features_location(data)
     
@@ -44,7 +39,6 @@ def test_location_features():
 
     features_u1 = features[features["user"] == 'gps_u00']
     features_u1 = features_u1.dropna().iloc[1]
-    print(features_u1)
 
     assert features_u1['n_significant_places'] == 11.0
     assert features_u1['n_sps'] == 11.0
@@ -68,5 +62,6 @@ def test_location_features():
     assert np.abs(features_u1['speed_max'] - 33.25) < 0.1
     assert np.abs(features_u1['variance'] - 0.237454) < 0.1
     assert np.abs(features_u1['log_variance'] - -1.437781) < 0.1
+    assert features_u1['group'] == "group1"
 
 

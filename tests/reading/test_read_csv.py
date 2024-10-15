@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 import niimpy
-from niimpy.reading import read
+from niimpy.reading import csv
 from niimpy.preprocessing import sampledata
 from niimpy import config
 
