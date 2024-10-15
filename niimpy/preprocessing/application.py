@@ -6,9 +6,6 @@ from niimpy.preprocessing import screen as s
 from niimpy.preprocessing import util
 
 
-group_by_columns = set(["user", "device", "app_group"])
-
-
 MAP_APP = {
     "CrossCycle": "sports",
     "Runtastic": "sports",
@@ -384,17 +381,17 @@ def app_count(df, bat=None, screen=None, config=None):
         df2.sort_values(by=["user", "device", "datetime"], inplace=True)
         df2.fillna({"app_group": "off"}, inplace=True)
 
-    df2 = df2[["user", "device", "datetime", "app_group", "application_name"]]
+    keep_columns = list(set(["user", "device", "group"]) & set(df.columns))
+    df2 = df2[keep_columns+["datetime", "app_group", "application_name"]]
 
     df2.dropna(inplace=True)
 
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = util.group_data(df2, columns = group_by_columns)["app_group"].resample(**config["resample_args"], include_groups=False).count()
+        result = util.group_data(df2, "app_group")["app_group"].resample(**config["resample_args"], include_groups=False).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        result = util.reset_groups(result, columns = group_by_columns)
-
+        result = util.reset_groups(result, "app_group")
         return result
     return None
 
@@ -444,6 +441,8 @@ def app_duration(df, bat=None, screen=None, config=None):
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     outlier_threshold = config.get("outlier_threshold", "10h")
 
+    niimpy_cols = list(set(["group", "user", "device"]) & set(df.columns))
+
     df2 = classify_app(df, config)
 
     # Insert missing data due to the screen being off or battery depleated
@@ -453,7 +452,7 @@ def app_duration(df, bat=None, screen=None, config=None):
             screen.reset_index(inplace=True)
             screen.set_index("index", inplace=True)
         df2 = pd.concat([df2, screen])
-        df2.sort_values(by=["user", "device", "datetime"], inplace=True)
+        df2.sort_values(by=niimpy_cols + ["datetime"], inplace=True)
         df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
@@ -463,10 +462,11 @@ def app_duration(df, bat=None, screen=None, config=None):
             shutdown.reset_index(inplace=True)
             shutdown.set_index("index", inplace=True)
         df2 = pd.concat([df2, shutdown])
-        df2.sort_values(by=["user", "device", "datetime"], inplace=True)
+        df2.sort_values(by=niimpy_cols + ["datetime"], inplace=True)
         df2.fillna({"app_group": "off"}, inplace=True)
 
-    df2 = df2[["user", "device", "time", "datetime", "app_group"]]
+    keep_columns = list(set(["group", "user", "device"]) & set(df.columns))
+    df2 = df2[keep_columns+["time", "datetime", "app_group"]]
 
     # Fill in time gap between app foreground session
     def resample_group(group):
@@ -486,6 +486,7 @@ def app_duration(df, bat=None, screen=None, config=None):
     # Apply resampling to each group
     df2 = util.group_data(df2).apply(resample_group, include_groups=False)
     df2 = util.reset_groups(df2)
+    print(df2.shape)
 
     df2["duration"] = np.nan
     df2["duration"] = df2["datetime"].diff()
@@ -502,9 +503,9 @@ def app_duration(df, bat=None, screen=None, config=None):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = util.group_data(df2, columns = group_by_columns)["duration"].resample(**config["resample_args"], include_groups=False).sum()
+        result = util.group_data(df2, "app_group")["duration"].resample(**config["resample_args"], include_groups=False).sum()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        return util.reset_groups(result, columns = group_by_columns)
+        return util.reset_groups(result, "app_group")
 
     return None
 
@@ -547,13 +548,11 @@ def extract_features_app(df, bat=None, screen=None, features=None):
 
     computed_features = []
     for feature, feature_arg in features.items():
-        print(f"computing {feature}...")
         computed_feature = feature(df, bat, screen, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature, "app_group")
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
     # index the result only by the original index (datetime)
-    computed_features = util.reset_groups(computed_features, columns = group_by_columns)
+    computed_features = util.reset_groups(computed_features, "app_group")
     return computed_features

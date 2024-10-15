@@ -10,7 +10,7 @@ from niimpy.preprocessing import util
 
 default_freq = "1ME"
 
-group_by_columns = set(["user", "device"])
+group_by_columns = set(["user", "device", "group"])
 
 
 def distance_matrix(lats, lons):

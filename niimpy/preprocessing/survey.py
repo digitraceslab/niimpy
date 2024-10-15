@@ -115,7 +115,7 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
 
-group_by_columns = set(["user", "device"])
+group_by_columns = set(["user", "device", "group"])
 
 
 def clean_survey_column_names(df):

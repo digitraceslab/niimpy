@@ -3,7 +3,7 @@ import warnings
 
 from niimpy.preprocessing import util
 
-group_by_columns = set(["user", "device"])
+group_by_columns = set(["user", "device", "group"])
 
 
 def _distribution(df, col_name = None, time_interval="d", bin_interval="h"):

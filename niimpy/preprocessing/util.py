@@ -177,17 +177,48 @@ def format_column_names(df):
     df.rename(columns=column_map, inplace=True)
 
 
-def group_data(df, columns=["user", "device"]):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(set(columns) & set(df.columns))
+def identifier_columns(df, id_columns = ["user", "device", "group"]):
+    """ build a list of standard Niimpy identifier columns in the 
+    dataframe.
+    """
+    columns = list(set(id_columns) & set(df.columns))
+    return columns
+
+
+def group_data(df, additional_columns=None, id_columns=["user", "device", "group"]):
+    """ Group the dataframe by Niimpy standard user identifier columns present in
+    the dataframe. The columns are 'user', 'device', and 'group'. An addional
+    column may be added and used for grouping.
+    """
+    if type(additional_columns) is str:
+        additional_columns = [additional_columns]
+    elif additional_columns is None:
+        additional_columns = []
+    columns = identifier_columns(df, id_columns + additional_columns)
     return df.groupby(columns)
 
 
-def reset_groups(df, columns = set(["user", "device"])):
-    """ Reset the grouping, keeping only the original index columns. """
-    columns = list(set(columns) & set(df.index.names))
+def reset_groups(df, additional_columns=None, id_columns = ["user", "device", "group"]):
+    """ Reset id columns and optional addional columns in the dataframe index. """
+    if type(additional_columns) is str:
+        additional_columns = [additional_columns]
+    elif additional_columns is None:
+        additional_columns = []
+    columns = list(set(id_columns + additional_columns) & set(df.index.names))
     return df.reset_index(columns)
+
+
+def set_conserved_index(df, additional_columns=None, id_columns = ["user", "device", "group"]):
+    """ Set standard id columns as index. This allows concatenating dataframes
+    with different measurements.
+    """
+    if type(additional_columns) is str:
+        additional_columns = [additional_columns]
+    elif additional_columns is None:
+        additional_columns = []
+    index_by = list(set(id_columns + additional_columns) & set(df.columns))
+    df = df.set_index(index_by, append=True)
+    return df
 
 
 def set_encoding(df, to_encoding = 'utf-8', from_encoding = 'iso-8859-1'):

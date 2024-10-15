@@ -3,8 +3,6 @@ import pandas as pd
 
 from niimpy.preprocessing import util
 
-group_by_columns = set(["user", "device"])
-
 
 def shutdown_info(df, config=None):
     """ Returns a pandas DataFrame with battery information for the timestamps when the phone
@@ -34,6 +32,7 @@ def shutdown_info(df, config=None):
 
     shutdown = df[df[col_name].between(-3, 0, inclusive="neither")]
     return shutdown
+
 
 def battery_mean_level(df, config=None):
     """ This function returns the mean battery level within the specified timeframe. 
@@ -468,8 +467,7 @@ def extract_features_battery(df, features=None):
     for features, kwargs in features.items():
         print(features, kwargs)
         computed_feature = features(df, kwargs)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)

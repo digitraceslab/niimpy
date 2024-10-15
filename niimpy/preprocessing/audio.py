@@ -2,7 +2,7 @@ import pandas as pd
 
 from niimpy.preprocessing import util
 
-group_by_columns = set(["user", "device"])
+group_by_columns = set(["user", "device", "group"])
 
 
 def audio_count_silent(df_u, config=None): 
@@ -549,10 +549,8 @@ def extract_features_audio(df, features=None):
     
     computed_features = []
     for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
         computed_feature = feature(df, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)

@@ -12,7 +12,7 @@ from niimpy import config
 data = niimpy.read_csv(config.MULTIUSER_AWARE_AUDIO_PATH, tz='Europe/Helsinki')
 
 def test_audio_features():
-    
+    data["group"] = "group1"
     test = audio.extract_features_audio(data)
     
     test_user1 = test[test["user"] == "jd9INuQ5BBlW"]
@@ -27,7 +27,7 @@ def test_audio_features():
     assert test_user1.loc[pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_max_db"] == 75
     assert test_user1.loc[pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_mean_db"] == 75
     assert test_user1.loc[pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_median_db"] == 75
-    
+    assert test_user1.loc["2020-01-09 10:30:00"]["group"] == "group1"
     
     test_user2 = test[test["user"] == "iGyXetHE3S8u"]
     assert test_user2["audio_count_silent"].sum() == 3

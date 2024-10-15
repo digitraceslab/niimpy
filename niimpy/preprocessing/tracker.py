@@ -58,7 +58,7 @@ def step_summary(df, config=None):
 
     # Calculate sum of steps for each date
     df['daily_sum'] = util.group_data( df,
-        columns = ['day', 'month'] + group_by_columns
+        ['day', 'month']
     )[value_col].transform('sum')
 
     # Under the assumption that a user cannot have zero steps per day, we remove rows where daily_sum are zero

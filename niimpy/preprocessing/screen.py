@@ -4,8 +4,6 @@ import pandas as pd
 from niimpy.preprocessing import battery as b
 from niimpy.preprocessing import util
 
-group_by_columns = ["user", "device"]
-
 
 def util_screen(df, bat=None, config=None):
     """ This function is a helper function for all other screen preprocessing.
@@ -38,6 +36,7 @@ def util_screen(df, bat=None, config=None):
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("screen_column_name", "screen_status")
+    id_columns = util.identifier_columns(df)
     
     df[col_name]=pd.to_numeric(df[col_name]) #convert to numeric in case it is not
 
@@ -49,11 +48,11 @@ def util_screen(df, bat=None, config=None):
         if not shutdown.empty:
             df = pd.concat([df, shutdown])
             df.fillna(0, inplace=True)
-            df = df[["user","device","time",col_name]]
+            df = df[id_columns + [col_name]]
 
     #Sort the dataframe
     df.sort_index(inplace=True)
-    df.sort_values(by=["user","device"], inplace=True)
+    df.sort_values(by=id_columns, inplace=True)
     
     #Detect missing data points
     df['missing']=0
@@ -100,10 +99,11 @@ def event_classification_screen(df, config=None):
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("screen_column_name", "screen_status")
+    id_columns = util.identifier_columns(df)
     
     #Classify the event 
     df.sort_index(inplace=True)
-    df.sort_values(by=["user","device"], inplace=True)
+    df.sort_values(by=id_columns, inplace=True)
     col_as_str = df[col_name].astype(int).astype(str)
     next_as_str = col_as_str.shift(-1).fillna("0")
     df['next'] = col_as_str + next_as_str
@@ -160,9 +160,8 @@ def duration_util_screen(df):
     df['duration'] = df['duration'].shift(-1)
     
     #Discard transitions between subjects
-    index_name = df.index.name
-    df = df.groupby(["user", "device"]).apply(lambda x: x.iloc[:-1], include_groups=False)
-    df.reset_index(["user", "device"], inplace=True)
+    df = util.group_data(df).apply(lambda x: x.iloc[:-1], include_groups=False)
+    df = util.reset_groups(df)
     
     #Discard any datapoints whose duration in “ON” and "IN USE" states are 
     #longer than 10 hours becaus they may be artifacts
@@ -170,7 +169,7 @@ def duration_util_screen(df):
     df = df[~((df.on==1) & (df.duration>thr))]
     df = df[~((df.use==1) & (df.duration>thr))]
     df["duration"] = df["duration"].dt.total_seconds()
-    
+
     return df
 
 def screen_off(df, bat=None, config=None):
@@ -199,11 +198,12 @@ def screen_off(df, bat=None, config=None):
     if config is None:
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
+    id_columns = util.identifier_columns(df)
 
     df = util_screen(df, bat, config)
     df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
     df["screen_status"] = 1
-    df = df[["user","device","screen_status"]]
+    df = df[id_columns + ["screen_status"]]
     df.rename(columns={"screen_status":"screen_off"}, inplace=True)
     df = util.reset_groups(df)
     return df
@@ -627,8 +627,7 @@ def extract_features_screen(df, bat=None, features=None):
     computed_features = []
     for feature, feature_arg in features.items():
         computed_feature = feature(df, bat, feature_arg)
-        index_by = list(set(group_by_columns) & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
