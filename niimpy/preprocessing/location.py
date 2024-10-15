@@ -10,8 +10,6 @@ from niimpy.preprocessing import util
 
 default_freq = "1ME"
 
-group_by_columns = set(["user", "device", "group"])
-
 
 def distance_matrix(lats, lons):
     """Compute distance matrix using great-circle distance formula
@@ -533,14 +531,9 @@ def extract_features_location(df, features=None):
     computed_features = []
     for features, feature_arg in features.items():
         computed_feature = features(df, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
-
-    if 'group' in df:
-        computed_features['group'] = df.groupby('user')['group'].first()
-
     computed_features = util.reset_groups(computed_features)
     return computed_features

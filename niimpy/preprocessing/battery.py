@@ -471,9 +471,5 @@ def extract_features_battery(df, features=None):
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
-
-    if 'group' in df:
-        computed_features['group'] = df.groupby('user')['group'].first()
-
     computed_features = util.reset_groups(computed_features)
     return computed_features

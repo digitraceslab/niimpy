@@ -596,8 +596,7 @@ def extract_features_comms(df, features=None):
     for feature, feature_arg in features.items():
         print(f'computing {feature}...')
         computed_feature = feature(df, feature_arg)
-        index_by = list(set(group_by_columns) & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
         
     computed_features = pd.concat(computed_features, axis=1)
