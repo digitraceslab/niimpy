@@ -125,7 +125,7 @@ def audio_count_loud(df_u, config=None):
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
     if len(df_u)>0:
-        df_s = df_u[df_u[col_name]>70] #check if environment was noisy
+        df_u = df_u[df_u[col_name]>70] #check if environment was noisy
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).count()
         result = result.to_frame(name='audio_count_loud')
         result = util.reset_groups(result)
