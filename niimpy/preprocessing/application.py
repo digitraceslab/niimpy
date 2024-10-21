@@ -363,7 +363,7 @@ def app_count(df, bat=None, screen=None, config=None):
 
     # Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        screen = s.screen_off(screen, bat, config)
+        screen = s.screen_off(screen, bat, **config)
         if type(screen.index) == pd.MultiIndex:
             screen.reset_index(inplace=True)
             screen.set_index("index", inplace=True)
@@ -372,7 +372,7 @@ def app_count(df, bat=None, screen=None, config=None):
         df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
-        shutdown = b.shutdown_info(bat, config)
+        shutdown = b.shutdown_info(bat, **config)
         shutdown = shutdown.replace([-1, -2], "off")
         if type(shutdown.index) == pd.MultiIndex:
             shutdown.reset_index(inplace=True)
@@ -449,7 +449,7 @@ def app_duration(df, bat=None, screen=None, config=None):
 
     # Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        screen = s.screen_off(screen, bat, config)
+        screen = s.screen_off(screen, bat, **config)
         if type(screen.index) == pd.MultiIndex:
             screen.reset_index(inplace=True)
             screen.set_index("index", inplace=True)
@@ -458,7 +458,7 @@ def app_duration(df, bat=None, screen=None, config=None):
         df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
-        shutdown = b.shutdown_info(bat, config)
+        shutdown = b.shutdown_info(bat, **config)
         shutdown = shutdown.replace([-1, -2], "off")
         if type(shutdown.index) == pd.MultiIndex:
             shutdown.reset_index(inplace=True)
