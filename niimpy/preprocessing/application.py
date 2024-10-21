@@ -279,7 +279,7 @@ MAP_APP = {
 }
 
 
-def classify_app(df, config=None):
+def classify_app(df, app_column_name = "application_name", group_map = MAP_APP, **kwargs):
     """This function is a helper function for other screen preprocessing.
     The function classifies the screen events into the groups specified by group_map.
 
@@ -301,20 +301,14 @@ def classify_app(df, config=None):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    col_name = config.get("app_column_name", "application_name")
-    config["group_map"] = config.get("group_map", MAP_APP)
 
     df["app_group"] = "na"
-    for key, value in config["group_map"].items():
-        df.loc[df[col_name] == key, "app_group"] = value
+    for key, value in group_map.items():
+        df.loc[df[app_column_name] == key, "app_group"] = value
     return df
 
 
-def app_count(df, bat=None, screen=None, config=None):
+def app_count(df, bat=None, screen=None, group_map = MAP_APP, resample_args = {"rule":"30min"}, **kwargs):
     """This function returns the number of times each app group has been used,
     within the specified timeframe. The app groups are defined as a dictionary
     within the config variable. Examples of app groups are social
@@ -352,18 +346,12 @@ def app_count(df, bat=None, screen=None, config=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     bat = util.ensure_dataframe(bat)
     screen = util.ensure_dataframe(screen)
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    config["group_map"] = config.get("group_map", MAP_APP)
-    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
-    df2 = classify_app(df, config)
+    df2 = classify_app(df, group_map = group_map, **kwargs)
 
     # Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        screen = s.screen_off(screen, bat, **config)
+        screen = s.screen_off(screen, bat, **kwargs)
         if type(screen.index) == pd.MultiIndex:
             screen.reset_index(inplace=True)
             screen.set_index("index", inplace=True)
@@ -372,7 +360,7 @@ def app_count(df, bat=None, screen=None, config=None):
         df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
-        shutdown = b.shutdown_info(bat, **config)
+        shutdown = b.shutdown_info(bat, **kwargs)
         shutdown = shutdown.replace([-1, -2], "off")
         if type(shutdown.index) == pd.MultiIndex:
             shutdown.reset_index(inplace=True)
@@ -389,7 +377,7 @@ def app_count(df, bat=None, screen=None, config=None):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = util.group_data(df2, "app_group")["app_group"].resample(**config["resample_args"], include_groups=False).count()
+        result = util.group_data(df2, "app_group")["app_group"].resample(**resample_args, include_groups=False).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         result = util.reset_groups(result, "app_group")
         result = util.select_columns(result, ["app_group", "count"])
@@ -398,7 +386,7 @@ def app_count(df, bat=None, screen=None, config=None):
     return None
 
 
-def app_duration(df, bat=None, screen=None, config=None):
+def app_duration(df, bat=None, screen=None, group_map = MAP_APP, resample_args = {"rule":"30min"}, outlier_threshold = "10h", **kwargs):
     """This function returns the duration of use of different app groups, within the
     specified timeframe. The app groups are defined as a dictionary within the
     config variable. Examples of app groups are social media, sports,
@@ -435,21 +423,13 @@ def app_duration(df, bat=None, screen=None, config=None):
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
     bat = util.ensure_dataframe(bat)
     screen = util.ensure_dataframe(screen)
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    config["group_map"] = config.get("group_map", MAP_APP)
-    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
-    outlier_threshold = config.get("outlier_threshold", "10h")
-
     niimpy_cols = list(set(["group", "user", "device"]) & set(df.columns))
 
-    df2 = classify_app(df, config)
+    df2 = classify_app(df, group_map = group_map, **kwargs)
 
     # Insert missing data due to the screen being off or battery depleated
     if not screen.empty:
-        screen = s.screen_off(screen, bat, **config)
+        screen = s.screen_off(screen, bat, **kwargs)
         if type(screen.index) == pd.MultiIndex:
             screen.reset_index(inplace=True)
             screen.set_index("index", inplace=True)
@@ -458,7 +438,7 @@ def app_duration(df, bat=None, screen=None, config=None):
         df2.fillna({"app_group": "off"}, inplace=True)
 
     if screen.empty and not bat.empty:
-        shutdown = b.shutdown_info(bat, **config)
+        shutdown = b.shutdown_info(bat, **kwargs)
         shutdown = shutdown.replace([-1, -2], "off")
         if type(shutdown.index) == pd.MultiIndex:
             shutdown.reset_index(inplace=True)
@@ -472,7 +452,7 @@ def app_duration(df, bat=None, screen=None, config=None):
 
     # Fill in time gap between app foreground session
     def resample_group(group):
-        rule = config["resample_args"]["rule"]
+        rule = resample_args["rule"]
 
         all_times = pd.date_range(
             start=group.index.min().round(rule),
@@ -505,7 +485,7 @@ def app_duration(df, bat=None, screen=None, config=None):
     if len(df2) > 0:
         df2["datetime"] = pd.to_datetime(df2["datetime"])
         df2.set_index("datetime", inplace=True)
-        result = util.group_data(df2, "app_group")["duration"].resample(**config["resample_args"], include_groups=False).sum()
+        result = util.group_data(df2, "app_group")["duration"].resample(**resample_args, include_groups=False).sum()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         df2 = util.reset_groups(result, "app_group")
         df2 = util.select_columns(df2, ["app_group", "duration"])
@@ -552,7 +532,7 @@ def extract_features_app(df, bat=None, screen=None, features=None):
 
     computed_features = []
     for feature, feature_arg in features.items():
-        computed_feature = feature(df, bat, screen, feature_arg)
+        computed_feature = feature(df, bat, screen, **feature_arg)
         computed_feature = util.set_conserved_index(computed_feature, "app_group")
         computed_features.append(computed_feature)
 
