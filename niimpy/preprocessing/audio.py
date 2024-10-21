@@ -42,7 +42,7 @@ def audio_count_silent(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_count_silent"])
         return result
     return None
 
@@ -87,7 +87,7 @@ def audio_count_speech(df_u, config=None):
         result = util.group_data(df_s)[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_speech')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_count_speech"])
         return result
     return None
 
@@ -129,7 +129,7 @@ def audio_count_loud(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).count()
         result = result.to_frame(name='audio_count_loud')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_count_loud"])
         return result
     return None
 
@@ -167,7 +167,7 @@ def audio_min_freq(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_freq')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_min_freq"])
         return result
     return None
 
@@ -205,7 +205,7 @@ def audio_max_freq(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_freq')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_max_freq"])
         return result
     return None
 
@@ -243,7 +243,7 @@ def audio_mean_freq(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_freq')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_mean_freq"])
         return result
     return None
 
@@ -281,7 +281,7 @@ def audio_median_freq(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_freq')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_median_freq"])
         return result
     return None
 
@@ -319,7 +319,7 @@ def audio_std_freq(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_freq')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_std_freq"])
         return result
     return None
 
@@ -357,7 +357,7 @@ def audio_min_db(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_db')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_min_db"])
         return result
     return None
 
@@ -395,7 +395,7 @@ def audio_max_db(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_db')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_max_db"])
         return result
     return None
 
@@ -433,7 +433,7 @@ def audio_mean_db(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_db')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_mean_db"])
         return result
     return None
 
@@ -471,7 +471,7 @@ def audio_median_db(df_u, config):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_db')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_median_db"])
         return result
     return None
 
@@ -509,7 +509,7 @@ def audio_std_db(df_u, config=None):
         result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_db')
         result = util.reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.select_columns(result, ["audio_std_db"])
         return result
     return None
 

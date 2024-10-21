@@ -107,6 +107,7 @@ def call_duration_total(df, config=None):
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["outgoing_duration_total", "incoming_duration_total", "missed_duration_total"])
     return result
     
 
@@ -159,6 +160,7 @@ def call_duration_mean(df, config=None):
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["outgoing_duration_mean", "incoming_duration_mean", "missed_duration_mean"])
     return result
 
 
@@ -213,6 +215,7 @@ def call_duration_median(df, config=None):
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["outgoing_duration_median", "incoming_duration_median", "missed_duration_median"])
     return result
 
 
@@ -266,6 +269,7 @@ def call_duration_std(df, config=None):
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["outgoing_duration_std", "incoming_duration_std", "missed_duration_std"])
     return result
 
 
@@ -316,6 +320,7 @@ def call_count(df, config=None):
         result = pd.concat([outgoing, incoming, missed], axis=1)
         result.fillna(0, inplace=True)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["outgoing_count", "incoming_count", "missed_count"])
     return result
 
 
@@ -363,6 +368,7 @@ def call_outgoing_incoming_ratio(df, config=None):
     df2.fillna(0, inplace=True)
     result = df2.to_frame(name='outgoing_incoming_ratio')
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["outgoing_incoming_ratio"])
     return result
 
 
@@ -406,6 +412,7 @@ def call_distribution(df, config=None):
         include_groups=False
     )
     df = util.reset_groups(df)
+    df = util.select_columns(df, ["distribution"])
 
     return df
 
@@ -455,6 +462,7 @@ def message_count(df, config=None):
         result = pd.concat([outgoing, incoming], axis=1)
         result.fillna(0, inplace=True)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["outgoing_count", "incoming_count"])
         return result
     return pd.DataFrame()
 
@@ -503,6 +511,7 @@ def message_outgoing_incoming_ratio(df, config=None):
     df2.fillna(0, inplace=True)
     result = df2.to_frame(name='outgoing_incoming_ratio')
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["outgoing_incoming_ratio"])
 
     return result
 
@@ -550,6 +559,7 @@ def message_distribution(df, config=None):
         include_groups=False
     )
     df = util.reset_groups(df)
+    df = util.select_columns(df, ["distribution"])
     return df
 
 

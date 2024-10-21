@@ -185,6 +185,12 @@ def identifier_columns(df, id_columns = ["user", "device", "group"]):
     return columns
 
 
+def select_columns(df, columns, id_columns = ["user", "device", "group"]):
+    """ Select Niimpy identifier columns and listed feature columns """
+    columns = identifier_columns(df, id_columns + columns)
+    return df[columns]
+
+
 def group_data(df, additional_columns=None, id_columns=["user", "device", "group"]):
     """ Group the dataframe by Niimpy standard user identifier columns present in
     the dataframe. The columns are 'user', 'device', and 'group'. An addional

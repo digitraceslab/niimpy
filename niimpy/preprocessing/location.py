@@ -290,6 +290,7 @@ def location_number_of_significant_places(df, config=None):
     
     result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["n_significant_places"])
     return result
 
 
@@ -422,6 +423,7 @@ def location_significant_place_features(df, config=None):
 
     result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["n_sps", "n_static", "n_moving", "n_rare", "n_home", "max_dist_home", "n_transitions", "n_top1", "n_top2", "n_top3", "n_top4", "n_top5", "entropy", "normalized_entropy"])
     return result
 
 
@@ -488,6 +490,7 @@ def location_distance_features(df, config=None):
 
     result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["dist_total", "n_bins", "speed_average", "speed_variance", "speed_max", "variance", "log_variance"])
     return result
 
 ALL_FEATURES = [globals()[name] for name in globals()

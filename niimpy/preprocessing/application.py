@@ -392,7 +392,9 @@ def app_count(df, bat=None, screen=None, config=None):
         result = util.group_data(df2, "app_group")["app_group"].resample(**config["resample_args"], include_groups=False).count()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
         result = util.reset_groups(result, "app_group")
+        result = util.select_columns(result, ["app_group", "count"])
         return result
+    
     return None
 
 
@@ -505,7 +507,9 @@ def app_duration(df, bat=None, screen=None, config=None):
         df2.set_index("datetime", inplace=True)
         result = util.group_data(df2, "app_group")["duration"].resample(**config["resample_args"], include_groups=False).sum()
         result = pd.DataFrame(result).rename(columns={"app_group": "count"})
-        return util.reset_groups(result, "app_group")
+        df2 = util.reset_groups(result, "app_group")
+        df2 = util.select_columns(df2, ["app_group", "duration"])
+        return df2
 
     return None
 

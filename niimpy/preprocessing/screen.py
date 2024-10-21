@@ -206,6 +206,7 @@ def screen_off(df, bat=None, config=None):
     df = df[id_columns + ["screen_status"]]
     df.rename(columns={"screen_status":"screen_off"}, inplace=True)
     df = util.reset_groups(df)
+    df = util.select_columns(df, ["screen_status"])
     return df
 
 
@@ -254,6 +255,7 @@ def screen_count(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_count')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_count", "screen_off_count", "screen_use_count"])
     return result
 
 
@@ -303,6 +305,7 @@ def screen_duration(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_durationtotal')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationtotal", "screen_off_durationtotal", "screen_use_durationtotal"])
     return result
 
 
@@ -352,6 +355,7 @@ def screen_duration_min(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_durationminimum')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationminimum", "screen_off_durationminimum", "screen_use_durationminimum"])
     return result
 
 
@@ -401,6 +405,7 @@ def screen_duration_max(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_durationmaximum')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationmaximum", "screen_off_durationmaximum", "screen_use_durationmaximum"])
     return result
 
 
@@ -451,6 +456,7 @@ def screen_duration_mean(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_durationmean')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationmean", "screen_off_durationmean", "screen_use_durationmean"])
     return result
 
 
@@ -500,6 +506,7 @@ def screen_duration_median(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_durationmedian')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationmedian", "screen_off_durationmedian", "screen_use_durationmedian"])
     return result
 
 
@@ -549,6 +556,7 @@ def screen_duration_std(df, bat=None, config=None):
         use = use.to_frame(name='screen_use_durationstd')
         result = pd.concat([on, off, use], axis=1)
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationstd", "screen_off_durationstd", "screen_use_durationstd"])
     return result
 
 
@@ -588,6 +596,7 @@ def screen_first_unlock(df, bat=None, config=None):
     result = util.group_data(df2[df2.on==1])["time"].resample(rule='1D').min()
     result = result.to_frame(name="first_unlock")
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["first_unlock"])
     return result
 
 

@@ -73,6 +73,9 @@ def step_summary(df, config=None):
     summary_df['max_sum_step'] = util.group_data(df)['daily_sum'].max()
 
     summary_df = util.reset_groups(summary_df)
+    summary_df = util.select_columns(summary_df, 
+        ["median_sum_step", "avg_sum_step", "std_sum_step", "min_sum_step", "max_sum_step"]
+    )
     return summary_df
 
 
@@ -135,9 +138,8 @@ def tracker_step_distribution(steps_df, config=None):
     # Divide hourly steps by daily sum to get the distribution
     steps['step_distribution'] = steps[steps_column] / steps['step_sum']
 
-    # Set timestamp index
-    df = df.set_index("time")
-
+    # Set index and select columns
+    steps = util.select_columns(steps, ["step_distribution", "step_sum"])
     return steps[["step_distribution", "step_sum"]]
 
 

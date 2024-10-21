@@ -62,6 +62,7 @@ def battery_mean_level(df, config=None):
         result = util.group_data(df)[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='battery_mean_level')
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["battery_mean_level"])
     return result
 
 
@@ -93,6 +94,7 @@ def battery_median_level(df, config=None):
         result = util.group_data(df)[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='battery_median_level')
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["battery_median_level"])
     return result
 
 
@@ -124,6 +126,7 @@ def battery_std_level(df, config=None):
         result = util.group_data(df)[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='battery_std_level')
         result = util.reset_groups(result)
+        result = util.select_columns(result, ["battery_std_level"])
     return result
 
 
@@ -169,6 +172,7 @@ def battery_shutdown_time(df, config=None):
 
     result = util.group_data(df).apply(calculate_shutdown)
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["shutdown_time"])
     return result
     
 
@@ -212,6 +216,7 @@ def battery_discharge(df, config=None):
     
     result = util.group_data(df).apply(calculate_discharge)
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["battery_discharge"])
     return result
 
 
@@ -268,6 +273,7 @@ def battery_occurrences(df, config=None):
         occurrences = occurrences.to_frame(name='occurrences')
 
     occurrences = util.reset_groups(occurrences)
+    occurrences = util.select_columns(occurrences, ["occurrences"])
     return occurrences
 
 
@@ -309,6 +315,7 @@ def battery_gaps(df, config=None):
     
     result = util.group_data(df).apply(calculate_gaps, include_groups=False)
     result = util.reset_groups(result)
+    result = util.select_columns(result, ["battery_gap"])
     return result
 
 
@@ -344,6 +351,7 @@ def battery_charge_discharge(df, config=None):
 
     discharge = util.group_data(df).apply(calculate_discharge, include_groups=False)
     discharge = util.reset_groups(discharge)
+    discharge = util.select_columns(discharge, ["bdelta", "charge/discharge"])
     return discharge
 
 
