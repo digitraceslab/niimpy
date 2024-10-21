@@ -12,13 +12,17 @@ from niimpy import config
 data = niimpy.read_csv(config.MULTIUSER_AWARE_AUDIO_PATH, tz='Europe/Helsinki')
 
 def test_audio_features():
-    
+    data["group"] = "group1"
+    data["extra_column"] = "extra"
     test = audio.extract_features_audio(data)
+
+    assert "group" in test.columns
+    assert "extra_column" not in test.columns
     
     test_user1 = test[test["user"] == "jd9INuQ5BBlW"]
     assert test_user1["audio_count_silent"].sum() == 0
     assert test_user1.loc[pd.Timestamp("2020-01-09 02:00:00", tz='Europe/Helsinki')]["audio_count_silent"] == 0
-    assert test_user1["audio_count_loud"].sum() == 16
+    assert test_user1["audio_count_loud"].sum() == 12
     assert test_user1.loc[pd.Timestamp("2020-01-09 10:30:00", tz='Europe/Helsinki')]["audio_min_freq"] == 9601
     assert test_user1.loc[pd.Timestamp("2020-01-09 10:30:00", tz='Europe/Helsinki')]["audio_max_freq"] == 9601
     assert test_user1.loc[pd.Timestamp("2020-01-09 10:30:00", tz='Europe/Helsinki')]["audio_mean_freq"] == 9601
@@ -27,13 +31,13 @@ def test_audio_features():
     assert test_user1.loc[pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_max_db"] == 75
     assert test_user1.loc[pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_mean_db"] == 75
     assert test_user1.loc[pd.Timestamp("2020-01-09 06:00:00", tz='Europe/Helsinki')]["audio_median_db"] == 75
-    
+    assert test_user1.loc["2020-01-09 10:30:00"]["group"] == "group1"
     
     test_user2 = test[test["user"] == "iGyXetHE3S8u"]
     assert test_user2["audio_count_silent"].sum() == 3
     assert test_user2.loc[pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_count_silent"] == 2
     assert test_user2.loc[pd.Timestamp("2019-08-13 15:30:00", tz='Europe/Helsinki')]["audio_count_speech"] == 1
-    assert test_user2["audio_count_loud"].sum() == 17
+    assert test_user2["audio_count_loud"].sum() == 10
     assert test_user2.loc[pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_min_freq"] == 2914
     assert test_user2.loc[pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_max_freq"] == 7195
     assert test_user2.loc[pd.Timestamp("2019-08-13 15:00:00", tz='Europe/Helsinki')]["audio_mean_freq"] == 5054.5
@@ -57,9 +61,9 @@ def test_audio_features():
     assert test_user1_dev1.loc[pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_silent"] == 0
     assert test_user2.loc[pd.Timestamp("2019-08-13", tz='Europe/Helsinki')]["audio_count_silent"] == 3
     assert test_user2.loc[pd.Timestamp("2019-08-13", tz='Europe/Helsinki')]["audio_count_speech"] == 1
-    assert test_user1_dev1.loc[pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_loud"] == 10
-    assert test_user1_dev2.loc[pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_loud"] == 6
-    assert test_user2.loc[pd.Timestamp("2019-08-13", tz='Europe/Helsinki')]["audio_count_loud"] == 17
+    assert test_user1_dev1.loc[pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_loud"] == 7
+    assert test_user1_dev2.loc[pd.Timestamp("2020-01-09", tz='Europe/Helsinki')]["audio_count_loud"] == 5
+    assert test_user2.loc[pd.Timestamp("2019-08-13", tz='Europe/Helsinki')]["audio_count_loud"] == 10
     
     features ={audio.audio_min_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},
                audio.audio_max_freq:{"audio_column_name":"double_frequency","resample_args":{"rule":"2h"}},

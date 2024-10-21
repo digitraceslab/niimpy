@@ -1,18 +1,8 @@
 import pandas as pd
 
-group_by_columns = set(["user", "device"])
+from niimpy.preprocessing import util
 
-def group_data(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-def reset_groups(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
+group_by_columns = set(["user", "device", "group"])
 
 
 def audio_count_silent(df_u, config=None): 
@@ -25,7 +15,7 @@ def audio_count_silent(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of screen
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -39,22 +29,20 @@ def audio_count_silent(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "is_silent"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "is_silent")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     df_u[col_name] = pd.to_numeric(df_u[col_name])
         
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).sum()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_silent')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_count_silent"])
         return result
     return None
 
@@ -68,7 +56,7 @@ def audio_count_speech(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -82,18 +70,13 @@ def audio_count_speech(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in config:
-        col_name = "is_silent"
-    else:
-        col_name = config["audio_column_name"]
-    if not "audio_freq_name" in config:
-        freq_name = "double_frequency"
-    else:
-        freq_name = config["audio_freq_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("audio_column_name", "is_silent")
+    freq_name = config.get("audio_freq_name", "double_frequency")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
@@ -101,10 +84,10 @@ def audio_count_speech(df_u, config=None):
         df_s = df_u[df_u[freq_name].between(65, 255)]
         df_s = df_s[df_s[col_name]==0] #check if there was a conversation. 0 is not silent, 1 is silent
         df_s.loc[:,col_name] = 1
-        result = group_data(df_s)[col_name].resample(**config["resample_args"]).sum()
+        result = util.group_data(df_s)[col_name].resample(**config["resample_args"]).sum()
         result = result.to_frame(name='audio_count_speech')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_count_speech"])
         return result
     return None
 
@@ -118,7 +101,7 @@ def audio_count_loud(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -132,23 +115,21 @@ def audio_count_loud(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_decibels"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_decibels")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
     
     if len(df_u)>0:
-        df_s = df_u[df_u[col_name]>70] #check if environment was noisy
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).count()
+        df_u = df_u[df_u[col_name]>70] #check if environment was noisy
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).count()
         result = result.to_frame(name='audio_count_loud')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_count_loud"])
         return result
     return None
 
@@ -161,7 +142,7 @@ def audio_min_freq(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -175,20 +156,18 @@ def audio_min_freq(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in config:
-        col_name = "double_frequency"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+    col_name = config.get("audio_column_name", "double_frequency")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).min()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_freq')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_min_freq"])
         return result
     return None
 
@@ -201,7 +180,7 @@ def audio_max_freq(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -215,20 +194,18 @@ def audio_max_freq(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in config:
-        col_name = "double_frequency"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
+    col_name = config.get("audio_column_name", "double_frequency")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
+
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).max()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_freq')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_max_freq"])
         return result
     return None
 
@@ -241,7 +218,7 @@ def audio_mean_freq(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -255,20 +232,18 @@ def audio_mean_freq(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    if not "audio_column_name" in config:
-        col_name = "double_frequency"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
+    col_name = config.get("audio_column_name", "double_frequency")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
+
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_freq')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_mean_freq"])
         return result
     return None
 
@@ -281,7 +256,7 @@ def audio_median_freq(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -295,20 +270,18 @@ def audio_median_freq(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_frequency"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_frequency")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).median()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_freq')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_median_freq"])
         return result
     return None
 
@@ -321,7 +294,7 @@ def audio_std_freq(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -335,20 +308,18 @@ def audio_std_freq(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_frequency"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_frequency")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).std()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_freq')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_std_freq"])
         return result
     return None
 
@@ -361,7 +332,7 @@ def audio_min_db(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -375,20 +346,18 @@ def audio_min_db(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_decibels"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_decibels")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).min()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).min()
         result = result.to_frame(name='audio_min_db')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_min_db"])
         return result
     return None
 
@@ -401,7 +370,7 @@ def audio_max_db(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -415,20 +384,18 @@ def audio_max_db(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_decibels"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_decibels")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).max()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).max()
         result = result.to_frame(name='audio_max_db')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_max_db"])
         return result
     return None
 
@@ -441,7 +408,7 @@ def audio_mean_db(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -455,20 +422,18 @@ def audio_mean_db(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_decibels"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
+
+    col_name = config.get("audio_column_name", "double_decibels")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
+
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).mean()
         result = result.to_frame(name='audio_mean_db')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_mean_db"])
         return result
     return None
 
@@ -481,7 +446,7 @@ def audio_median_db(df_u, config):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -495,20 +460,18 @@ def audio_median_db(df_u, config):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_decibels"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_decibels")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).median()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).median()
         result = result.to_frame(name='audio_median_db')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_median_db"])
         return result
     return None
 
@@ -521,7 +484,7 @@ def audio_std_db(df_u, config=None):
     ----------
     df_u: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -535,20 +498,18 @@ def audio_std_db(df_u, config=None):
         Resulting dataframe
     """
     assert isinstance(df_u, pd.DataFrame), "df_u is not a pandas dataframe"
+    if config is None:
+        config = {}
     assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "audio_column_name" in config:
-        col_name = "double_decibels"
-    else:
-        col_name = config["audio_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
+
+    col_name = config.get("audio_column_name", "double_decibels")
+    config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
-        result = group_data(df_u)[col_name].resample(**config["resample_args"]).std()
+        result = util.group_data(df_u)[col_name].resample(**config["resample_args"]).std()
         result = result.to_frame(name='audio_std_db')
-        result = reset_groups(result)
-        result.index.rename("datetime", inplace=True)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["audio_std_db"])
         return result
     return None
 
@@ -588,13 +549,11 @@ def extract_features_audio(df, features=None):
     
     computed_features = []
     for feature, feature_arg in features.items():
-        print(f'computing {feature}...')
         computed_feature = feature(df, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
 
     computed_features = pd.concat(computed_features, axis=1)
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features
             
