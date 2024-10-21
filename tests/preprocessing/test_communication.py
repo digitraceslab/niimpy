@@ -108,8 +108,10 @@ def test_message_features_with_google_chat(google_takeout_zipped):
             sentiment_batch_size = 2
         )
         data["group"] = "group1"
+        data["extra_column"] = "extra"
 
     test = comms.extract_features_comms(data, features=None)
+    assert "extra_column" not in test.columns
     print(test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')])
     assert test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')]["outgoing_count"] == 2
     assert test.loc[pd.Timestamp("2024-01-30 13:00:00+00:00", tz='Europe/Helsinki')]["group"] == "group1"

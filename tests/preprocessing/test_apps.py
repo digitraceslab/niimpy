@@ -15,6 +15,7 @@ def test_app_features():
     screen["group"] = "group1"
     battery["group"] = "group1"
     test = app.extract_features_app(data, battery, screen, features=None)
+    data["extra_column"] = "extra"
 
     user_comm = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "comm")]
     user_work = test[(test["user"] == "dvWdLQesv21a") & (test["app_group"] == "work")]
@@ -45,3 +46,4 @@ def test_app_features():
     assert user_work.loc["2019-08-06 04:00:00+03:00"]["count"] == 2
     assert user_comm.loc["2019-08-05 20:00:00+03:00"]["duration"] == 3569.00
     assert user_work.loc["2019-08-06 04:00:00+03:00"]["duration"] == 2578
+    assert "extra_column" not in test.columns

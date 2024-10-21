@@ -32,7 +32,9 @@ def test_distance_matrix():
 
 def test_location_features():
     # extract featuers
+    data["extra_column"] = "extra"
     features = nilo.extract_features_location(data)
+    assert "extra_column" not in features.columns
     
     sps = features['n_sps'].dropna()
     assert ((sps > 0) & (sps < 100)).all(), "Number of SPs not reasonable"

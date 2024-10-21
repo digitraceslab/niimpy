@@ -13,7 +13,11 @@ data = niimpy.read_csv(config.MULTIUSER_AWARE_AUDIO_PATH, tz='Europe/Helsinki')
 
 def test_audio_features():
     data["group"] = "group1"
+    data["extra_column"] = "extra"
     test = audio.extract_features_audio(data)
+
+    assert "group" in test.columns
+    assert "extra_column" not in test.columns
     
     test_user1 = test[test["user"] == "jd9INuQ5BBlW"]
     assert test_user1["audio_count_silent"].sum() == 0
