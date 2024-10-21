@@ -4,7 +4,7 @@ from niimpy.preprocessing import util
 group_by_columns = ["user", "device"]
 
 
-def step_summary(df, config=None):
+def step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
     # value_col='values', user_id=None, start_date=None, end_date=None):
     """Return the summary of step count in a time range. The summary includes the following information
     of step count per day: mean, standard deviation, min, max
@@ -33,14 +33,6 @@ def step_summary(df, config=None):
 
     assert 'user' in df.columns, 'User column does not exist'
     assert df.index.inferred_type == 'datetime64', "Dataframe must have a datetime index"
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    value_col = config.get("value_col", "values")
-    user_id = config.get("user_id", None)
-    start_date = config.get("start_date", None)
-    end_date = config.get("end_date", None)
 
     if user_id is not None:
         assert isinstance(user_id, list), 'User id must be a list'
@@ -79,7 +71,7 @@ def step_summary(df, config=None):
     return summary_df
 
 
-def tracker_step_distribution(steps_df, config=None):
+def tracker_step_distribution(steps_df, steps_column='steps', resample_args={'rule': 'h'}, timeframe='d'):
     """Return distribution of steps within a time range.
     The number of step is sampled according to the frequency rule in resample_args.
     This is divided by the total number of steps in a larger time frame, given by
@@ -107,13 +99,6 @@ def tracker_step_distribution(steps_df, config=None):
         A dataframe containing the distribution of step count.
     """
     assert isinstance(steps_df, pd.DataFrame), "df_u is not a pandas dataframe"
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    steps_column = config.get("steps_column", "steps")
-    resample_args = config.get("resample_args", {'rule': 'h'})
-    timeframe = config.get("timeframe", 'd')
 
     # time frame must be longer than resample_args["rule"]
     to_offset = pd.tseries.frequencies.to_offset
@@ -174,7 +159,7 @@ def extract_features_tracker(df, features=None):
         features = ALL_FEATURES
     for feature_function, kwargs in features.items():
         print(features, kwargs)
-        computed_feature = feature_function(df, kwargs)
+        computed_feature = feature_function(df, **kwargs)
         index_by = list(set(group_by_columns) & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)

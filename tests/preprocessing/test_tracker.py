@@ -14,7 +14,7 @@ def test_step_summary():
     df = df.rename(columns={"subject_id": "user"})
     df["extra_column"] = "extra"
 
-    summary_df = tracker.step_summary(df, {'value_col': 'steps'})
+    summary_df = tracker.step_summary(df, value_col = 'steps')
 
     assert "extra_column" not in summary_df.columns
     assert summary_df['max_sum_step'].values[0] == 13025
@@ -44,7 +44,7 @@ def test_daily_step_distribution_with_short_timeframe():
     df = df.rename(columns={"subject_id": "user"})
     
     with pytest.raises(ValueError) as exc_info:
-        tracker.tracker_step_distribution(df, {
-            "timeframe": '1s',
-            "resample_args": {'rule': '1d'}
-        })
+        tracker.tracker_step_distribution(df,
+            timeframe= '1s',
+            resample_args= {'rule': '1d'}
+        )
