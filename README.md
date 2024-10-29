@@ -94,7 +94,7 @@ features = nilo.extract_features(
   users=location['user'],
   groups=location['group'],
   times=location.index,
-  speeds=location['double_speed']
+  speeds=location['speed']
 )
 ```
 

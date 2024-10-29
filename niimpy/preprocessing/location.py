@@ -337,7 +337,7 @@ def location_significant_place_features(df, config=None):
     Optional arguments in config:
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
-        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
@@ -347,7 +347,7 @@ def location_significant_place_features(df, config=None):
 
     latitude_column = config.get("latitude_column", "latitude")
     longitude_column = config.get("longitude_column", "latitude")
-    speed_column = config.get("speed_column", "double_speed")
+    speed_column = config.get("speed_column", "speed")
     speed_threshold = config.get("speed_threshold", 0.277)
     config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
@@ -438,7 +438,7 @@ def location_distance_features(df, config=None):
     Optional arguments in config:
         longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
         latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
-        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
@@ -448,7 +448,7 @@ def location_distance_features(df, config=None):
 
     latitude_column = config.get("latitude_column", "latitude")
     longitude_column = config.get("longitude_column", "latitude")
-    speed_column = config.get("speed_column", "double_speed")
+    speed_column = config.get("speed_column", "speed")
     config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
@@ -506,7 +506,7 @@ def extract_features_location(df, features=None):
     df : pd.DataFrame
         dataframe of location data. It must contain these columns:
         `latitude`, `longitude`, `user`, `group`.
-        `double_speed` is optional. If not provided, it will be
+        `speed` is optional. If not provided, it will be
         computed manually.
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
