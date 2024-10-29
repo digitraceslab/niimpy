@@ -71,7 +71,7 @@ def step_summary(df, value_col='values', user_id=None, start_date=None, end_date
     return summary_df
 
 
-def tracker_step_distribution(steps_df, steps_column='steps', resample_args={'rule': 'h'}, timeframe='d'):
+def tracker_step_distribution(steps_df, steps_column='steps', resample_args={'rule': 'h'}, timeframe='d', **kwargs):
     """Return distribution of steps within a time range.
     The number of step is sampled according to the frequency rule in resample_args.
     This is divided by the total number of steps in a larger time frame, given by
