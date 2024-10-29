@@ -65,8 +65,8 @@ def filter_location(location,
                     remove_disabled=True,
                     remove_zeros=True,
                     remove_network=False,
-                    latitude_column = "double_latitude",
-                    longitude_column = "double_longitude",
+                    latitude_column = "latitude",
+                    longitude_column = "longitude",
                     label_column = "label",
                     provider_column = "provider",
                     ):
@@ -268,8 +268,8 @@ def location_number_of_significant_places(df, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    latitude_column = config.get("latitude_column", "double_latitude")
-    longitude_column = config.get("longitude_column", "double_longitude")
+    latitude_column = config.get("latitude_column", "latitude")
+    longitude_column = config.get("longitude_column", "longitude")
     config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
@@ -335,8 +335,8 @@ def location_significant_place_features(df, config=None):
     config: A dictionary of optional arguments
 
     Optional arguments in config:
-        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
-        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
@@ -345,8 +345,8 @@ def location_significant_place_features(df, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    latitude_column = config.get("latitude_column", "double_latitude")
-    longitude_column = config.get("longitude_column", "double_latitude")
+    latitude_column = config.get("latitude_column", "latitude")
+    longitude_column = config.get("longitude_column", "latitude")
     speed_column = config.get("speed_column", "double_speed")
     speed_threshold = config.get("speed_threshold", 0.277)
     config["resample_args"] = config.get("resample_args", {"rule": default_freq})
@@ -436,8 +436,8 @@ def location_distance_features(df, config=None):
     config: A dictionary of optional arguments
 
     Optional arguments in config:
-        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
-        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
         speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
@@ -446,8 +446,8 @@ def location_distance_features(df, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    latitude_column = config.get("latitude_column", "double_latitude")
-    longitude_column = config.get("longitude_column", "double_latitude")
+    latitude_column = config.get("latitude_column", "latitude")
+    longitude_column = config.get("longitude_column", "latitude")
     speed_column = config.get("speed_column", "double_speed")
     config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
@@ -505,7 +505,7 @@ def extract_features_location(df, features=None):
     ----------
     df : pd.DataFrame
         dataframe of location data. It must contain these columns:
-        `double_latitude`, `double_longitude`, `user`, `group`.
+        `latitude`, `longitude`, `user`, `group`.
         `double_speed` is optional. If not provided, it will be
         computed manually.
     speed_threshold : float
