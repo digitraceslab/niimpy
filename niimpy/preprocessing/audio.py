@@ -75,7 +75,7 @@ def audio_count_speech(df_u, config=None):
     assert isinstance(config, dict), "config is not a dictionary"
     
     col_name = config.get("audio_column_name", "is_silent")
-    freq_name = config.get("audio_freq_name", "double_frequency")
+    freq_name = config.get("audio_freq_name", "frequency")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
@@ -119,7 +119,7 @@ def audio_count_loud(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_decibels")
+    col_name = config.get("audio_column_name", "decibels")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
         
     df_u[col_name] = pd.to_numeric(df_u[col_name])
@@ -160,7 +160,7 @@ def audio_min_freq(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    col_name = config.get("audio_column_name", "double_frequency")
+    col_name = config.get("audio_column_name", "frequency")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
@@ -198,7 +198,7 @@ def audio_max_freq(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    col_name = config.get("audio_column_name", "double_frequency")
+    col_name = config.get("audio_column_name", "frequency")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
 
     if len(df_u)>0:
@@ -236,7 +236,7 @@ def audio_mean_freq(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
     
-    col_name = config.get("audio_column_name", "double_frequency")
+    col_name = config.get("audio_column_name", "frequency")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
 
     if len(df_u)>0:
@@ -274,7 +274,7 @@ def audio_median_freq(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_frequency")
+    col_name = config.get("audio_column_name", "frequency")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
@@ -312,7 +312,7 @@ def audio_std_freq(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_frequency")
+    col_name = config.get("audio_column_name", "frequency")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
@@ -350,7 +350,7 @@ def audio_min_db(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_decibels")
+    col_name = config.get("audio_column_name", "decibels")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
@@ -388,7 +388,7 @@ def audio_max_db(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_decibels")
+    col_name = config.get("audio_column_name", "decibels")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
@@ -426,7 +426,7 @@ def audio_mean_db(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_decibels")
+    col_name = config.get("audio_column_name", "decibels")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
 
     if len(df_u)>0:
@@ -464,7 +464,7 @@ def audio_median_db(df_u, config):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_decibels")
+    col_name = config.get("audio_column_name", "decibels")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
@@ -502,7 +502,7 @@ def audio_std_db(df_u, config=None):
         config = {}
     assert isinstance(config, dict), "config is not a dictionary"
 
-    col_name = config.get("audio_column_name", "double_decibels")
+    col_name = config.get("audio_column_name", "decibels")
     config["resample_args"] = config.get("resample_args", {"rule":"30min"})
     
     if len(df_u)>0:
