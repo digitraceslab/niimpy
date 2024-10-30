@@ -65,8 +65,8 @@ def filter_location(location,
                     remove_disabled=True,
                     remove_zeros=True,
                     remove_network=False,
-                    latitude_column = "double_latitude",
-                    longitude_column = "double_longitude",
+                    latitude_column = "latitude",
+                    longitude_column = "longitude",
                     label_column = "label",
                     provider_column = "provider",
                     ):
@@ -263,8 +263,8 @@ def number_of_significant_places(lats, lons, times):
 
 def location_number_of_significant_places(
         df,
-        latitude_column="double_latitude",
-        longitude_column="double_longitude",
+        latitude_column="latitude",
+        longitude_column="longitude",
         resample_args={"rule": default_freq},
         **kwargs
     ):
@@ -327,9 +327,9 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
 
 def location_significant_place_features(
         df,
-        latitude_column="double_latitude",
-        longitude_column="double_latitude",
-        speed_column="double_speed",
+        latitude_column="latitude",
+        longitude_column="latitude",
+        speed_column="speed",
         speed_threshold=0.277,
         resample_args={"rule": default_freq},
         **kwargs
@@ -342,9 +342,9 @@ def location_significant_place_features(
     config: A dictionary of optional arguments
 
     Optional arguments in config:
-        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
-        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
-        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
@@ -427,9 +427,9 @@ def location_significant_place_features(
 
 def location_distance_features(
         df,
-        latitude_column="double_latitude",
-        longitude_column="double_latitude",
-        speed_column="double_speed",
+        latitude_column="latitude",
+        longitude_column="latitude",
+        speed_column="speed",
         resample_args={"rule": default_freq},
         **kwargs
     ):
@@ -441,9 +441,9 @@ def location_distance_features(
     config: A dictionary of optional arguments
 
     Optional arguments in config:
-        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
-        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
-        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
@@ -502,8 +502,8 @@ def extract_features_location(df, features=None):
     ----------
     df : pd.DataFrame
         dataframe of location data. It must contain these columns:
-        `double_latitude`, `double_longitude`, `user`, `group`.
-        `double_speed` is optional. If not provided, it will be
+        `latitude`, `longitude`, `user`, `group`.
+        `speed` is optional. If not provided, it will be
         computed manually.
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred

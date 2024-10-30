@@ -6,6 +6,7 @@
 [![Test installation from source](https://github.com/digitraceslab/niimpy/actions/workflows/install.yml/badge.svg)](https://github.com/digitraceslab/niimpy/actions/workflows/install.yml)
 [![codecov](https://codecov.io/gh/digitraceslab/niimpy/branch/master/graph/badge.svg?token=SEEOOF7A70)](https://codecov.io/gh/digitraceslab/niimpy)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/digitraceslab/niimpy/HEAD?labpath=docs)
 
 What
 ----
@@ -89,12 +90,12 @@ location = location.reset_index(0).dropna()
 
 # Feature extraction
 features = nilo.extract_features(
-  lats=location['double_latitude'],
-  lons=location['double_longitude'],
+  lats=location['latitude'],
+  lons=location['longitude'],
   users=location['user'],
   groups=location['group'],
   times=location.index,
-  speeds=location['double_speed']
+  speeds=location['speed']
 )
 ```
 

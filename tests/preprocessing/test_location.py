@@ -8,6 +8,7 @@ from niimpy import config
 
 # read sample data
 data = niimpy.read_csv(config.GPS_PATH, tz='et')
+data = data.rename(columns={"double_latitude": "latitude", "double_longitude": "longitude", "double_speed": "speed"})
 data["group"] = "group1"
 
 def test_distance_matrix():
@@ -37,6 +38,7 @@ def test_location_features():
     assert "extra_column" not in features.columns
     
     sps = features['n_sps'].dropna()
+    print(sps)
     assert ((sps > 0) & (sps < 100)).all(), "Number of SPs not reasonable"
 
     features_u1 = features[features["user"] == 'gps_u00']

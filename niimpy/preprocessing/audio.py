@@ -39,7 +39,7 @@ def audio_count_silent(df_u, audio_column_name = "is_silent", resample_args = {"
         return result
     return None
 
-def audio_count_speech(df_u, audio_column_name = "is_silent", audio_freq_name = "double_frequency", resample_args = {"rule":"30min"}, **kwargs):
+def audio_count_speech(df_u, audio_column_name = "is_silent", audio_freq_name = "frequency", resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound between 65Hz and 255Hz in the environment that could
     be specified as speech. If there is no specified timeframe, the function sets a 
@@ -77,7 +77,7 @@ def audio_count_speech(df_u, audio_column_name = "is_silent", audio_freq_name = 
         return result
     return None
 
-def audio_count_loud(df_u, audio_column_name = "double_decibels", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_count_loud(df_u, audio_column_name = "decibels", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the number of times, within the specified timeframe, 
     when there has been some sound louder than 70dB in the environment. If there 
     is no specified timeframe, the function sets a 30 min default time window. 
@@ -113,7 +113,7 @@ def audio_count_loud(df_u, audio_column_name = "double_decibels", resample_args 
         return result
     return None
 
-def audio_min_freq(df_u, audio_column_name = "double_frequency", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_min_freq(df_u, audio_column_name = "frequency", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the minimum frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -145,7 +145,7 @@ def audio_min_freq(df_u, audio_column_name = "double_frequency", resample_args =
         return result
     return None
 
-def audio_max_freq(df_u, audio_column_name = "double_frequency", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_max_freq(df_u, audio_column_name = "frequency", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the maximum frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -177,7 +177,7 @@ def audio_max_freq(df_u, audio_column_name = "double_frequency", resample_args =
         return result
     return None
 
-def audio_mean_freq(df_u, audio_column_name = "double_frequency", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_mean_freq(df_u, audio_column_name = "frequency", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the mean frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -209,7 +209,7 @@ def audio_mean_freq(df_u, audio_column_name = "double_frequency", resample_args 
         return result
     return None
 
-def audio_median_freq(df_u, audio_column_name = "double_frequency", resample_args = {"rule":"30min"}, **kwargs):
+def audio_median_freq(df_u, audio_column_name = "frequency", resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the median frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -241,7 +241,7 @@ def audio_median_freq(df_u, audio_column_name = "double_frequency", resample_arg
         return result
     return None
 
-def audio_std_freq(df_u, audio_column_name = "double_frequency", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_std_freq(df_u, audio_column_name = "frequency", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the standard deviation of the frequency of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -273,7 +273,7 @@ def audio_std_freq(df_u, audio_column_name = "double_frequency", resample_args =
         return result
     return None
 
-def audio_min_db(df_u, audio_column_name = "double_decibels", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_min_db(df_u, audio_column_name = "decibels", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the minimum decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -305,7 +305,7 @@ def audio_min_db(df_u, audio_column_name = "double_decibels", resample_args = {"
         return result
     return None
 
-def audio_max_db(df_u, audio_column_name = "double_decibels", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_max_db(df_u, audio_column_name = "decibels", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the maximum decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -337,7 +337,7 @@ def audio_max_db(df_u, audio_column_name = "double_decibels", resample_args = {"
         return result
     return None
 
-def audio_mean_db(df_u, audio_column_name = "double_decibels", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_mean_db(df_u, audio_column_name = "decibels", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the mean decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -369,7 +369,7 @@ def audio_mean_db(df_u, audio_column_name = "double_decibels", resample_args = {
         return result
     return None
 
-def audio_median_db(df_u, audio_column_name = "double_decibels", resample_args = {"rule":"30min"}, **kwargs):
+def audio_median_db(df_u, audio_column_name = "decibels", resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the median decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
@@ -401,7 +401,7 @@ def audio_median_db(df_u, audio_column_name = "double_decibels", resample_args =
         return result
     return None
 
-def audio_std_db(df_u, audio_column_name = "double_decibels", resample_args = {"rule":"30min"}, **kwargs): 
+def audio_std_db(df_u, audio_column_name = "decibels", resample_args = {"rule":"30min"}, **kwargs): 
     """ This function returns the standard deviation of the decibels of the recorded audio snippets, 
     within the specified timeframe. If there is no specified timeframe, the function sets a 
     30 min default time window. The function aggregates this number by user, by timewindow.
