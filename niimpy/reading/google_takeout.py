@@ -735,7 +735,7 @@ def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date
         return pd.DataFrame()
     
     # Extract divs with class content-cell. These contain the watch history.
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "lxml")
     rows = soup.find_all("div", {"class": "content-cell"})
 
     data = []
@@ -1046,4 +1046,31 @@ def fit_sessions(zip_filename):
 
     return df
 
+
+def app_usage(zip_filename):
+    data_path = "Takeout/My Activity/Google Play Store/MyActivity.html"
+
+    with ZipFile(zip_filename) as zip_file:
+        with zip_file.open(data_path) as file:
+            html = file.read().decode()
+
+        soup = BeautifulSoup(html, "lxml")
+        divs = soup.find_all("div", class_="content-cell")
+        pattern = re.compile(r"Used\s+(.+?)\s+(\w+\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+\w+)")
+
+        data = []
+        for div in divs:
+            text = div.get_text(separator=" ").strip()
+            match = pattern.search(text)
+            if match:
+                app_name = match.group(1)
+                usage_time = match.group(2)
+                print(text)
+                data.append({"app_name": app_name, "timestamp": usage_time})
+
+    df = pd.DataFrame(data)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
+    df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
+    df.set_index("timestamp", inplace=True)
+    print(df.head())
 

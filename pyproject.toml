@@ -29,6 +29,7 @@ dependencies = [
     "scipy",
     "tqdm",
     "BeautifulSoup4",
+    "lxml",
     "pyarrow",
     "google_takeout_email",
     "tqdm"
