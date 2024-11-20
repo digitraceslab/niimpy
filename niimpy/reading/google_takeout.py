@@ -217,7 +217,13 @@ def location_history(
     return data
 
 
-def activity(zip_filename, user=None, timezone = 'Europe/Helsinki'):
+def activity(
+    zip_filename,
+    user=None,
+    timezone = 'Europe/Helsinki',
+    start_date = None,
+    end_date = None
+):
     """ Read activity daily data from a Google Takeout zip file. 
     
     Parameters
@@ -259,6 +265,12 @@ def activity(zip_filename, user=None, timezone = 'Europe/Helsinki'):
 
     data.set_index('timestamp', inplace=True)
     util.format_column_names(data)
+
+    if start_date is not None:
+        data = data[data.index >= start_date]
+    
+    if end_date is not None:
+        data = data[data.index <= end_date]
 
     if user is None:
         user = uuid.uuid1()
@@ -1047,7 +1059,7 @@ def fit_sessions(zip_filename):
     return df
 
 
-def app_usage(zip_filename):
+def app_usage(zip_filename, start_date=None, end_date=None):
     data_path = "Takeout/My Activity/Google Play Store/MyActivity.html"
 
     with ZipFile(zip_filename) as zip_file:
@@ -1065,12 +1077,51 @@ def app_usage(zip_filename):
             if match:
                 app_name = match.group(1)
                 usage_time = match.group(2)
-                print(text)
+
+                usage_time = pd.to_datetime(usage_time, format='%b %d, %Y, %I:%M:%S %p %Z')
+                if start_date is not None and usage_time < start_date:
+                    break
+                if end_date is not None and usage_time > end_date:
+                    continue
+
                 data.append({"app_name": app_name, "timestamp": usage_time})
 
     df = pd.DataFrame(data)
     df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
     df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
     df.set_index("timestamp", inplace=True)
-    print(df.head())
+    return df
 
+
+def maps(zip_filename, start_date=None, end_date=None):
+    data_path = "Takeout/My Activity/Maps/MyActivity.html"
+
+    with ZipFile(zip_filename) as zip_file:
+        with zip_file.open(data_path) as file:
+            html = file.read().decode()
+        
+        soup = BeautifulSoup(html, "lxml")
+        divs = soup.find_all("div", class_="content-cell")
+        pattern = re.compile(r"Used\s+(.+?)\s+(\w+\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+\w+)")
+
+        data = []
+        for div in divs:
+            text = div.get_text(separator=" ").strip()
+            match = pattern.search(text)
+            if match:
+                note = match.group(1)
+                usage_time = match.group(2)
+
+                usage_time = pd.to_datetime(usage_time, format='%b %d, %Y, %I:%M:%S %p %Z')
+                if start_date is not None and usage_time < start_date:
+                    break
+                if end_date is not None and usage_time > end_date:
+                    continue
+
+                data.append({"note": note, "timestamp": usage_time})
+    
+    df = pd.DataFrame(data)
+    df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
+    df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
+    df.set_index("timestamp", inplace=True)
+    return df
