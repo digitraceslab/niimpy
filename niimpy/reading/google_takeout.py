@@ -2,7 +2,7 @@ import pandas as pd
 from zipfile import ZipFile
 import json
 import os
-import datetime
+import numpy as np
 import email
 import uuid
 import warnings
@@ -12,6 +12,7 @@ from tqdm import tqdm
 from bs4 import BeautifulSoup
 from niimpy.preprocessing import util
 import google_takeout_email as email_utils
+from niimpy.reading.html_iterator import ContentDivIterator
 
 try:
     from multi_language_sentiment import sentiment as get_sentiment
@@ -1059,69 +1060,99 @@ def fit_sessions(zip_filename):
     return df
 
 
-def app_usage(zip_filename, start_date=None, end_date=None):
-    data_path = "Takeout/My Activity/Google Play Store/MyActivity.html"
+def myactivity(zip_filename, section, start_date=None, end_date=None):
+    data_path = os.path.join("Takeout", "My Activity", section, "MyActivity.html")
 
     with ZipFile(zip_filename) as zip_file:
         with zip_file.open(data_path) as file:
             html = file.read().decode()
 
-        soup = BeautifulSoup(html, "lxml")
-        divs = soup.find_all("div", class_="content-cell")
-        pattern = re.compile(r"Used\s+(.+?)\s+(\w+\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+\w+)")
+        date_pattern = re.compile(r"(.+?)\s+(\w+\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+\w+)")
 
         data = []
-        for div in divs:
-            text = div.get_text(separator=" ").strip()
-            match = pattern.search(text)
+        for text in ContentDivIterator(html):
+            match = date_pattern.search(text)
             if match:
-                app_name = match.group(1)
-                usage_time = match.group(2)
+                timestamp = match.group(2)
 
-                usage_time = pd.to_datetime(usage_time, format='%b %d, %Y, %I:%M:%S %p %Z')
-                if start_date is not None and usage_time < start_date:
+                timestamp = pd.to_datetime(timestamp, format='%b %d, %Y, %I:%M:%S %p %Z')
+                if start_date is not None and timestamp < start_date:
                     break
-                if end_date is not None and usage_time > end_date:
+                if end_date is not None and timestamp > end_date:
                     continue
 
-                data.append({"app_name": app_name, "timestamp": usage_time})
-
-    df = pd.DataFrame(data)
-    df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
-    df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
-    df.set_index("timestamp", inplace=True)
-    return df
-
-
-def maps(zip_filename, start_date=None, end_date=None):
-    data_path = "Takeout/My Activity/Maps/MyActivity.html"
-
-    with ZipFile(zip_filename) as zip_file:
-        with zip_file.open(data_path) as file:
-            html = file.read().decode()
-        
-        soup = BeautifulSoup(html, "lxml")
-        divs = soup.find_all("div", class_="content-cell")
-        pattern = re.compile(r"Used\s+(.+?)\s+(\w+\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+\w+)")
-
-        data = []
-        for div in divs:
-            text = div.get_text(separator=" ").strip()
-            match = pattern.search(text)
-            if match:
-                note = match.group(1)
-                usage_time = match.group(2)
-
-                usage_time = pd.to_datetime(usage_time, format='%b %d, %Y, %I:%M:%S %p %Z')
-                if start_date is not None and usage_time < start_date:
-                    break
-                if end_date is not None and usage_time > end_date:
-                    continue
-
-                data.append({"note": note, "timestamp": usage_time})
+                data.append({"timestamp": timestamp, "description": text})
     
     df = pd.DataFrame(data)
     df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
     df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
     df.set_index("timestamp", inplace=True)
     return df
+
+
+def YouTube(zip_filename, start_date=None, end_date=None):
+    df = myactivity(zip_filename, "YouTube", start_date, end_date)
+    activity_strings ={
+        "Watched ": "Watched",
+        "Viewed ": "Viewed",
+        "Liked ": "Liked",
+        "Disliked ": "Disliked",
+        "Voted on ": "Voted",
+        "Shared ": "Shared",
+        "Commented on ": "Commented",
+        "Subscribed to ": "Subscribed",
+        "Unsubscribed from ": "Unsubscribed",
+        "Answered ": "Answered",
+        "Joined ": "Joined",
+    }
+
+    for activity_string, activity_type in activity_strings.items():
+        rows = df["description"].str.startswith(activity_string)
+        df.loc[rows, "activity_type"] = activity_type
+        df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
+
+    description_lines = df["description"].str.split("\n")
+    df["title"] = description_lines[0].str.strip()
+    df["channel"] = description_lines[1].str.strip()
+
+    # For "Subscribed" events, the title is missing
+    rows = df["activity_type"] == "Subscribed"
+    df.loc[rows, "channel"] = df.loc[rows, "title"]
+    df.loc[rows, "title"] = np.NaN
+
+    # Some times the channel and title are missing, and only a video
+    # link is provided. In these cases, set that as title.
+    rows = (df["activity_type"] == "Watched") & (
+        df["description"].str.len() == 2)
+    df.loc[rows, "channel"] = ""
+
+    return df
+
+
+def PlayStore(zip_filename, start_date=None, end_date=None):
+    df = myactivity(zip_filename, "Google Play Store", start_date, end_date)
+    df["activity_type"] = df["description"].str[0].str.strip()
+    df["name"] = df["description"].str[1:].str.join(" ").str.strip()
+    df[df["name"].isna()] = ""
+
+    activity_types = ["Used", "Searched", "Joined beta program for", "Visited", "Started to purchase", "Apps management notification", "Clicked on a notification", "Received a notification", "Viewed a notification", "Launched"]
+
+    # When the name is not a link, the name is contained in the first
+    # element of the description.
+    for activity_type in activity_types:
+        rows = df["activity_type"].str.startswith(activity_type+" ")
+        df.loc[rows, "name"] = df.loc[rows, "activity_type"].str.replace(activity_type+" ", "").str.strip()
+        df.loc[rows, "activity_type"] = activity_type
+
+    df.loc[df["activity_type"] == "Searched for", "activity_type"] = "Searched"
+
+    return df
+
+
+def app_used(zip_filename, start_date=None, end_date=None):
+    df = PlayStore(zip_filename, start_date, end_date)
+    df = df[df["activity_type"] == "Used"]
+    df.drop("activity_type", axis=1, inplace=True)
+
+    return df
+
