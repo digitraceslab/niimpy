@@ -1156,3 +1156,21 @@ def app_used(zip_filename, start_date=None, end_date=None):
 
     return df
 
+
+def Search(zip_filename, start_date=None, end_date=None):
+    df = myactivity(zip_filename, "Search", start_date, end_date)
+    activity_strings ={
+        "Visited ": "Visited",
+        "Searched for ": "Searched"
+    }
+
+    for activity_string, activity_type in activity_strings.items():
+        rows = df["description"].str.startswith(activity_string)
+        df.loc[rows, "activity_type"] = activity_type
+        df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
+    
+    df["description"].str.split("\n")
+
+    return df
+
+
