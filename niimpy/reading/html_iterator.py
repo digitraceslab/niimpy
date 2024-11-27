@@ -5,7 +5,7 @@ def strip_html_tags(text):
     text = text.replace('<br>', '\n')
     clean = re.compile('<.*?>')
     text = re.sub(clean, '', text)
-    text = re.sub(r'\s+', ' ', text).strip()
+    text = re.sub(r'[^\S\n]+', ' ', text).strip()
     return text
 
 

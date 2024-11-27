@@ -1112,8 +1112,8 @@ def YouTube(zip_filename, start_date=None, end_date=None):
         df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
 
     description_lines = df["description"].str.split("\n")
-    df["title"] = description_lines[0].str.strip()
-    df["channel"] = description_lines[1].str.strip()
+    df["title"] = description_lines.str[0].str.strip()
+    df["channel"] = description_lines.str[1].str.strip()
 
     # For "Subscribed" events, the title is missing
     rows = df["activity_type"] == "Subscribed"
@@ -1130,9 +1130,14 @@ def YouTube(zip_filename, start_date=None, end_date=None):
 
 
 def PlayStore(zip_filename, start_date=None, end_date=None):
+    """ Read Play Store data from Google Takeout zip file.
+    
+    This contains app usage as well as activity in the Play Store app.
+    """
     df = myactivity(zip_filename, "Google Play Store", start_date, end_date)
-    df["activity_type"] = df["description"].str[0].str.strip()
-    df["name"] = df["description"].str[1:].str.join(" ").str.strip()
+    description_lines = df["description"].str.split("\n")
+    df["activity_type"] = description_lines.str[0].str.strip()
+    df["name"] = description_lines.str[1:].str.join(" ").str.strip()
     df[df["name"].isna()] = ""
 
     activity_types = ["Used", "Searched", "Joined beta program for", "Visited", "Started to purchase", "Apps management notification", "Clicked on a notification", "Received a notification", "Viewed a notification", "Launched"]
@@ -1149,15 +1154,31 @@ def PlayStore(zip_filename, start_date=None, end_date=None):
     return df
 
 
-def app_used(zip_filename, start_date=None, end_date=None):
+def app_used(
+        zip_filename,
+        start_date=None,
+        end_date=None,
+        day_divide_time = "04:00:00"
+    ):
+    """ Read app usage data from the Play Store activity in Google Takeout
+    zip file.
+    
+    Format the time stamp into a day used. The time stamp does not match actual
+    time used, but we can deduce the day used from the time stamp.
+    """
     df = PlayStore(zip_filename, start_date, end_date)
     df = df[df["activity_type"] == "Used"]
     df.drop("activity_type", axis=1, inplace=True)
+
+    df["day"] = df.index - pd.to_timedelta(day_divide_time)
+    df["day"] = df["day"].dt.floor("d")
 
     return df
 
 
 def Search(zip_filename, start_date=None, end_date=None):
+    """ Read search history from Google Takeout zip file.
+    """
     df = myactivity(zip_filename, "Search", start_date, end_date)
     activity_strings ={
         "Visited ": "Visited",
@@ -1169,7 +1190,8 @@ def Search(zip_filename, start_date=None, end_date=None):
         df.loc[rows, "activity_type"] = activity_type
         df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
     
-    df["description"].str.split("\n")
+    description_lines = df["description"].str.split("\n")
+    df["channel"] = description_lines.str[1].str.strip()
 
     return df
 
