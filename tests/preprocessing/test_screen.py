@@ -1,5 +1,4 @@
 import pandas as pd
-import numpy as np
 
 import niimpy
 import niimpy.preprocessing.screen as sc
@@ -16,7 +15,7 @@ def test_audio_features():
     data["extra_column"] = "extra"
     test = sc.extract_features_screen(data, bat, features=None)
     assert "extra_column" not in test.columns
-    
+
     time = pd.Timestamp("2020-01-09 02:30:00", tz='Europe/Helsinki')
     
     test_user = test[test["user"] == "jd9INuQ5BBlW"]
