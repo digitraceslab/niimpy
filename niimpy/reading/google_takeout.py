@@ -1084,10 +1084,28 @@ def myactivity(zip_filename, section, start_date=None, end_date=None):
                 data.append({"timestamp": timestamp, "description": text})
     
     df = pd.DataFrame(data)
+    if len(df) == 0:
+        return df
     df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
     df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
     df.set_index("timestamp", inplace=True)
     return df
+
+
+def list_myactivity_sections(zip_filename):
+    """ List sections in the My Activity in a given Google Takeout zip file.
+    """
+    data_path = os.path.join("Takeout", "My Activity")
+
+    with ZipFile(zip_filename) as zip_file:
+        filenames = zip_file.namelist()
+        sections = set()
+        for filename in filenames:
+            if not filename.startswith(data_path):
+                continue
+            sections.add(filename.split("/")[2])
+    return sections
+
 
 
 def YouTube(zip_filename, start_date=None, end_date=None):
@@ -1195,4 +1213,30 @@ def Search(zip_filename, start_date=None, end_date=None):
 
     return df
 
+
+def Maps(zip_filename, start_date=None, end_date=None):
+    """ Read Google Maps history from Google Takeout zip file.
+    """
+    df = myactivity(zip_filename, "Maps", start_date, end_date)
+    activity_strings ={
+        "Viewed ": "Viewed",
+        "Used ": "Used",
+        "Directions to ": "Directions",
+        "Searched for ": "Searched",
+        "Explored ": "Explored",
+    }
+
+    for activity_string, activity_type in activity_strings.items():
+        rows = df["description"].str.startswith(activity_string)
+        df.loc[rows, "activity_type"] = activity_type
+        df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
+
+    df.loc[df["activity_type"].isna(), "activity_type"] = "Viewed"
+    
+    description_lines = df["description"].str.split("\n")
+    df[""] = description_lines.str[0].str.strip()
+
+    del df["description"]
+
+    return df
 
