@@ -31,7 +31,8 @@ dependencies = [
     "BeautifulSoup4",
     "pyarrow",
     "google_takeout_email",
-    "tqdm"
+    "tqdm",
+    "tzfpy"
 ]
 
 [project.optional-dependencies]
