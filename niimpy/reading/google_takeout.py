@@ -2,7 +2,6 @@ import pandas as pd
 from zipfile import ZipFile
 import json
 import os
-import datetime
 import email
 import uuid
 import warnings
@@ -10,7 +9,7 @@ import re
 
 from tqdm import tqdm
 from bs4 import BeautifulSoup
-from niimpy.preprocessing import util
+from niimpy.reading import util
 import google_takeout_email as email_utils
 
 try:
@@ -126,6 +125,7 @@ def location_history(
         user = None,
         start_date = None,
         end_date = None,
+        timezone = "Europe/Helsinki"
     ):
     """  Read the location history from a google takeout zip file.
 
@@ -210,6 +210,7 @@ def location_history(
     data.drop(drop_columns, axis=1, inplace=True,  errors='ignore')
     data.rename(columns=column_name_map, inplace=True)
     util.format_column_names(data)
+    util.set_timezone(data, tz=timezone)
 
     if user is None:
         user = uuid.uuid1()
@@ -255,10 +256,11 @@ def activity(zip_filename, user=None, timezone = 'Europe/Helsinki'):
         # Read the more fine grained data for each date
         data = pd.read_csv(zip_file.open(filename))
     
-    data["timestamp"] = pd.to_datetime(data["Date"]).dt.tz_localize(timezone)
+    data["timestamp"] = pd.to_datetime(data["Date"])
 
     data.set_index('timestamp', inplace=True)
     util.format_column_names(data)
+    util.set_timezone(data, tz=timezone)
 
     if user is None:
         user = uuid.uuid1()
@@ -358,7 +360,14 @@ class email_file():
             self.zip_file.close()
 
 
-def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100, start_date=None, end_date=None):
+def sentiment_analysis_from_email(
+        df,
+        filename,
+        sentiment_batch_size=100,
+        start_date=None,
+        end_date=None,
+        timezone = "Europe/Helsinki"
+    ):
     """ Run sentiment analysis on the content of the email messages
     in the dataframe. """
     content_batch = []
@@ -395,6 +404,7 @@ def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100, start_
     scores = [s["score"] for s in sentiments]
     df["sentiment"] = labels
     df["sentiment_score"] = scores
+    util.set_timezone(df, tz=timezone)
 
     return df
 
@@ -407,6 +417,7 @@ def email_activity(
         sentiment_batch_size = 100,
         start_date = None,
         end_date = None,
+        timezone = "Europe/Helsinki"
     ):
     """ Extract message header data from the GMail inbox in
     a Google Takeout zip file.
@@ -544,6 +555,8 @@ def email_activity(
     df["user"] = user
 
     df.set_index("timestamp", inplace=True)
+    util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
 
     # Run sentiment analysis if requested. This might take some time.
     if sentiment:
@@ -554,7 +567,11 @@ def email_activity(
 
 
 
-def sentiment_analysis_from_text_column(df, text_content_column, sentiment_batch_size=100):
+def sentiment_analysis_from_text_column(df,
+        text_content_column,
+        sentiment_batch_size=100,
+        timezone = "Europe/Helsinki"
+    ):
     """ Run sentiment analysis on a dataframe with text content
     and add the results as new columns. """
     content_batch = []
@@ -573,6 +590,8 @@ def sentiment_analysis_from_text_column(df, text_content_column, sentiment_batch
     scores = [s["score"] for s in sentiments]
     df["sentiment"] = labels
     df["sentiment_score"] = scores
+    util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
 
@@ -583,7 +602,8 @@ def chat(
         sentiment=False, sentiment_batch_size = 100,
         pseudonymize=True,
         start_date = None,
-        end_date = None
+        end_date = None,
+        timezone = "Europe/Helsinki"
     ):
     """ Read Google chat messages from a Google Takeout zip file.
 
@@ -689,11 +709,19 @@ def chat(
     df.drop("text", axis=1, inplace=True)
 
     util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
 
 
-def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date = None, end_date = None):
+def youtube_watch_history(
+        zip_filename,
+        user=None,
+        pseudonymize=True,
+        start_date = None,
+        end_date = None,
+        timezone = "Europe/Helsinki"
+    ):
     """ Read the watch history from a Google Takeout zip file.
 
     Watch history is stored as an html file. We parse the file
@@ -773,6 +801,8 @@ def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date
         df["video_title"] = df["video_title"].astype("category").cat.codes
         df["channel_title"] = df["channel_title"].astype("category").cat.codes
 
+    util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
 
@@ -849,7 +879,11 @@ def fit_expand_data_filename(zip_filename, filename):
     return filenames
 
 
-def fit_read_data_file(zip_filename, data_filename):
+def fit_read_data_file(
+        zip_filename,
+        data_filename,
+        timezone = "Europe/Helsinki"
+    ):
     """ Read a data file in the Google Fit All Data folder.
     """
     try:
@@ -935,10 +969,15 @@ def fit_read_data_file(zip_filename, data_filename):
             df.drop("originDataSourceId", axis=1, inplace=True)
     
     util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
     
-def fit_read_data(zip_filename, data_filename):
+def fit_read_data(
+        zip_filename,
+        data_filename,
+        timezone = "Europe/Helsinki"
+    ):
     """ Read multiple data files in the Google Fit All Data folder.
     """
 
@@ -964,11 +1003,11 @@ def fit_read_data(zip_filename, data_filename):
 
     df = pd.concat(dfs)
     df.sort_index(inplace=True)
-
+    util.set_timezone(df, tz=timezone)
     return df
 
 
-def fit_all_data(zip_filename):
+def fit_all_data(zip_filename, timezone = "Europe/Helsinki"):
     """ Read all the data in the Google Fit All Data folder.
     """
     datafiles = fit_list_data(zip_filename)["filename"]
@@ -976,7 +1015,7 @@ def fit_all_data(zip_filename):
     return data
 
 
-def fit_heart_rate_data(zip_filename):
+def fit_heart_rate_data(zip_filename, timezone = "Europe/Helsinki"):
     """ Read heart rate data from Google Fit All Data folder and
     format it more nicely.
 
@@ -1000,7 +1039,7 @@ def fit_heart_rate_data(zip_filename):
     return df
 
 
-def fit_sessions(zip_filename):
+def fit_sessions(zip_filename, timezone = "Europe/Helsinki"):
     """ Read all Google Takeout sessions and concatenate them into
     a dataframe. Each file contains aggregate data for a single 
     activity session or sleep session.
@@ -1043,6 +1082,7 @@ def fit_sessions(zip_filename):
         df["duration"] = pd.to_timedelta(df["duration"])
 
     util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
 
     return df
 
