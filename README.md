@@ -90,12 +90,12 @@ location = location.reset_index(0).dropna()
 
 # Feature extraction
 features = nilo.extract_features(
-  lats=location['double_latitude'],
-  lons=location['double_longitude'],
+  lats=location['latitude'],
+  lons=location['longitude'],
   users=location['user'],
   groups=location['group'],
   times=location.index,
-  speeds=location['double_speed']
+  speeds=location['speed']
 )
 ```
 

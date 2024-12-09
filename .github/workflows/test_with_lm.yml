@@ -7,9 +7,6 @@ jobs:
     strategy:
       matrix:
         python-version:
-          - '3.9'
-          - '3.10'
-          - '3.11'
           - '3.12'
         pandas-version:
           - '2.2'
@@ -21,7 +18,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install deps
         run: |
-          pip install .[test] pandas==${{ matrix.pandas-version }}
+          pip install .[test,sentiment] pandas==${{ matrix.pandas-version }}
       - name: pytest
         run: |
-          pytest
+          pytest --run_sentiment

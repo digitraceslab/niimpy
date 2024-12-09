@@ -126,7 +126,7 @@ def missing_noise(database,subject,start=None,end=None):
     else:
         end = noise.iloc[len(noise)-1]['datetime']
 
-    noise = noise.drop(['device','user','time','double_silence_threshold','double_rms','blob_raw','is_silent','double_frequency'],axis=1)
+    noise = noise.drop(['device','user','time','silence_threshold','rms','blob_raw','is_silent','frequency'],axis=1)
     noise = noise.loc[start:end]
     noise['duration'] = noise['datetime'].diff()
     noise['duration'] = get_seconds(noise['duration'])
@@ -139,7 +139,7 @@ def missing_noise(database,subject,start=None,end=None):
     dates=noise.datetime_x.combine_first(noise.datetime_y)
     noise['datetime']=dates
     noise = noise.drop(['datetime_x','datetime_y'],axis=1)
-    noise=noise.drop(['double_decibels', 'duration_y'],axis=1)
+    noise=noise.drop(['decibels', 'duration_y'],axis=1)
     noise['missing'] = np.where(noise['duration']>=1860, 1, 0) #detect the missing points
     noise['dummy'] = noise.missing.shift(-2) #assumes that everytime the cellphone shuts down, two timestamps are generated with -1 in the battery_health
     noise['dummy'] = noise.dummy*noise.duration
