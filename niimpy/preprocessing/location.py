@@ -520,6 +520,7 @@ def location_local_time(df, config=None):
     df = util.reset_groups(df)
     df["timezone"] = df.apply(get_timezone, axis=1)
     df = df.apply(set_timezone, axis=1)
+    df = util.select_columns(df, ["timezone"])
     return df
     
 
