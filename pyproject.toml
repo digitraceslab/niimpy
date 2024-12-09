@@ -32,7 +32,8 @@ dependencies = [
     "lxml",
     "pyarrow",
     "google_takeout_email",
-    "tqdm"
+    "tqdm",
+    "tzfpy"
 ]
 
 [project.optional-dependencies]

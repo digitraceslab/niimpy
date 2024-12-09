@@ -5,6 +5,7 @@ import numpy as np
 import scipy.stats
 from sklearn.cluster import DBSCAN
 from geopy.distance import geodesic
+from tzfpy import get_tz
 
 from niimpy.preprocessing import util
 
@@ -489,6 +490,38 @@ def location_distance_features(
     result = util.reset_groups(result)
     result = util.select_columns(result, ["dist_total", "n_bins", "speed_average", "speed_variance", "speed_max", "variance", "log_variance"])
     return result
+
+
+def location_local_time(df, config=None):
+    """ Calculates the local time of the user based on the longitude.
+
+    Parameters
+    ----------
+    df: dataframe with date index
+    config: A dictionary of optional arguments
+    """
+
+    longitude_column = config.get("longitude_column", "longitude")
+    latitude_column = config.get("latitude_column", "latitude")
+    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
+
+    def get_timezone(row):
+        return get_tz(row[longitude_column], row[latitude_column])
+    
+    def set_timezone(row):
+        row["local_time"] = row["time"].tz_convert(row["timezone"])
+        return row
+    
+    df["time"] = df.index
+    df = util.group_data(df).resample(**config["resample_args"], include_groups=False).first()
+    df = util.reset_groups(df)
+    df["timezone"] = df.apply(get_timezone, axis=1)
+    df = df.apply(set_timezone, axis=1)
+    df = util.select_columns(df, ["timezone"])
+    return df
+    
+
+
 
 ALL_FEATURES = [globals()[name] for name in globals()
                          if name.startswith('location_')]
