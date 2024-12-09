@@ -196,7 +196,7 @@ def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
             df[col] = df[col].map(map)
     return df
 
-def survey_statistic(df, config=None):
+def survey_statistic(df, columns=None, prefix=None, resample_args={"rule":"1D"}, **kwargs):
     '''
     Return statistics for a single survey question or a list of questions.
     Assuming that each of the columns contains numerical values representing
@@ -225,13 +225,6 @@ def survey_statistic(df, config=None):
         A dataframe containing summaries of each questionaire.
     '''
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    columns = config.get('columns', None)
-    prefix = config.get('prefix', None)
-    resample_args = config.get('resample_args', {"rule":"1D"})    
     
     if columns is not None:
         assert type(columns) == str or type(columns) == list, "columns is not a string or a list of strings."
@@ -337,7 +330,7 @@ def extract_features_survey(df, features=None):
 
     computed_features = []
     for features, feature_arg in features.items():
-        computed_feature = features(df, feature_arg)
+        computed_feature = features(df, **feature_arg)
         index_by = list(set(group_by_columns) & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)

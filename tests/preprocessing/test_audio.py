@@ -1,8 +1,4 @@
-import os
-
-import numpy as np
 import pandas as pd
-import numpy as np
 
 import niimpy
 import niimpy.preprocessing.audio as audio
