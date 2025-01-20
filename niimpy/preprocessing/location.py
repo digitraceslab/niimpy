@@ -492,7 +492,12 @@ def location_distance_features(
     return result
 
 
-def location_local_time(df, config=None):
+def location_local_time(
+        df,
+        longitude_column="longitude",
+        latitude_column="latitude",
+        resample_args={"rule": default_freq},
+    ):
     """ Calculates the local time of the user based on the longitude.
 
     Parameters
@@ -500,10 +505,6 @@ def location_local_time(df, config=None):
     df: dataframe with date index
     config: A dictionary of optional arguments
     """
-
-    longitude_column = config.get("longitude_column", "longitude")
-    latitude_column = config.get("latitude_column", "latitude")
-    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def get_timezone(row):
         return get_tz(row[longitude_column], row[latitude_column])
@@ -513,7 +514,7 @@ def location_local_time(df, config=None):
         return row
     
     df["time"] = df.index
-    df = util.group_data(df).resample(**config["resample_args"], include_groups=False).first()
+    df = util.group_data(df).resample(**resample_args, include_groups=False).first()
     df = util.reset_groups(df)
     df["timezone"] = df.apply(get_timezone, axis=1)
     df = df.apply(set_timezone, axis=1)
