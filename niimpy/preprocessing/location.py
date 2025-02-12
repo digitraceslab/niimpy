@@ -262,16 +262,20 @@ def number_of_significant_places(lats, lons, times):
     return np.nanmedian(sps)
 
 
-def location_number_of_significant_places(df, config=None):
-    """Computes number of significant places """
+def number_of_significant_places(
+        df,
+        latitude_column="latitude",
+        longitude_column="longitude",
+        resample_args={"rule": default_freq},
+        **kwargs
+    ):
+    """ Computes number of significant places.
+
+    This feature is included in location_significant_place_features as
+    n_sps and this standalone function is not included in default location
+    features.
+    """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-    
-    latitude_column = config.get("latitude_column", "latitude")
-    longitude_column = config.get("longitude_column", "longitude")
-    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
         df = df.sort_index()  # sort based on time
@@ -289,7 +293,7 @@ def location_number_of_significant_places(df, config=None):
         })
         return row
     
-    result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
+    result = util.group_data(df).resample(**resample_args, include_groups=False).apply(compute_features)
     result = util.reset_groups(result)
     result = util.select_columns(result, ["n_significant_places"])
     return result
@@ -327,7 +331,15 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def location_significant_place_features(df, config=None):
+def location_significant_place_features(
+        df,
+        latitude_column="latitude",
+        longitude_column="latitude",
+        speed_column="speed",
+        speed_threshold=0.277,
+        resample_args={"rule": default_freq},
+        **kwargs
+    ):
     """Calculates features related to Significant Places.
     
     Parameters
@@ -342,15 +354,6 @@ def location_significant_place_features(df, config=None):
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    latitude_column = config.get("latitude_column", "latitude")
-    longitude_column = config.get("longitude_column", "latitude")
-    speed_column = config.get("speed_column", "speed")
-    speed_threshold = config.get("speed_threshold", 0.277)
-    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -422,13 +425,20 @@ def location_significant_place_features(df, config=None):
         })
         return row
 
-    result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
+    result = util.group_data(df).resample(**resample_args, include_groups=False).apply(compute_features)
     result = util.reset_groups(result)
     result = util.select_columns(result, ["n_sps", "n_static", "n_moving", "n_rare", "n_home", "max_dist_home", "n_transitions", "n_top1", "n_top2", "n_top3", "n_top4", "n_top5", "entropy", "normalized_entropy"])
     return result
 
 
-def location_distance_features(df, config=None):
+def location_distance_features(
+        df,
+        latitude_column="latitude",
+        longitude_column="latitude",
+        speed_column="speed",
+        resample_args={"rule": default_freq},
+        **kwargs
+    ):
     """Calculates features related to distance and speed.
     
     Parameters
@@ -443,14 +453,6 @@ def location_distance_features(df, config=None):
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
-    if config is None:
-        config = {}
-    assert isinstance(config, dict), "config is not a dictionary"
-
-    latitude_column = config.get("latitude_column", "latitude")
-    longitude_column = config.get("longitude_column", "latitude")
-    speed_column = config.get("speed_column", "speed")
-    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def compute_features(df):
         """Compute features for a single user and given time interval"""
@@ -489,13 +491,18 @@ def location_distance_features(df, config=None):
         })
         return row
 
-    result = util.group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
+    result = util.group_data(df).resample(**resample_args, include_groups=False).apply(compute_features)
     result = util.reset_groups(result)
     result = util.select_columns(result, ["dist_total", "n_bins", "speed_average", "speed_variance", "speed_max", "variance", "log_variance"])
     return result
 
 
-def location_local_time(df, config=None):
+def location_local_time(
+        df,
+        longitude_column="longitude",
+        latitude_column="latitude",
+        resample_args={"rule": default_freq},
+    ):
     """ Calculates the local time of the user based on the longitude.
 
     Parameters
@@ -503,10 +510,6 @@ def location_local_time(df, config=None):
     df: dataframe with date index
     config: A dictionary of optional arguments
     """
-
-    longitude_column = config.get("longitude_column", "longitude")
-    latitude_column = config.get("latitude_column", "latitude")
-    config["resample_args"] = config.get("resample_args", {"rule": default_freq})
 
     def get_timezone(row):
         return get_tz(row[longitude_column], row[latitude_column])
@@ -516,7 +519,7 @@ def location_local_time(df, config=None):
         return row
     
     df["time"] = df.index
-    df = util.group_data(df).resample(**config["resample_args"], include_groups=False).first()
+    df = util.group_data(df).resample(**resample_args, include_groups=False).first()
     df = util.reset_groups(df)
     df["timezone"] = df.apply(get_timezone, axis=1)
     df = df.apply(set_timezone, axis=1)
@@ -566,7 +569,7 @@ def extract_features_location(df, features=None):
 
     computed_features = []
     for features, feature_arg in features.items():
-        computed_feature = features(df, feature_arg)
+        computed_feature = features(df, **feature_arg)
         computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
     

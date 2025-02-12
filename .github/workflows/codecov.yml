@@ -20,6 +20,6 @@ jobs:
       - name: Run tests and collect coverage
         run: |
           coverage run -m pytest --run_sentiment
-          coverage xml
+          coverage xml -i
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2

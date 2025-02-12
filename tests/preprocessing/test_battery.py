@@ -29,7 +29,7 @@ df11["group"] = "group1"
 
 def test_format_battery_data():
     df = df11.copy()
-    battery = niimpy.preprocessing.battery.format_battery_data(df, {})
+    battery = niimpy.preprocessing.battery.format_battery_data(df)
 
     assert battery.loc[Timestamp('2019-01-17 09:20:14.049999872+02:00'), 'battery_level'] == 96
     assert battery.loc[Timestamp('2019-01-17 09:21:26.036000+02:00'), 'battery_health'] == '2'
