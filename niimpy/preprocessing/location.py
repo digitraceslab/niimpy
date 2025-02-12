@@ -262,14 +262,19 @@ def number_of_significant_places(lats, lons, times):
     return np.nanmedian(sps)
 
 
-def location_number_of_significant_places(
+def number_of_significant_places(
         df,
         latitude_column="latitude",
         longitude_column="longitude",
         resample_args={"rule": default_freq},
         **kwargs
     ):
-    """Computes number of significant places """
+    """ Computes number of significant places.
+
+    This feature is included in location_significant_place_features as
+    n_sps and this standalone function is not included in default location
+    features.
+    """
     assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
 
     def compute_features(df):
