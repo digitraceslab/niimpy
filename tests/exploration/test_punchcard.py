@@ -52,5 +52,6 @@ def test_punchcard_two_users_timerange():
     timerange = ('20171231','20180101')
     
     fig = punchcard.punchcard_plot(df,user_list,columns,title, resample,normalize,agg_function,timerange)
-    assert (type(fig) == plotly.graph_objs._figure.Figure)  
-    assert(fig.data[0].x == datetime.datetime(2018, 1, 1, 0, 0))
+    assert (type(fig) == plotly.graph_objs._figure.Figure)
+    print(fig.data[0].x[0])
+    assert(fig.data[0].x[0] == np.datetime64('2018-01-01T00:00:00.000000000'))
