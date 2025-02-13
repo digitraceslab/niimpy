@@ -1,24 +1,11 @@
 import numpy as np
 import pandas as pd
 
-import niimpy
 from niimpy.preprocessing import battery as b
+from niimpy.preprocessing import util
 
-group_by_columns = set(["user", "device"])
 
-def group_data(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-def reset_groups(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
-
-def util_screen(df, bat, config):
+def util_screen(df, bat=None, screen_column_name = "screen_status", **kwargs):
     """ This function is a helper function for all other screen preprocessing.
     The function has the option to merge information from the battery sensors to
     include data when the phone is shut down. The function also detects the missing 
@@ -28,16 +15,14 @@ def util_screen(df, bat, config):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
-        Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name employed by Aware Framework will be used. To include information about 
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
-        
+    config: dict, optional
+        Dictionary keys containing optional arguments for the computation of screen
+        information. The following arguments are used:
+
+        screen_column_name: Column containing the screen status. Default is
+                            "screen_status".
     
     Returns
     -------
@@ -45,31 +30,29 @@ def util_screen(df, bat, config):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
-    
-    col_name = config.get("screen_column_name", "screen_status")
-    
-    df[col_name]=pd.to_numeric(df[col_name]) #convert to numeric in case it is not
+    bat = util.ensure_dataframe(bat)
+
+    id_columns = util.identifier_columns(df)
+    df[screen_column_name]=pd.to_numeric(df[screen_column_name]) #convert to numeric in case it is not
 
     #Include the missing points that are due to shutting down the phone
     if not bat.empty:
-        shutdown = b.shutdown_info(bat, config)
+        shutdown = b.shutdown_info(bat, **kwargs)
         shutdown = shutdown.replace([-1,-2],0)
         
         if not shutdown.empty:
             df = pd.concat([df, shutdown])
             df.fillna(0, inplace=True)
-            df = df[["user","device","time",col_name]]
+            df = df[id_columns + [screen_column_name]]
 
     #Sort the dataframe
     df.sort_index(inplace=True)
-    df.sort_values(by=["user","device"], inplace=True)
+    df.sort_values(by=id_columns, inplace=True)
     
     #Detect missing data points
     df['missing']=0
-    df['next']=df[col_name].shift(-1)
-    df['dummy']=df[col_name]-df['next']
+    df['next']=df[screen_column_name].shift(-1)
+    df['dummy']=df[screen_column_name]-df['next']
     df['missing'] = np.where(df['dummy']==0, 1, 0) #Check the missing points and label them as 1
     df['missing'] = df['missing'].shift(1)
     df.drop(['dummy','next'], axis=1, inplace=True)
@@ -79,7 +62,8 @@ def util_screen(df, bat, config):
     df.drop(["missing"], axis=1, inplace=True)
     return df
 
-def event_classification_screen(df, config):
+
+def event_classification_screen(df, screen_column_name = "screen_status", **kwargs):
     """ This function is a helper function for other screen preprocessing.
     The function classifies the screen events into four transition types: on, 
     off, in use, and undefined, based on the screen events recorded. For example,
@@ -91,51 +75,56 @@ def event_classification_screen(df, config):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
-        information. Keys can be column names, other dictionaries, etc. The functions
-        needs the column name where the data is stored; if none is given, the default
-        name employed by Aware Framework will be used. To include information about 
-        the resampling window, please include the selected parameters from
-        pandas.DataFrame.resample in a dictionary called resample_args.
+        information. The following arguments are used:
+
+        screen_column_name: Column containing the screen status. Default is
+                            "screen_status".
     
     Returns
     -------
     df: dataframe
         Resulting dataframe
-    """    
+    """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
+    assert "user" in df.columns
+    id_columns = util.identifier_columns(df)
     
     #Classify the event 
     df.sort_index(inplace=True)
-    df.sort_values(by=["user","device"], inplace=True)
-    df['next'] = df[col_name].shift(-1)
-    df['next'] = df[col_name].astype(int).astype(str)+df[col_name].shift(-1).fillna(0).astype(int).astype(str)   
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False) #Discard transitions between subjects
-    df = df.reset_index().set_index("level_1")
-    df["use"] =  df["on"] = df["na"] = df["off"] = 0
+    df.sort_values(by=id_columns, inplace=True)
+    col_as_str = df[screen_column_name].astype(int).astype(str)
+    next_as_str = col_as_str.shift(-1).fillna("0")
+    df['next'] = col_as_str + next_as_str
     
+    index_name = df.index.name
+    df.reset_index(inplace=True)
+    df = df.groupby(["device"]).apply(lambda x: x.iloc[:-1], include_groups=False) 
+    
+    df["use"] =  df["on"] = df["na"] = df["off"] = 0
     df.loc[(df.next=='30') | (df.next=='31') | (df.next=='32'), "use"]=1 #in use
     df.loc[(df.next=='10') | (df.next=='12') | (df.next=='13') | (df.next=='20'), "on"]=1 #on
     df.loc[(df.next=='21') | (df.next=='23'), "na"]=1 #irrelevant. It seems like from 2 to 1 is from off to on (i.e. the screen goes to off and then it locks)
     df.loc[(df.next=='01') | (df.next=='02') | (df.next=='03'), "off"]=1 #off
     
-    df.drop(columns=["next",col_name], inplace=True)   
+    df.drop(columns=["next", screen_column_name], inplace=True)
     
     #Discard the first and last row because they do not have all info. We do not
     #know what happened before or after these points.
-    df.index = df.index.set_names(['level_1'])
-    df = df.groupby("user").apply(lambda x: x.iloc[1:], include_groups=False)
-    df = df.reset_index().set_index("level_1")
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False)
-    df = df.reset_index().set_index("level_1")
+    df = df.groupby(["device"], group_keys=False).apply(lambda x: x.iloc[1:], include_groups=False)
+    df = df.groupby(["device"], group_keys=False).apply(lambda x: x.iloc[:-1], include_groups=False)
+    df.reset_index(["device"], inplace=True)
+    
+    # Set the original index. If the origianal name was none, the 
+    # default value is "index"
+    if index_name is not None:
+        df.set_index(index_name, inplace=True)
+    else:
+        df.set_index("index", inplace=True)
+        df.index.name = None
     return df
+
 
 def duration_util_screen(df):
     """ This function is a helper function for other screen preprocessing.
@@ -156,13 +145,13 @@ def duration_util_screen(df):
             
     df.sort_index(inplace=True)
     df.sort_values(by=["user","device"], inplace=True)
-    df['duration']=np.nan
-    df['duration']=df.index.to_series().diff()
+    df['duration'] = np.nan
+    df['duration'] = df.index.to_series().diff()
     df['duration'] = df['duration'].shift(-1)
     
     #Discard transitions between subjects
-    df = df.groupby("user").apply(lambda x: x.iloc[:-1], include_groups=False)
-    df = df.reset_index().set_index("level_1")
+    df = util.group_data(df).apply(lambda x: x.iloc[:-1], include_groups=False)
+    df = util.reset_groups(df)
     
     #Discard any datapoints whose duration in “ON” and "IN USE" states are 
     #longer than 10 hours becaus they may be artifacts
@@ -170,10 +159,10 @@ def duration_util_screen(df):
     df = df[~((df.on==1) & (df.duration>thr))]
     df = df[~((df.use==1) & (df.duration>thr))]
     df["duration"] = df["duration"].dt.total_seconds()
-    
+
     return df
 
-def screen_off(df, bat, config):
+def screen_off(df, bat=None, **kwargs):
     """ This function returns the timestamps, within the specified timeframe, 
     when the screen has turned off. If there is no specified timeframe,
     the function sets a 30 min default time window. The function aggregates this number 
@@ -183,9 +172,9 @@ def screen_off(df, bat, config):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict, optional
+    config: dict, optional, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. 
     
@@ -195,23 +184,20 @@ def screen_off(df, bat, config):
         Resulting dataframe
     """
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
-    
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]        
-    
-    df = util_screen(df, bat, config)
+    bat = util.ensure_dataframe(bat)
+    id_columns = util.identifier_columns(df)
+
+    df = util_screen(df, bat, **kwargs)
     df = df[df.screen_status == 0] #Select only those OFF events when no missing data is present
     df["screen_status"] = 1
-    df = df[["user","device","screen_status"]]
+    df = df[id_columns + ["screen_status"]]
     df.rename(columns={"screen_status":"screen_off"}, inplace=True)
-    df = reset_groups(df)
+    df = util.reset_groups(df)
+    df = util.select_columns(df, ["screen_status"])
     return df
 
-def screen_count(df, bat, config=None):
+
+def screen_count(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the number of times, within the specified timeframe, 
     when the screen has turned off, turned on, and been in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -221,9 +207,9 @@ def screen_count(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -237,31 +223,25 @@ def screen_count(df, bat, config=None):
         Resulting dataframe
     """    
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-        
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)
     
     if len(df2)>0:
-        on = group_data(df2)["on"].resample(**config["resample_args"]).sum()
+        on = util.group_data(df2)["on"].resample(**resample_args).sum()
         on = on.to_frame(name='screen_on_count')
-        off = group_data(df2)["off"].resample(**config["resample_args"]).sum()
+        off = util.group_data(df2)["off"].resample(**resample_args).sum()
         off = off.to_frame(name='screen_off_count')
-        use = group_data(df2)["use"].resample(**config["resample_args"]).sum()
+        use = util.group_data(df2)["use"].resample(**resample_args).sum()
         use = use.to_frame(name='screen_use_count')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_count", "screen_off_count", "screen_use_count"])
     return result
 
-def screen_duration(df, bat, config=None):
+
+def screen_duration(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the duration (in seconds) of each transition, within the 
     specified timeframe. The transitions are off, on, and in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -271,9 +251,9 @@ def screen_duration(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -287,32 +267,26 @@ def screen_duration(df, bat, config=None):
         Resulting dataframe
     """      
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).sum()
+        on = util.group_data(df2[df2.on==1])["duration"].resample(**resample_args).sum()
         on = on.to_frame(name='screen_on_durationtotal')
-        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).sum()
+        off = util.group_data(df2[df2.off==1])["duration"].resample(**resample_args).sum()
         off = off.to_frame(name='screen_off_durationtotal')
-        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).sum()
+        use = util.group_data(df2[df2.use==1])["duration"].resample(**resample_args).sum()
         use = use.to_frame(name='screen_use_durationtotal')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationtotal", "screen_off_durationtotal", "screen_use_durationtotal"])
     return result
 
-def screen_duration_min(df, bat, config=None):
+
+def screen_duration_min(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the duration (in seconds) of each transition, within the 
     specified timeframe. The transitions are off, on, and in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -322,9 +296,9 @@ def screen_duration_min(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -338,32 +312,26 @@ def screen_duration_min(df, bat, config=None):
         Resulting dataframe
     """      
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)           
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).min()
+        on = util.group_data(df2[df2.on==1])["duration"].resample(**resample_args).min()
         on = on.to_frame(name='screen_on_durationminimum')
-        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).min()
+        off = util.group_data(df2[df2.off==1])["duration"].resample(**resample_args).min()
         off = off.to_frame(name='screen_off_durationminimum')
-        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).min()
+        use = util.group_data(df2[df2.use==1])["duration"].resample(**resample_args).min()
         use = use.to_frame(name='screen_use_durationminimum')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationminimum", "screen_off_durationminimum", "screen_use_durationminimum"])
     return result
 
-def screen_duration_max(df, bat, config=None):
+
+def screen_duration_max(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the duration (in seconds) of each transition, within the 
     specified timeframe. The transitions are off, on, and in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -373,9 +341,9 @@ def screen_duration_max(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -389,32 +357,26 @@ def screen_duration_max(df, bat, config=None):
         Resulting dataframe
     """      
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)           
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).max()
+        on = util.group_data(df2[df2.on==1])["duration"].resample(**resample_args).max()
         on = on.to_frame(name='screen_on_durationmaximum')
-        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).max()
+        off = util.group_data(df2[df2.off==1])["duration"].resample(**resample_args).max()
         off = off.to_frame(name='screen_off_durationmaximum')
-        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).max()
+        use = util.group_data(df2[df2.use==1])["duration"].resample(**resample_args).max()
         use = use.to_frame(name='screen_use_durationmaximum')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationmaximum", "screen_off_durationmaximum", "screen_use_durationmaximum"])
     return result
 
-def screen_duration_mean(df, bat, config=None):
+
+def screen_duration_mean(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the duration (in seconds) of each transition, within the 
     specified timeframe. The transitions are off, on, and in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -424,9 +386,9 @@ def screen_duration_mean(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -438,34 +400,29 @@ def screen_duration_mean(df, bat, config=None):
     -------
     result: dataframe
         Resulting dataframe
-    """      
+    """
+
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)           
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).mean()
+        on = util.group_data(df2[df2.on==1])["duration"].resample(**resample_args).mean()
         on = on.to_frame(name='screen_on_durationmean')
-        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).mean()
+        off = util.group_data(df2[df2.off==1])["duration"].resample(**resample_args).mean()
         off = off.to_frame(name='screen_off_durationmean')
-        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).mean()
+        use = util.group_data(df2[df2.use==1])["duration"].resample(**resample_args).mean()
         use = use.to_frame(name='screen_use_durationmean')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationmean", "screen_off_durationmean", "screen_use_durationmean"])
     return result
 
-def screen_duration_median(df, bat, config=None):
+
+def screen_duration_median(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the duration (in seconds) of each transition, within the 
     specified timeframe. The transitions are off, on, and in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -475,9 +432,9 @@ def screen_duration_median(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -491,32 +448,26 @@ def screen_duration_median(df, bat, config=None):
         Resulting dataframe
     """      
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)           
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).median()
+        on = util.group_data(df2[df2.on==1])["duration"].resample(**resample_args).median()
         on = on.to_frame(name='screen_on_durationmedian')
-        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).median()
+        off = util.group_data(df2[df2.off==1])["duration"].resample(**resample_args).median()
         off = off.to_frame(name='screen_off_durationmedian')
-        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).median()
+        use = util.group_data(df2[df2.use==1])["duration"].resample(**resample_args).median()
         use = use.to_frame(name='screen_use_durationmedian')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationmedian", "screen_off_durationmedian", "screen_use_durationmedian"])
     return result
 
-def screen_duration_std(df, bat, config=None):
+
+def screen_duration_std(df, bat=None, resample_args = {"rule":"30min"}, **kwargs):
     """ This function returns the duration (in seconds) of each transition, within the 
     specified timeframe. The transitions are off, on, and in use. If there is no 
     specified timeframe, the function sets a 30 min default time window. The 
@@ -526,9 +477,9 @@ def screen_duration_std(df, bat, config=None):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -542,32 +493,26 @@ def screen_duration_std(df, bat, config=None):
         Resulting dataframe
     """      
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)           
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)           
     df2 = duration_util_screen(df2)
     
     if len(df2)>0:
-        on = group_data(df2[df2.on==1])["duration"].resample(**config["resample_args"]).std()
+        on = util.group_data(df2[df2.on==1])["duration"].resample(**resample_args).std()
         on = on.to_frame(name='screen_on_durationstd')
-        off = group_data(df2[df2.off==1])["duration"].resample(**config["resample_args"]).std()
+        off = util.group_data(df2[df2.off==1])["duration"].resample(**resample_args).std()
         off = off.to_frame(name='screen_off_durationstd')
-        use = group_data(df2[df2.use==1])["duration"].resample(**config["resample_args"]).std()
+        use = util.group_data(df2[df2.use==1])["duration"].resample(**resample_args).std()
         use = use.to_frame(name='screen_use_durationstd')
         result = pd.concat([on, off, use], axis=1)
-        result = reset_groups(result)
+        result = util.reset_groups(result)
+        result = util.select_columns(result, ["screen_on_durationstd", "screen_off_durationstd", "screen_use_durationstd"])
     return result
 
-def screen_first_unlock(df, bat, config):
+
+def screen_first_unlock(df, bat=None, **kwargs):
     """ This function returns the first time the phone was unlocked each day. 
     The data is aggregated by user, by day.
     
@@ -575,9 +520,9 @@ def screen_first_unlock(df, bat, config):
     ----------
     df: pandas.DataFrame
         Input data frame
-    bat: pandas.DataFrame
+    bat: pandas.DataFrame, optional
         Dataframe with the battery information
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of scrren
         information. Keys can be column names, other dictionaries, etc. The functions
         needs the column name where the data is stored; if none is given, the default
@@ -589,29 +534,23 @@ def screen_first_unlock(df, bat, config):
         Resulting dataframe
     """ 
     assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(bat, pd.DataFrame), "Please input data as a pandas DataFrame type"
-    assert isinstance(config, dict), "config is not a dictionary"
+    bat = util.ensure_dataframe(bat)
     
-    if not "screen_column_name" in config:
-        col_name = "screen_status"
-    else:
-        col_name = config["screen_column_name"]
-    if not "resample_args" in config:
-        config["resample_args"] = {"rule":"30min"}
-    
-    df2 = util_screen(df, bat, config)
-    df2 = event_classification_screen(df2, config)
+    df2 = util_screen(df, bat, **kwargs)
+    df2 = event_classification_screen(df2, **kwargs)
 
     df2["time"] = df2.index
-    result = group_data(df2[df2.on==1])["time"].resample(rule='1D').min()
+    result = util.group_data(df2[df2.on==1])["time"].resample(rule='1D').min()
     result = result.to_frame(name="first_unlock")
-    result = reset_groups(result)
+    result = util.reset_groups(result)
+    result = util.select_columns(result, ["first_unlock"])
     return result
+
 
 ALL_FEATURES = [globals()[name] for name in globals() if name.startswith('screen_')]
 ALL_FEATURES = {x: {} for x in ALL_FEATURES}
 
-def extract_features_screen(df, bat, features=None):
+def extract_features_screen(df, bat=None, features=None):
     """ This function computes and organizes the selected features for screen events
     that have been recorded using Aware Framework. The function aggregates the features
     by user, by time window. If no time window is specified, it will automatically aggregate
@@ -643,11 +582,10 @@ def extract_features_screen(df, bat, features=None):
     
     computed_features = []
     for feature, feature_arg in features.items():
-        computed_feature = feature(df, bat, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = feature(df, bat, **feature_arg)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features

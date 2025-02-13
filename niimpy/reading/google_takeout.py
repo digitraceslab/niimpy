@@ -2,7 +2,7 @@ import pandas as pd
 from zipfile import ZipFile
 import json
 import os
-import datetime
+import numpy as np
 import email
 import uuid
 import warnings
@@ -10,8 +10,9 @@ import re
 
 from tqdm import tqdm
 from bs4 import BeautifulSoup
-from niimpy.preprocessing import util
+from niimpy.reading import util
 import google_takeout_email as email_utils
+from niimpy.reading.html_iterator import ContentDivIterator
 
 try:
     from multi_language_sentiment import sentiment as get_sentiment
@@ -126,6 +127,7 @@ def location_history(
         user = None,
         start_date = None,
         end_date = None,
+        timezone = "Europe/Helsinki"
     ):
     """  Read the location history from a google takeout zip file.
 
@@ -210,6 +212,7 @@ def location_history(
     data.drop(drop_columns, axis=1, inplace=True,  errors='ignore')
     data.rename(columns=column_name_map, inplace=True)
     util.format_column_names(data)
+    util.set_timezone(data, tz=timezone)
 
     if user is None:
         user = uuid.uuid1()
@@ -217,7 +220,13 @@ def location_history(
     return data
 
 
-def activity(zip_filename, user=None, timezone = 'Europe/Helsinki'):
+def activity(
+    zip_filename,
+    user=None,
+    timezone = 'Europe/Helsinki',
+    start_date = None,
+    end_date = None
+):
     """ Read activity daily data from a Google Takeout zip file. 
     
     Parameters
@@ -255,10 +264,17 @@ def activity(zip_filename, user=None, timezone = 'Europe/Helsinki'):
         # Read the more fine grained data for each date
         data = pd.read_csv(zip_file.open(filename))
     
-    data["timestamp"] = pd.to_datetime(data["Date"]).dt.tz_localize(timezone)
+    data["timestamp"] = pd.to_datetime(data["Date"])
 
     data.set_index('timestamp', inplace=True)
     util.format_column_names(data)
+    util.set_timezone(data, tz=timezone)
+
+    if start_date is not None:
+        data = data[data.index >= start_date]
+    
+    if end_date is not None:
+        data = data[data.index <= end_date]
 
     if user is None:
         user = uuid.uuid1()
@@ -358,7 +374,14 @@ class email_file():
             self.zip_file.close()
 
 
-def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100, start_date=None, end_date=None):
+def sentiment_analysis_from_email(
+        df,
+        filename,
+        sentiment_batch_size=100,
+        start_date=None,
+        end_date=None,
+        timezone = "Europe/Helsinki"
+    ):
     """ Run sentiment analysis on the content of the email messages
     in the dataframe. """
     content_batch = []
@@ -395,6 +418,7 @@ def sentiment_analysis_from_email(df, filename, sentiment_batch_size=100, start_
     scores = [s["score"] for s in sentiments]
     df["sentiment"] = labels
     df["sentiment_score"] = scores
+    util.set_timezone(df, tz=timezone)
 
     return df
 
@@ -407,6 +431,7 @@ def email_activity(
         sentiment_batch_size = 100,
         start_date = None,
         end_date = None,
+        timezone = "Europe/Helsinki"
     ):
     """ Extract message header data from the GMail inbox in
     a Google Takeout zip file.
@@ -544,6 +569,8 @@ def email_activity(
     df["user"] = user
 
     df.set_index("timestamp", inplace=True)
+    util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
 
     # Run sentiment analysis if requested. This might take some time.
     if sentiment:
@@ -554,7 +581,11 @@ def email_activity(
 
 
 
-def sentiment_analysis_from_text_column(df, text_content_column, sentiment_batch_size=100):
+def sentiment_analysis_from_text_column(df,
+        text_content_column,
+        sentiment_batch_size=100,
+        timezone = "Europe/Helsinki"
+    ):
     """ Run sentiment analysis on a dataframe with text content
     and add the results as new columns. """
     content_batch = []
@@ -573,6 +604,8 @@ def sentiment_analysis_from_text_column(df, text_content_column, sentiment_batch
     scores = [s["score"] for s in sentiments]
     df["sentiment"] = labels
     df["sentiment_score"] = scores
+    util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
 
@@ -583,7 +616,8 @@ def chat(
         sentiment=False, sentiment_batch_size = 100,
         pseudonymize=True,
         start_date = None,
-        end_date = None
+        end_date = None,
+        timezone = "Europe/Helsinki"
     ):
     """ Read Google chat messages from a Google Takeout zip file.
 
@@ -689,11 +723,19 @@ def chat(
     df.drop("text", axis=1, inplace=True)
 
     util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
 
 
-def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date = None, end_date = None):
+def youtube_watch_history(
+        zip_filename,
+        user=None,
+        pseudonymize=True,
+        start_date = None,
+        end_date = None,
+        timezone = "Europe/Helsinki"
+    ):
     """ Read the watch history from a Google Takeout zip file.
 
     Watch history is stored as an html file. We parse the file
@@ -735,7 +777,7 @@ def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date
         return pd.DataFrame()
     
     # Extract divs with class content-cell. These contain the watch history.
-    soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "lxml")
     rows = soup.find_all("div", {"class": "content-cell"})
 
     data = []
@@ -773,6 +815,8 @@ def youtube_watch_history(zip_filename, user=None, pseudonymize=True, start_date
         df["video_title"] = df["video_title"].astype("category").cat.codes
         df["channel_title"] = df["channel_title"].astype("category").cat.codes
 
+    util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
 
@@ -849,7 +893,11 @@ def fit_expand_data_filename(zip_filename, filename):
     return filenames
 
 
-def fit_read_data_file(zip_filename, data_filename):
+def fit_read_data_file(
+        zip_filename,
+        data_filename,
+        timezone = "Europe/Helsinki"
+    ):
     """ Read a data file in the Google Fit All Data folder.
     """
     try:
@@ -935,10 +983,15 @@ def fit_read_data_file(zip_filename, data_filename):
             df.drop("originDataSourceId", axis=1, inplace=True)
     
     util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
     return df
 
     
-def fit_read_data(zip_filename, data_filename):
+def fit_read_data(
+        zip_filename,
+        data_filename,
+        timezone = "Europe/Helsinki"
+    ):
     """ Read multiple data files in the Google Fit All Data folder.
     """
 
@@ -964,11 +1017,11 @@ def fit_read_data(zip_filename, data_filename):
 
     df = pd.concat(dfs)
     df.sort_index(inplace=True)
-
+    util.set_timezone(df, tz=timezone)
     return df
 
 
-def fit_all_data(zip_filename):
+def fit_all_data(zip_filename, timezone = "Europe/Helsinki"):
     """ Read all the data in the Google Fit All Data folder.
     """
     datafiles = fit_list_data(zip_filename)["filename"]
@@ -976,7 +1029,7 @@ def fit_all_data(zip_filename):
     return data
 
 
-def fit_heart_rate_data(zip_filename):
+def fit_heart_rate_data(zip_filename, timezone = "Europe/Helsinki"):
     """ Read heart rate data from Google Fit All Data folder and
     format it more nicely.
 
@@ -1000,7 +1053,7 @@ def fit_heart_rate_data(zip_filename):
     return df
 
 
-def fit_sessions(zip_filename):
+def fit_sessions(zip_filename, timezone = "Europe/Helsinki"):
     """ Read all Google Takeout sessions and concatenate them into
     a dataframe. Each file contains aggregate data for a single 
     activity session or sleep session.
@@ -1043,7 +1096,188 @@ def fit_sessions(zip_filename):
         df["duration"] = pd.to_timedelta(df["duration"])
 
     util.format_column_names(df)
+    util.set_timezone(df, tz=timezone)
 
     return df
 
+
+def myactivity(zip_filename, section, start_date=None, end_date=None):
+    data_path = os.path.join("Takeout", "My Activity", section, "MyActivity.html")
+
+    with ZipFile(zip_filename) as zip_file:
+        with zip_file.open(data_path) as file:
+            html = file.read().decode()
+
+        date_pattern = re.compile(r"(.+?)\s+(\w+\s+\d{1,2},\s+\d{4},\s+\d{1,2}:\d{2}:\d{2}\s+[AP]M\s+\w+)")
+
+        data = []
+        for text in ContentDivIterator(html):
+            match = date_pattern.search(text)
+            if match:
+                timestamp = match.group(2)
+
+                timestamp = pd.to_datetime(timestamp, format='%b %d, %Y, %I:%M:%S %p %Z')
+                if start_date is not None and timestamp < start_date:
+                    break
+                if end_date is not None and timestamp > end_date:
+                    continue
+
+                data.append({"timestamp": timestamp, "description": text})
+    
+    df = pd.DataFrame(data)
+    if len(df) == 0:
+        return df
+    df["timestamp"] = pd.to_datetime(df["timestamp"], format='%b %d, %Y, %I:%M:%S %p %Z', utc=True)
+    df["timestamp"] = df["timestamp"].dt.tz_convert('EET')
+    df.set_index("timestamp", inplace=True)
+    return df
+
+
+def list_myactivity_sections(zip_filename):
+    """ List sections in the My Activity in a given Google Takeout zip file.
+    """
+    data_path = os.path.join("Takeout", "My Activity")
+
+    with ZipFile(zip_filename) as zip_file:
+        filenames = zip_file.namelist()
+        sections = set()
+        for filename in filenames:
+            if not filename.startswith(data_path):
+                continue
+            sections.add(filename.split("/")[2])
+    return sections
+
+
+
+def YouTube(zip_filename, start_date=None, end_date=None):
+    df = myactivity(zip_filename, "YouTube", start_date, end_date)
+    activity_strings ={
+        "Watched ": "Watched",
+        "Viewed ": "Viewed",
+        "Liked ": "Liked",
+        "Disliked ": "Disliked",
+        "Voted on ": "Voted",
+        "Shared ": "Shared",
+        "Commented on ": "Commented",
+        "Subscribed to ": "Subscribed",
+        "Unsubscribed from ": "Unsubscribed",
+        "Answered ": "Answered",
+        "Joined ": "Joined",
+    }
+
+    for activity_string, activity_type in activity_strings.items():
+        rows = df["description"].str.startswith(activity_string)
+        df.loc[rows, "activity_type"] = activity_type
+        df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
+
+    description_lines = df["description"].str.split("\n")
+    df["title"] = description_lines.str[0].str.strip()
+    df["channel"] = description_lines.str[1].str.strip()
+
+    # For "Subscribed" events, the title is missing
+    rows = df["activity_type"] == "Subscribed"
+    df.loc[rows, "channel"] = df.loc[rows, "title"]
+    df.loc[rows, "title"] = np.NaN
+
+    # Some times the channel and title are missing, and only a video
+    # link is provided. In these cases, set that as title.
+    rows = (df["activity_type"] == "Watched") & (
+        df["description"].str.len() == 2)
+    df.loc[rows, "channel"] = ""
+
+    return df
+
+
+def PlayStore(zip_filename, start_date=None, end_date=None):
+    """ Read Play Store data from Google Takeout zip file.
+    
+    This contains app usage as well as activity in the Play Store app.
+    """
+    df = myactivity(zip_filename, "Google Play Store", start_date, end_date)
+    description_lines = df["description"].str.split("\n")
+    df["activity_type"] = description_lines.str[0].str.strip()
+    df["name"] = description_lines.str[1:].str.join(" ").str.strip()
+    df[df["name"].isna()] = ""
+
+    activity_types = ["Used", "Searched", "Joined beta program for", "Visited", "Started to purchase", "Apps management notification", "Clicked on a notification", "Received a notification", "Viewed a notification", "Launched"]
+
+    # When the name is not a link, the name is contained in the first
+    # element of the description.
+    for activity_type in activity_types:
+        rows = df["activity_type"].str.startswith(activity_type+" ")
+        df.loc[rows, "name"] = df.loc[rows, "activity_type"].str.replace(activity_type+" ", "").str.strip()
+        df.loc[rows, "activity_type"] = activity_type
+
+    df.loc[df["activity_type"] == "Searched for", "activity_type"] = "Searched"
+
+    return df
+
+
+def app_used(
+        zip_filename,
+        start_date=None,
+        end_date=None,
+        day_divide_time = "04:00:00"
+    ):
+    """ Read app usage data from the Play Store activity in Google Takeout
+    zip file.
+    
+    Format the time stamp into a day used. The time stamp does not match actual
+    time used, but we can deduce the day used from the time stamp.
+    """
+    df = PlayStore(zip_filename, start_date, end_date)
+    df = df[df["activity_type"] == "Used"]
+    df.drop("activity_type", axis=1, inplace=True)
+
+    df["day"] = df.index - pd.to_timedelta(day_divide_time)
+    df["day"] = df["day"].dt.floor("d")
+
+    return df
+
+
+def Search(zip_filename, start_date=None, end_date=None):
+    """ Read search history from Google Takeout zip file.
+    """
+    df = myactivity(zip_filename, "Search", start_date, end_date)
+    activity_strings ={
+        "Visited ": "Visited",
+        "Searched for ": "Searched"
+    }
+
+    for activity_string, activity_type in activity_strings.items():
+        rows = df["description"].str.startswith(activity_string)
+        df.loc[rows, "activity_type"] = activity_type
+        df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
+    
+    description_lines = df["description"].str.split("\n")
+    df["channel"] = description_lines.str[1].str.strip()
+
+    return df
+
+
+def Maps(zip_filename, start_date=None, end_date=None):
+    """ Read Google Maps history from Google Takeout zip file.
+    """
+    df = myactivity(zip_filename, "Maps", start_date, end_date)
+    activity_strings ={
+        "Viewed ": "Viewed",
+        "Used ": "Used",
+        "Directions to ": "Directions",
+        "Searched for ": "Searched",
+        "Explored ": "Explored",
+    }
+
+    for activity_string, activity_type in activity_strings.items():
+        rows = df["description"].str.startswith(activity_string)
+        df.loc[rows, "activity_type"] = activity_type
+        df.loc[rows, "description"] = df.loc[rows, "description"].str.replace(activity_string, "")
+
+    df.loc[df["activity_type"].isna(), "activity_type"] = "Viewed"
+    
+    description_lines = df["description"].str.split("\n")
+    df[""] = description_lines.str[0].str.strip()
+
+    del df["description"]
+
+    return df
 

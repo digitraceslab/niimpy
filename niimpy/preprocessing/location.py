@@ -4,24 +4,12 @@ import pandas as pd
 import numpy as np
 import scipy.stats
 from sklearn.cluster import DBSCAN
-
 from geopy.distance import geodesic
+from tzfpy import get_tz
+
+from niimpy.preprocessing import util
 
 default_freq = "1ME"
-
-group_by_columns = set(["user", "device"])
-
-def group_data(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-def reset_groups(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
 
 
 def distance_matrix(lats, lons):
@@ -78,8 +66,8 @@ def filter_location(location,
                     remove_disabled=True,
                     remove_zeros=True,
                     remove_network=False,
-                    latitude_column = "double_latitude",
-                    longitude_column = "double_longitude",
+                    latitude_column = "latitude",
+                    longitude_column = "longitude",
                     label_column = "label",
                     provider_column = "provider",
                     ):
@@ -274,12 +262,20 @@ def number_of_significant_places(lats, lons, times):
     return np.nanmedian(sps)
 
 
-def location_number_of_significant_places(df, config={}):
-    """Computes number of significant places """
-    latitude_column = config.get("latitude_column", "double_latitude")
-    longitude_column = config.get("longitude_column", "double_longitude")
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":default_freq}
+def number_of_significant_places(
+        df,
+        latitude_column="latitude",
+        longitude_column="longitude",
+        resample_args={"rule": default_freq},
+        **kwargs
+    ):
+    """ Computes number of significant places.
+
+    This feature is included in location_significant_place_features as
+    n_sps and this standalone function is not included in default location
+    features.
+    """
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
 
     def compute_features(df):
         df = df.sort_index()  # sort based on time
@@ -297,8 +293,9 @@ def location_number_of_significant_places(df, config={}):
         })
         return row
     
-    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
-    result = reset_groups(result)
+    result = util.group_data(df).resample(**resample_args, include_groups=False).apply(compute_features)
+    result = util.reset_groups(result)
+    result = util.select_columns(result, ["n_significant_places"])
     return result
 
 
@@ -334,7 +331,15 @@ def compute_nbin_maxdist_home(lats, lons, latlon_home, home_radius=50):
     return time_home, max_dist_home
 
 
-def location_significant_place_features(df, config={}):
+def location_significant_place_features(
+        df,
+        latitude_column="latitude",
+        longitude_column="latitude",
+        speed_column="speed",
+        speed_threshold=0.277,
+        resample_args={"rule": default_freq},
+        **kwargs
+    ):
     """Calculates features related to Significant Places.
     
     Parameters
@@ -343,19 +348,12 @@ def location_significant_place_features(df, config={}):
     config: A dictionary of optional arguments
 
     Optional arguments in config:
-        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
-        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
-        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
-
-    latitude_column = config.get("latitude_column", "double_latitude")
-    longitude_column = config.get("longitude_column", "double_latitude")
-    speed_column = config.get("speed_column", "double_speed")
-    speed_threshold = config.get("speed_threshold", 0.277)
-    
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule": default_freq}
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
 
     def compute_features(df):
         """Compute features for a single user"""
@@ -427,12 +425,20 @@ def location_significant_place_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
-    result = reset_groups(result)
+    result = util.group_data(df).resample(**resample_args, include_groups=False).apply(compute_features)
+    result = util.reset_groups(result)
+    result = util.select_columns(result, ["n_sps", "n_static", "n_moving", "n_rare", "n_home", "max_dist_home", "n_transitions", "n_top1", "n_top2", "n_top3", "n_top4", "n_top5", "entropy", "normalized_entropy"])
     return result
 
 
-def location_distance_features(df, config={}):
+def location_distance_features(
+        df,
+        latitude_column="latitude",
+        longitude_column="latitude",
+        speed_column="speed",
+        resample_args={"rule": default_freq},
+        **kwargs
+    ):
     """Calculates features related to distance and speed.
     
     Parameters
@@ -441,16 +447,12 @@ def location_distance_features(df, config={}):
     config: A dictionary of optional arguments
 
     Optional arguments in config:
-        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'double_longitude'. 
-        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'double_latitude'.
-        speed_column: The name of the column with speed data in a floating point format. Defaults to 'double_speed'.
+        longitude_column: The name of the column with longitude data in a floating point format. Defaults to 'longitude'. 
+        latitude_column: The name of the column with latitude data in a floating point format. Defaults to 'latitude'.
+        speed_column: The name of the column with speed data in a floating point format. Defaults to 'speed'.
         resample_args: a dictionary of arguments for the Pandas resample function. For example to resample by hour, you would pass {"rule": "1h"}.
     """
-    latitude_column = config.get("latitude_column", "double_latitude")
-    longitude_column = config.get("longitude_column", "double_latitude")
-    speed_column = config.get("speed_column", "double_speed")
-    if not "resample_args" in config.keys():
-        config["resample_args"] = {"rule":default_freq}
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
 
     def compute_features(df):
         """Compute features for a single user and given time interval"""
@@ -489,9 +491,43 @@ def location_distance_features(df, config={}):
         })
         return row
 
-    result = group_data(df).resample(**config["resample_args"], include_groups=False).apply(compute_features)
-    result = reset_groups(result)
+    result = util.group_data(df).resample(**resample_args, include_groups=False).apply(compute_features)
+    result = util.reset_groups(result)
+    result = util.select_columns(result, ["dist_total", "n_bins", "speed_average", "speed_variance", "speed_max", "variance", "log_variance"])
     return result
+
+
+def location_local_time(
+        df,
+        longitude_column="longitude",
+        latitude_column="latitude",
+        resample_args={"rule": default_freq},
+    ):
+    """ Calculates the local time of the user based on the longitude.
+
+    Parameters
+    ----------
+    df: dataframe with date index
+    config: A dictionary of optional arguments
+    """
+
+    def get_timezone(row):
+        return get_tz(row[longitude_column], row[latitude_column])
+    
+    def set_timezone(row):
+        row["local_time"] = row["time"].tz_convert(row["timezone"])
+        return row
+    
+    df["time"] = df.index
+    df = util.group_data(df).resample(**resample_args, include_groups=False).first()
+    df = util.reset_groups(df)
+    df["timezone"] = df.apply(get_timezone, axis=1)
+    df = df.apply(set_timezone, axis=1)
+    df = util.select_columns(df, ["timezone"])
+    return df
+    
+
+
 
 ALL_FEATURES = [globals()[name] for name in globals()
                          if name.startswith('location_')]
@@ -505,8 +541,8 @@ def extract_features_location(df, features=None):
     ----------
     df : pd.DataFrame
         dataframe of location data. It must contain these columns:
-        `double_latitude`, `double_longitude`, `user`, `group`.
-        `double_speed` is optional. If not provided, it will be
+        `latitude`, `longitude`, `user`, `group`.
+        `speed` is optional. If not provided, it will be
         computed manually.
     speed_threshold : float
         Bins whose speed is lower than `speed_threshold` are considred
@@ -533,15 +569,10 @@ def extract_features_location(df, features=None):
 
     computed_features = []
     for features, feature_arg in features.items():
-        computed_feature = features(df, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
-        computed_feature = computed_feature.set_index(index_by, append=True)
+        computed_feature = features(df, **feature_arg)
+        computed_feature = util.set_conserved_index(computed_feature)
         computed_features.append(computed_feature)
     
     computed_features = pd.concat(computed_features, axis=1)
-
-    if 'group' in df:
-        computed_features['group'] = df.groupby('user')['group'].first()
-
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features

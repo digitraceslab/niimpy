@@ -21,7 +21,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install deps
         run: |
-          pip install .[test,sentiment] pandas==${{ matrix.pandas-version }}
+          pip install .[test] pandas==${{ matrix.pandas-version }}
       - name: pytest
         run: |
-          pytest --run_sentiment
+          pytest

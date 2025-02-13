@@ -2,6 +2,7 @@
 
 import pandas as pd
 import numpy as np
+from niimpy.preprocessing import util
 
 
 # Below, we provide some mappings between standardized survey raw questions and their respective codes
@@ -114,19 +115,7 @@ ID_MAP =  {'PSS10_1' : PSS_ANSWER_MAP,
            'PSS10_9' : PSS_ANSWER_MAP,
            'PSS10_10' : PSS_ANSWER_MAP}
 
-group_by_columns = set(["user", "device"])
-
-def group_data(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.columns))
-    return df.groupby(columns)
-
-def reset_groups(df):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    columns = list(group_by_columns & set(df.index.names))
-    return df.reset_index(columns)
+group_by_columns = set(["user", "device", "group"])
 
 
 def clean_survey_column_names(df):
@@ -145,6 +134,8 @@ def clean_survey_column_names(df):
         df : pandas.DataFrame
           The DataFrame with cleaned column names.
     """
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+
     for char in ['.', ',', ':', ';', '!', '?', '(', ')', '[', ']', '{', '}']:
         df.columns = df.columns.str.replace(char, "")
     for char in ['-', '_', '—']:
@@ -205,7 +196,7 @@ def convert_survey_to_numerical_answer(df, id_map, use_prefix=False):
             df[col] = df[col].map(map)
     return df
 
-def survey_statistic(df, config):
+def survey_statistic(df, columns=None, prefix=None, resample_args={"rule":"1D"}, **kwargs):
     '''
     Return statistics for a single survey question or a list of questions.
     Assuming that each of the columns contains numerical values representing
@@ -216,7 +207,7 @@ def survey_statistic(df, config):
     ----------
     df: pandas.DataFrame
         Input data frame
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments for the computation of screen
         information
 
@@ -233,12 +224,8 @@ def survey_statistic(df, config):
     dict: pandas.DataFrame
         A dataframe containing summaries of each questionaire.
     '''
-
-    columns = config.get('columns', None)
-    prefix = config.get('prefix', None)
-    resample_args = config.get('resample_args', {"rule":"1D"})    
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     
-    assert isinstance(df, pd.DataFrame), "df is not a pandas dataframe."
     if columns is not None:
         assert type(columns) == str or type(columns) == list, "columns is not a string or a list of strings."
     if prefix is not None:
@@ -255,7 +242,7 @@ def survey_statistic(df, config):
             columns = [c for c in df.columns if c.startswith(prefix)]
     
     if type(columns) == str:
-        columns = [columns] 
+        columns = [columns]
     
     def calculate_statistic(df):
         result = {}
@@ -266,8 +253,8 @@ def survey_statistic(df, config):
             result[answer_col+"_std"] = df[answer_col].std()
         return pd.Series(result)
 
-    res = group_data(df).resample(**resample_args).apply(calculate_statistic)
-    res = reset_groups(res)
+    res = util.group_data(df).resample(**resample_args).apply(calculate_statistic)
+    res = util.reset_groups(res)
     return res
 
 
@@ -293,7 +280,7 @@ def sum_survey_scores(df, survey_prefix=None):
     survey_score: pandas DataFrame
         DataFrame contains the sum of each questionnaires marked with survey_prefix
     """
-
+    assert isinstance(df, pd.DataFrame), "df_u is not a pandas dataframe"
     assert type(survey_prefix) == str or type(survey_prefix) == list, "survey_prefix is not a string or a list of strings."
 
     result = pd.DataFrame(df["user"])
@@ -343,8 +330,8 @@ def extract_features_survey(df, features=None):
 
     computed_features = []
     for features, feature_arg in features.items():
-        computed_feature = features(df, feature_arg)
-        index_by = list(group_by_columns & set(computed_feature.columns))
+        computed_feature = features(df, **feature_arg)
+        index_by = list(set(group_by_columns) & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
     
@@ -354,5 +341,5 @@ def extract_features_survey(df, features=None):
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features

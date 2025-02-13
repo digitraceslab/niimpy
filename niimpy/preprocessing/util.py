@@ -10,6 +10,13 @@ import warnings
 from scipy import stats
 
 
+def ensure_dataframe(df):
+    if df is None:
+        return pd.DataFrame()
+    assert isinstance(df, pd.DataFrame), "Please input data as a pandas DataFrame type"
+    return df
+
+
 def date_range(df, start, end):
     """Extract out a certain date range from a DataFrame.
 
@@ -89,7 +96,42 @@ def uninstall_extensions():
     unlink_if_exists(SQLITE3_EXTENSIONS_FILENAME)
 
 
-#TODO: reanme to data.py
+def read_preprocess(df, add_group=None):
+    """Standard preprocessing arguments when reading.
+
+    This is a preprocessing filter which handles some standard arguments
+    when reading files.  This should be considered a private, unstable
+    function.
+
+
+    Parameters
+    ----------
+
+    df: pandas.DataFrame
+
+        Input data frame
+
+    add_group: string, optional
+
+        If given, add a new 'group' column with all values set to this
+        given identifier.
+
+
+    Returns
+    -------
+
+    df: dataframe
+
+        Resulting dataframe (modified in-place if possible, but may also
+        be a copy)
+
+    """
+    if add_group is not None:
+        df['group'] = add_group
+        #df['group'] = df['group'].astype('category')
+        #pd.Categorical(add_group)
+    return df
+
 
 def df_normalize(df, tz=None, old_tz=None):
     """Normalize a df (from sql) before presenting it to the user.
@@ -121,18 +163,56 @@ def to_datetime(value):
         return times.dt.tz_convert(TZ)
     else:
         return times.tz_convert(TZ)
-    
 
-def format_column_names(df):
-    # Replace special characters, including space and ., with _
-    # (keeping parenthesis and /, which are used in units, e.g. "temperature (C)")
-    # Convert to lower case
-    column_map = {}
-    for column in df.columns:
-        formatted_name = column.replace(" ", "_").lower()
-        formatted_name = re.sub(r'[^a-zA-Z0-9_()/]+', '_', formatted_name)
-        column_map[column] = formatted_name
-    df.rename(columns=column_map, inplace=True)
+
+def identifier_columns(df, id_columns = ["user", "device", "group"]):
+    """ build a list of standard Niimpy identifier columns in the 
+    dataframe.
+    """
+    columns = list(set(id_columns) & set(df.columns))
+    return columns
+
+
+def select_columns(df, columns, id_columns = ["user", "device", "group"]):
+    """ Select Niimpy identifier columns and listed feature columns """
+    columns = identifier_columns(df, id_columns + columns)
+    return df[columns]
+
+
+def group_data(df, additional_columns=None, id_columns=["user", "device", "group"]):
+    """ Group the dataframe by Niimpy standard user identifier columns present in
+    the dataframe. The columns are 'user', 'device', and 'group'. An addional
+    column may be added and used for grouping.
+    """
+    if type(additional_columns) is str:
+        additional_columns = [additional_columns]
+    elif additional_columns is None:
+        additional_columns = []
+    columns = identifier_columns(df, id_columns + additional_columns)
+    return df.groupby(columns)
+
+
+def reset_groups(df, additional_columns=None, id_columns = ["user", "device", "group"]):
+    """ Reset id columns and optional addional columns in the dataframe index. """
+    if type(additional_columns) is str:
+        additional_columns = [additional_columns]
+    elif additional_columns is None:
+        additional_columns = []
+    columns = list(set(id_columns + additional_columns) & set(df.index.names))
+    return df.reset_index(columns)
+
+
+def set_conserved_index(df, additional_columns=None, id_columns = ["user", "device", "group"]):
+    """ Set standard id columns as index. This allows concatenating dataframes
+    with different measurements.
+    """
+    if type(additional_columns) is str:
+        additional_columns = [additional_columns]
+    elif additional_columns is None:
+        additional_columns = []
+    index_by = list(set(id_columns + additional_columns) & set(df.columns))
+    df = df.set_index(index_by, append=True)
+    return df
 
 
 def set_encoding(df, to_encoding = 'utf-8', from_encoding = 'iso-8859-1'):

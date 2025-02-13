@@ -1,21 +1,10 @@
 import pandas as pd
+from niimpy.preprocessing import util
 
 group_by_columns = ["user", "device"]
 
-def group_data(df, columns = group_by_columns):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    found_columns = list(set(columns) & set(df.columns))
-    return df.groupby(found_columns)
 
-def reset_groups(df, columns = group_by_columns):
-    """ Group the dataframe by a standard set of columns listed in
-    group_by_columns."""
-    found_columns = list(set(columns) & set(df.index.names))
-    return df.reset_index(found_columns)
-
-
-def step_summary(df, config={}):
+def step_summary(df, value_col='values', user_id=None, start_date=None, end_date=None):
     # value_col='values', user_id=None, start_date=None, end_date=None):
     """Return the summary of step count in a time range. The summary includes the following information
     of step count per day: mean, standard deviation, min, max
@@ -24,7 +13,7 @@ def step_summary(df, config={}):
     ----------
     df : Pandas Dataframe
         Dataframe containing the hourly step count of an individual. The dataframe must be date time index.
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments. These can be:
 
         value_col: str.
@@ -45,11 +34,6 @@ def step_summary(df, config={}):
     assert 'user' in df.columns, 'User column does not exist'
     assert df.index.inferred_type == 'datetime64', "Dataframe must have a datetime index"
 
-    value_col = config.get("value_col", "values")
-    user_id = config.get("user_id", None)
-    start_date = config.get("start_date", None)
-    end_date = config.get("end_date", None)
-
     if user_id is not None:
         assert isinstance(user_id, list), 'User id must be a list'
         df = df[df['user'] in user_id]
@@ -65,8 +49,8 @@ def step_summary(df, config={}):
     df['day'] = df.index.day
 
     # Calculate sum of steps for each date
-    df['daily_sum'] = group_data( df,
-        columns = ['day', 'month'] + group_by_columns
+    df['daily_sum'] = util.group_data( df,
+        ['day', 'month']
     )[value_col].transform('sum')
 
     # Under the assumption that a user cannot have zero steps per day, we remove rows where daily_sum are zero
@@ -74,17 +58,20 @@ def step_summary(df, config={}):
 
     summary_df = pd.DataFrame()
     
-    summary_df['median_sum_step'] = group_data(df)['daily_sum'].median()
-    summary_df['avg_sum_step'] = group_data(df)['daily_sum'].mean()
-    summary_df['std_sum_step'] = group_data(df)['daily_sum'].std()
-    summary_df['min_sum_step'] = group_data(df)['daily_sum'].min()
-    summary_df['max_sum_step'] = group_data(df)['daily_sum'].max()
+    summary_df['median_sum_step'] = util.group_data(df)['daily_sum'].median()
+    summary_df['avg_sum_step'] = util.group_data(df)['daily_sum'].mean()
+    summary_df['std_sum_step'] = util.group_data(df)['daily_sum'].std()
+    summary_df['min_sum_step'] = util.group_data(df)['daily_sum'].min()
+    summary_df['max_sum_step'] = util.group_data(df)['daily_sum'].max()
 
-    summary_df = reset_groups(summary_df)
+    summary_df = util.reset_groups(summary_df)
+    summary_df = util.select_columns(summary_df, 
+        ["median_sum_step", "avg_sum_step", "std_sum_step", "min_sum_step", "max_sum_step"]
+    )
     return summary_df
 
 
-def tracker_step_distribution(steps_df, config={}):
+def tracker_step_distribution(steps_df, steps_column='steps', resample_args={'rule': 'h'}, timeframe='d', **kwargs):
     """Return distribution of steps within a time range.
     The number of step is sampled according to the frequency rule in resample_args.
     This is divided by the total number of steps in a larger time frame, given by
@@ -96,7 +83,7 @@ def tracker_step_distribution(steps_df, config={}):
     ----------
     steps_df : Pandas Dataframe
         Dataframe the step distribution of each individual.
-    config: dict
+    config: dict, optional
         Dictionary keys containing optional arguments. These can be:
 
         steps_column: str. Optional
@@ -111,10 +98,7 @@ def tracker_step_distribution(steps_df, config={}):
     df: pandas DataFrame
         A dataframe containing the distribution of step count.
     """
-
-    steps_column = config.get("steps_column", "steps")
-    resample_args = config.get("resample_args", {'rule': 'h'})
-    timeframe = config.get("timeframe", 'd')
+    assert isinstance(steps_df, pd.DataFrame), "df_u is not a pandas dataframe"
 
     # time frame must be longer than resample_args["rule"]
     to_offset = pd.tseries.frequencies.to_offset
@@ -139,9 +123,8 @@ def tracker_step_distribution(steps_df, config={}):
     # Divide hourly steps by daily sum to get the distribution
     steps['step_distribution'] = steps[steps_column] / steps['step_sum']
 
-    # Set timestamp index
-    df = df.set_index("time")
-
+    # Set index and select columns
+    steps = util.select_columns(steps, ["step_distribution", "step_sum"])
     return steps[["step_distribution", "step_sum"]]
 
 
@@ -176,7 +159,7 @@ def extract_features_tracker(df, features=None):
         features = ALL_FEATURES
     for feature_function, kwargs in features.items():
         print(features, kwargs)
-        computed_feature = feature_function(df, kwargs)
+        computed_feature = feature_function(df, **kwargs)
         index_by = list(set(group_by_columns) & set(computed_feature.columns))
         computed_feature = computed_feature.set_index(index_by, append=True)
         computed_features.append(computed_feature)
@@ -186,6 +169,6 @@ def extract_features_tracker(df, features=None):
     if 'group' in df:
         computed_features['group'] = df.groupby('user')['group'].first()
 
-    computed_features = reset_groups(computed_features)
+    computed_features = util.reset_groups(computed_features)
     return computed_features
 

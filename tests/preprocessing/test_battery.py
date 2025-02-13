@@ -25,27 +25,33 @@ df11 = pd.DataFrame(
      })
 df11['datetime'] = pd.to_datetime(df11['datetime'])
 df11 = df11.set_index('datetime', drop=False)
-
+df11["group"] = "group1"
 
 def test_format_battery_data():
     df = df11.copy()
-    battery = niimpy.preprocessing.battery.format_battery_data(df, {})
+    battery = niimpy.preprocessing.battery.format_battery_data(df)
+
     assert battery.loc[Timestamp('2019-01-17 09:20:14.049999872+02:00'), 'battery_level'] == 96
     assert battery.loc[Timestamp('2019-01-17 09:21:26.036000+02:00'), 'battery_health'] == '2'
     assert battery.loc[Timestamp('2019-01-17 09:48:59.438999808+02:00'), 'battery_status'] == '-2'
     assert battery.loc[Timestamp('2019-01-17 09:57:11.275000064+02:00'), 'battery_adaptor'] == '1'
-
+    assert battery.loc[Timestamp('2019-01-17 09:57:11.275000064+02:00'), 'group'] =="group1"
+    
 
 def test_battery_occurrences():
     df = df11.copy()
+    df["extra_column"] = "extra"
     k = niimpy.preprocessing.battery.battery_occurrences
     occurrences = niimpy.preprocessing.battery.extract_features_battery(df, features={k: {}})
+
+    assert "extra_column" not in occurrences.columns
     occurrences_user = occurrences[occurrences["user"] == "wAzQNrdKZZax"]
     assert occurrences_user.loc[Timestamp('2019-01-17 09:00:00+02:00')]["occurrences"] == 3
     occurrences_user = occurrences[occurrences["user"] == "lb983ODxEFUD"]
     assert occurrences_user.loc[Timestamp('2019-01-17 10:00:00+02:00')]["occurrences"] == 1
     occurrences_user = occurrences[occurrences["user"] == "Afxzi7oI0yyp"]
     assert occurrences_user.loc[Timestamp('2019-01-17 09:30:00+02:00')]["occurrences"] == 3
+    assert occurrences_user.loc[Timestamp('2019-01-17 09:30:00+02:00'), 'group'] =="group1"
 
 
 def test_battery_gaps():
@@ -58,6 +64,7 @@ def test_battery_gaps():
     assert gaps_user.loc[Timestamp('2019-01-17 09:30:00+02:00')]["battery_gap"] == pd.Timedelta('0 days 00:04:26.149666560')
     gaps_user = gaps[gaps["user"] == "lb983ODxEFUD"]
     assert gaps_user.loc[Timestamp('2019-01-17 09:30:00+02:00')]["battery_gap"] == pd.Timedelta('0 days 00:01:00.453499904')
+    assert gaps_user.loc[Timestamp('2019-01-17 09:30:00+02:00'), 'group'] =="group1"
 
 
 def test_battery_charge_discharge():
@@ -68,3 +75,4 @@ def test_battery_charge_discharge():
     assert chdisch_user.loc[Timestamp('2019-01-17 10:30:00+02:00')]['bdelta'] == -2.
     chdisch_user = chdisch[chdisch["user"] == "lb983ODxEFUD"]
     assert chdisch_user.loc[Timestamp('2019-01-17 10:30:00+02:00')]['charge/discharge'] == -0.001050474788377773
+    assert chdisch_user.loc[Timestamp('2019-01-17 10:30:00+02:00'), 'group'] =="group1"
