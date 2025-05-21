@@ -483,12 +483,15 @@ def email_activity(
             if timestamp:
                 timestamp = email.utils.parsedate_to_datetime(timestamp)
             timestamp = pd.to_datetime(timestamp)
-            if start_date is not None and timestamp < start_date:
+            if timestamp.tzinfo is None:
+                timestamp = timestamp.tz_localize("UTC")
+            if start_date is not None and timestamp  and timestamp < start_date:
                 continue
             if end_date is not None and timestamp > end_date:
                 continue
-        except:
-            warnings.warn(f"Could not parse message timestamp: {received}")
+        except Exception as e:
+            warnings.warn(f"Could not parse message timestamp: {timestamp}")
+            warnings.warn(f"Error: {e}")
             continue
 
         # Extract received time and convert to datetime.
@@ -535,7 +538,16 @@ def email_activity(
         to_address = str(message.get("Sender", to_address))
         to_address = str(message.get("sender", to_address))
 
-        content = email_utils.extract_content(message)
+        # Try to decode the message. If this fails, report the error
+        # add use NaN as the content.
+        try:
+            content = email_utils.extract_content(message)
+            character_count = len(content)
+            word_count = len(content.split())
+        except Exception as e:
+            print(f"Failed to decode message: {e}")
+            character_count = np.nan
+            word_count = np.nan
 
         row = {
             "timestamp": timestamp,
@@ -546,14 +558,16 @@ def email_activity(
             "bcc": email_utils.parse_address_list(bcc),
             "message_id": message_id,
             "in_reply_to": in_reply_to,
-            "character_count": len(content),
-            "word_count": len(content.split()),
+            "character_count": character_count,
+            "word_count": word_count,
         }
         data.append(row)
 
     mailbox.close()
 
     df = pd.DataFrame(data)
+    df.dropna(subset=["timestamp"], inplace=True)
+    df['timestamp'] = pd.to_datetime(df['timestamp'], utc=True)
 
     user_email = infer_user_email(df)
     df.loc[df["from"] != user_email, "message_type"] = "incoming"
