@@ -802,6 +802,8 @@ def youtube_watch_history(
             item = {
                 "video_title": a[0].text,
                 "channel_title": a[1].text,
+                "video_url": a[0]["href"],
+                "channel_url": a[1]["href"],
                 "timestamp": row.find_all("br")[1].next_sibling.text
             }
             item["timestamp"] = dateutil.parser.parse(item["timestamp"])
@@ -826,10 +828,14 @@ def youtube_watch_history(
         user = uuid.uuid1()
     df["user"] = user
 
+    # Extract the video ID from the video URL
+    df["video_id"] = df["video_url"].str.split("v=").str[1].str.split("&").str[0]
+
     # Pseudonymize the titles
     if pseudonymize:
         df["video_title"] = df["video_title"].astype("category").cat.codes
         df["channel_title"] = df["channel_title"].astype("category").cat.codes
+        df = df[["user", "video_title", "channel_title"]]
 
     util.format_column_names(df)
     util.set_timezone(df, tz=timezone)
