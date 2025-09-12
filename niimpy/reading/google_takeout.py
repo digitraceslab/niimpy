@@ -7,6 +7,7 @@ import email
 import uuid
 import warnings
 import re
+import dateutil
 
 from tqdm import tqdm
 from bs4 import BeautifulSoup
@@ -803,7 +804,8 @@ def youtube_watch_history(
                 "channel_title": a[1].text,
                 "timestamp": row.find_all("br")[1].next_sibling.text
             }
-            timestamp = pd.to_datetime(item["timestamp"], format="%b %d, %Y, %I:%M:%S %p %Z")
+            item["timestamp"] = dateutil.parser.parse(item["timestamp"])
+            timestamp = pd.to_datetime(item["timestamp"])
             if start_date is not None:
                 if timestamp < start_date:
                     continue
