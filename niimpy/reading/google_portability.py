@@ -3,12 +3,24 @@ from zipfile import ZipFile
 import json
 
 
+def _find_zip_entry(z, basename):
+    """Return the full zip entry name that ends with the given basename, or None."""
+    names = z.namelist()
+    for name in names:
+        if name.endswith('/' + basename) or name == basename:
+            return name
+    return None
+
+
 def youtube_history(filename, start_date=None, end_date=None):
     """
     Reads YouTube watch history from zip file downloaded from the Google Portability API.
     """
     with ZipFile(filename, 'r') as z:
-        with z.open('Portability/My Activity/YouTube/MyActivity.json') as f:
+        entry = _find_zip_entry(z, 'Portability/My Activity/YouTube/MyActivity.json')
+        if entry is None:
+            return pd.DataFrame()
+        with z.open(entry) as f:
             data = json.load(f)
     df = pd.json_normalize(data)
 
@@ -64,7 +76,10 @@ def discover_history(filename, start_date=None, end_date=None):
     Reads Discover activity from zip file downloaded from the Google Portability API.
     """
     with ZipFile(filename, 'r') as z:
-        with z.open('Portability/My Activity/Discover/MyActivity.json') as f:
+        entry = _find_zip_entry(z, 'Portability/My Activity/Discover/MyActivity.json')
+        if entry is None:
+            return pd.DataFrame()
+        with z.open(entry) as f:
             data = json.load(f)
     df = pd.json_normalize(data)
 
@@ -89,15 +104,6 @@ def discover_history(filename, start_date=None, end_date=None):
     df['type'] = 'history'
 
     return df
-
-
-def _find_zip_entry(z, basename):
-    """Return the full zip entry name that ends with the given basename, or None."""
-    names = z.namelist()
-    for name in names:
-        if name.endswith('/' + basename) or name == basename:
-            return name
-    return None
 
 
 def discover_liked_content(filename, start_date=None, end_date=None):
