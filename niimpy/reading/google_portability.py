@@ -37,10 +37,11 @@ def youtube_history(filename, start_date=None, end_date=None):
         df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
         
     # flatten the subtitles column, a list of dicts, containing the channel name and video title
-    subtitles = df['subtitles'].explode().apply(pd.Series)
-    subtitles = subtitles.add_prefix('channel_')
-    df = pd.concat([df.drop(columns=['subtitles']), subtitles], axis=1)
-    df = df.drop(columns=['channel_0'])
+    if 'subtitles' in df.columns:
+        subtitles = df['subtitles'].explode().apply(pd.Series)
+        subtitles = subtitles.add_prefix('channel_')
+        df = pd.concat([df.drop(columns=['subtitles']), subtitles], axis=1)
+        df = df.drop(columns=['channel_0'], errors='ignore')
 
     # Activity controls to a comma separated string
     df['activityControls'] = df['activityControls'].apply(
@@ -69,6 +70,9 @@ def youtube_history(filename, start_date=None, end_date=None):
             return ' '.join(words[2:])
         return ' '.join(words[1:])
     df["title"] = df["title"].apply(remove_action_and_preposition)
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
@@ -107,6 +111,9 @@ def discover_history(filename, start_date=None, end_date=None):
     df = df.drop(columns=['header', 'products'], errors='ignore')
     df['platform'] = 'Discover'
     df['type'] = 'history'
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
@@ -151,6 +158,9 @@ def discover_liked_content(filename, start_date=None, end_date=None):
     df['subtype'] = 'liked_content'
     df['type'] = 'liked'
 
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
+
     return df
 
 
@@ -164,7 +174,7 @@ def discover_follows(filename, start_date=None, end_date=None):
         if entry is None:
             return pd.DataFrame()
         with z.open(entry) as f:
-            df = pd.read_csv(f, sep=None, engine='python')
+            df = pd.read_csv(f, sep=',')
 
     # Normalize column
     if 'Followed Entity' in df.columns:
@@ -192,6 +202,9 @@ def discover_follows(filename, start_date=None, end_date=None):
     df['platform'] = 'Discover'
     df['subtype'] = 'follows'
     df['type'] = 'follows'
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
@@ -236,6 +249,9 @@ def discover_not_interested_settings(filename, start_date=None, end_date=None):
     df['subtype'] = 'not_interested'
     df['type'] = 'not_interested'
 
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
+
     return df
 
 
@@ -251,12 +267,7 @@ def discover(filename, start_date=None, end_date=None):
         discover_not_interested_settings(filename, start_date=start_date, end_date=end_date),
     ]
     # concatenate available parts into a single DataFrame
-    combined = pd.concat([p for p in parts if p is not None and not p.empty], ignore_index=True, sort=False)
-
-    # If there's a datetime-like `timestamp` column, convert it to unix seconds
-    if 'timestamp' in combined.columns:
-        ts = pd.to_datetime(combined['timestamp'], errors='coerce')
-        combined['timestamp'] = ts.apply(lambda x: int(x.timestamp()) if pd.notnull(x) else pd.NA).astype('Int64')
+    combined = pd.concat([p for p in parts if p is not None and not p.empty], sort=False)
 
     return combined
 
@@ -297,6 +308,9 @@ def chrome_history(filename, start_date=None, end_date=None):
     if end_date is not None:
         end_ts = int(pd.to_datetime(end_date).timestamp())
         df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
@@ -339,6 +353,9 @@ def google_lens_history(filename, start_date=None, end_date=None):
     df['platform'] = 'Google Lens'
     df['type'] = 'google_lens'
 
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
+
     return df
 
 
@@ -378,6 +395,9 @@ def google_play_games_history(filename, start_date=None, end_date=None):
     df['platform'] = 'Google Play Games'
     df['type'] = 'play_games'
 
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
+
     return df
 
 
@@ -416,6 +436,9 @@ def google_play_store_history(filename, start_date=None, end_date=None):
     df = df.drop(columns=['header', 'products'], errors='ignore')
     df['platform'] = 'Google Play Store'
     df['type'] = 'play_store'
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
@@ -459,6 +482,9 @@ def image_search_history(filename, start_date=None, end_date=None):
     df = df.drop(columns=['header', 'products'], errors='ignore')
     df['platform'] = 'Image Search'
     df['type'] = 'image_search'
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
@@ -504,6 +530,9 @@ def video_search_history(filename, start_date=None, end_date=None):
     df['platform'] = 'Video Search'
     df['type'] = 'video_search'
 
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
+
     return df
 
 
@@ -540,6 +569,9 @@ def search_history(filename, start_date=None, end_date=None):
 
     df['platform'] = 'Search'
     df['type'] = 'search'
+
+    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s", utc=True)
+    df.set_index("timestamp", inplace=True)
 
     return df
 
