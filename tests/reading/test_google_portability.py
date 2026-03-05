@@ -12,9 +12,6 @@ END_DATE = "2024-02-28"
 
 class TestYoutubeHistory:
 
-    @pytest.mark.xfail(
-        reason="Bug: drop(columns=['channel_0']) fails when all records have subtitles"
-    )
     def test_basic_read(self, google_portability_zip):
         """All records have subtitles (realistic data). Currently crashes."""
         df = google_portability.youtube_history(google_portability_zip)
@@ -45,9 +42,6 @@ class TestYoutubeHistory:
         # activityControls flattened to string
         assert "YouTube watch history" in df.iloc[0]["activityControls"]
 
-    @pytest.mark.xfail(
-        reason="Bug: df['subtitles'] accessed unconditionally; KeyError when column missing"
-    )
     def test_no_subtitles(self, google_portability_no_subtitles_zip):
         """YouTube data without subtitles field. Currently crashes."""
         df = google_portability.youtube_history(google_portability_no_subtitles_zip)
@@ -62,46 +56,28 @@ class TestYoutubeHistory:
         assert df.iloc[0]["action"] == "Watched"
         assert df.iloc[0]["title"] == "Test Video Alpha"
 
-    @pytest.mark.xfail(
-        reason="Bug: drop(columns=['channel_0']) fails when all records have subtitles"
-    )
     def test_start_date(self, google_portability_zip):
         df = google_portability.youtube_history(google_portability_zip, start_date=START_DATE)
         assert len(df) == 2
 
-    @pytest.mark.xfail(
-        reason="Bug: drop(columns=['channel_0']) fails when all records have subtitles"
-    )
     def test_end_date(self, google_portability_zip):
         df = google_portability.youtube_history(google_portability_zip, end_date=END_DATE)
         assert len(df) == 2
 
-    @pytest.mark.xfail(
-        reason="Bug: drop(columns=['channel_0']) fails when all records have subtitles"
-    )
     def test_both_dates(self, google_portability_zip):
         df = google_portability.youtube_history(
             google_portability_zip, start_date=START_DATE, end_date=END_DATE
         )
         assert len(df) == 1
 
-    @pytest.mark.xfail(
-        reason="Bug: df['subtitles'] accessed unconditionally; KeyError when column missing"
-    )
     def test_start_date_no_subtitles(self, google_portability_no_subtitles_zip):
         df = google_portability.youtube_history(google_portability_no_subtitles_zip, start_date=START_DATE)
         assert len(df) == 2
 
-    @pytest.mark.xfail(
-        reason="Bug: df['subtitles'] accessed unconditionally; KeyError when column missing"
-    )
     def test_end_date_no_subtitles(self, google_portability_no_subtitles_zip):
         df = google_portability.youtube_history(google_portability_no_subtitles_zip, end_date=END_DATE)
         assert len(df) == 2
 
-    @pytest.mark.xfail(
-        reason="Bug: df['subtitles'] accessed unconditionally; KeyError when column missing"
-    )
     def test_both_dates_no_subtitles(self, google_portability_no_subtitles_zip):
         df = google_portability.youtube_history(
             google_portability_no_subtitles_zip, start_date=START_DATE, end_date=END_DATE
@@ -124,7 +100,7 @@ class TestDiscoverHistory:
         assert (df["type"] == "history").all()
         assert "header" not in df.columns
         assert "products" not in df.columns
-        assert "timestamp" in df.columns
+        assert isinstance(df.index, pd.DatetimeIndex)
 
     def test_start_date(self, google_portability_zip):
         df = google_portability.discover_history(google_portability_zip, start_date=START_DATE)
@@ -176,9 +152,6 @@ class TestDiscoverLikedContent:
 
 class TestDiscoverFollows:
 
-    @pytest.mark.xfail(
-        reason="Bug: sep=None sniffs space as delimiter, splitting 'Followed Entity' column header"
-    )
     def test_basic_read(self, google_portability_zip):
         df = google_portability.discover_follows(google_portability_zip)
         assert len(df) == 3
@@ -208,7 +181,7 @@ class TestDiscoverNotInterestedSettings:
 
     def test_no_timestamp(self, google_portability_zip):
         df = google_portability.discover_not_interested_settings(google_portability_zip)
-        assert df["timestamp"].isna().all()
+        assert df.index.isna().all()
 
     def test_missing_data(self, empty_portability_zip):
         df = google_portability.discover_not_interested_settings(empty_portability_zip)
@@ -246,7 +219,7 @@ class TestChromeHistory:
     def test_basic_read(self, google_portability_zip):
         df = google_portability.chrome_history(google_portability_zip)
         assert not df.empty
-        assert "timestamp" in df.columns
+        assert isinstance(df.index, pd.DatetimeIndex)
 
     def test_missing_data(self, empty_portability_zip):
         df = google_portability.chrome_history(empty_portability_zip)
@@ -407,14 +380,12 @@ _READERS = [
 ]
 
 
-@pytest.mark.xfail(reason="google_portability readers don't yet set DatetimeIndex per niimpy schema")
 @pytest.mark.parametrize("reader_fn", _READERS)
 def test_schema_datetime_index(google_portability_zip, reader_fn):
     df = reader_fn(google_portability_zip)
     assert isinstance(df.index, pd.DatetimeIndex)
 
 
-@pytest.mark.xfail(reason="youtube_history crashes on subtitles handling + no DatetimeIndex")
 def test_schema_datetime_index_youtube(google_portability_no_subtitles_zip):
     """Separate test for youtube since main zip triggers subtitles bug."""
     df = google_portability.youtube_history(google_portability_no_subtitles_zip)
