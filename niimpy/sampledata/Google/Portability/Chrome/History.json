@@ -1,0 +1,16 @@
+{
+  "Browser History": [{
+    "title": "Example Page One",
+    "url": "https://example.com/page1",
+    "time": "2024-01-15T10:00:00.000Z"
+  },{
+    "title": "Example Page Two",
+    "url": "https://example.com/page2",
+    "time": "2024-02-15T12:00:00.000Z"
+  },{
+    "title": "Example Page Three",
+    "url": "https://example.com/page3",
+    "time": "2024-03-15T14:00:00.000Z"
+  }],
+  "Typed Url": []
+}

@@ -1,0 +1,22 @@
+[{
+  "header": "YouTube",
+  "title": "Watched Test Video Alpha",
+  "titleUrl": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube watch history", "YouTube search history"]
+},{
+  "header": "YouTube",
+  "title": "Liked Test Video Beta",
+  "titleUrl": "https://www.youtube.com/watch?v=abc123def45",
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube watch history"]
+},{
+  "header": "YouTube",
+  "title": "Viewed Test Post Gamma",
+  "titleUrl": "https://www.youtube.com/post/UgkxTestPostId",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["YouTube"],
+  "activityControls": ["YouTube watch history"]
+}]

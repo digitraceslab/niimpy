@@ -1,0 +1,26 @@
+[{
+  "header": "Image Search",
+  "title": "Searched for tea",
+  "titleUrl": "https://www.google.com/search?q=tea&udm=2",
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["Image Search"],
+  "activityControls": ["Web \u0026 App Activity"],
+  "locationInfos": [{
+    "name": "At this general area",
+    "url": "https://www.google.com/maps/@?api=1&map_action=map&center=60.229500,24.786994&zoom=11",
+    "source": "From your device"
+  }]
+},{
+  "header": "Image Search",
+  "title": "Viewed image from example.com",
+  "titleUrl": "https://www.google.com/url?q=https://www.example.com/image.jpg",
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["Image Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Image Search",
+  "title": "Searched for birds",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["Image Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+}]

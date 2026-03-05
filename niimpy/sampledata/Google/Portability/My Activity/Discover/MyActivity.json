@@ -1,0 +1,24 @@
+[{
+  "header": "Discover",
+  "title": "2 cards in your feed",
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["Discover"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Discover",
+  "title": "5 cards in your feed",
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["Discover"],
+  "activityControls": ["Web \u0026 App Activity"],
+  "details": [{
+    "name": "Business"
+  },{
+    "name": "Education - viewed"
+  }]
+},{
+  "header": "Discover",
+  "title": "3 cards in your feed",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["Discover"],
+  "activityControls": ["Web \u0026 App Activity"]
+}]

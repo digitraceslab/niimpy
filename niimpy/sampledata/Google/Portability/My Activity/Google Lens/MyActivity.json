@@ -1,0 +1,19 @@
+[{
+  "header": "Google Lens",
+  "title": "Searched with Google Lens",
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["Google Lens"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Google Lens",
+  "title": "Searched with Google Lens",
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["Google Lens"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Google Lens",
+  "title": "Searched with Google Lens",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["Google Lens"],
+  "activityControls": ["Web \u0026 App Activity"]
+}]

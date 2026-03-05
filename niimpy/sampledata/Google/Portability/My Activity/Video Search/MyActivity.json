@@ -1,0 +1,22 @@
+[{
+  "header": "youtube.com",
+  "title": "Watched Test Video Search One",
+  "titleUrl": "https://www.youtube.com/watch?v=c2myHZYqlPM",
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["Video Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "youtube.com",
+  "title": "Watched Test Video Search Two",
+  "titleUrl": "https://www.youtube.com/watch?v=f5lfqI0mzRE",
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["Video Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "reddit.com",
+  "title": "Watched Test Tutorial on Reddit",
+  "titleUrl": "https://www.google.com/url?q=https://www.reddit.com/r/test/comments/abc123/test_tutorial/",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["Video Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+}]

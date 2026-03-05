@@ -1,0 +1,26 @@
+[{
+  "header": "Google Play Store",
+  "title": "Apps management notification shown",
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["Google Play Store"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Google Play Store",
+  "title": "Device connected",
+  "subtitles": [{
+    "name": "Updated usage information for some apps"
+  }],
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["Google Play Store"],
+  "activityControls": ["Play app usage"]
+},{
+  "header": "FMI Weather",
+  "title": "Used FMI Weather",
+  "titleUrl": "https://play.google.com/store/apps/details?id=fi.fmi.mobileweather",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["Google Play Store"],
+  "activityControls": ["Web \u0026 App Activity"],
+  "details": [{
+    "name": "detail1"
+  }]
+}]

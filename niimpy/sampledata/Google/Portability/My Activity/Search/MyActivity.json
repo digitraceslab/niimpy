@@ -1,0 +1,27 @@
+[{
+  "header": "Search",
+  "title": "2 notifications",
+  "subtitles": [{
+    "name": "Including topics:"
+  },{
+    "name": "Price"
+  },{
+    "name": "Weather"
+  }],
+  "time": "2024-01-15T10:00:00.000Z",
+  "products": ["Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Search",
+  "title": "Visited Test Page on Stack Overflow",
+  "titleUrl": "https://www.google.com/url?q=https://stackoverflow.com/questions/12345/test-question",
+  "time": "2024-02-15T12:00:00.000Z",
+  "products": ["Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+},{
+  "header": "Search",
+  "title": "Searched for test query",
+  "time": "2024-03-15T14:00:00.000Z",
+  "products": ["Search"],
+  "activityControls": ["Web \u0026 App Activity"]
+}]
