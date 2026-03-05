@@ -24,15 +24,17 @@ def youtube_history(filename, start_date=None, end_date=None):
             data = json.load(f)
     df = pd.json_normalize(data)
 
-    # Convert the known `time` column to datetime and filter if requested
-    df['timestamp'] = pd.to_datetime(df['time'], errors='coerce')
+    # Convert the known `time` column to unix-second timestamp
+    dt = pd.to_datetime(df['time'], errors='coerce')
+    df['timestamp'] = dt.apply(lambda x: int(x.timestamp()) if pd.notnull(x) else pd.NA).astype('Int64')
 
+    # Apply start/end filters (compare unix seconds)
     if start_date is not None:
-        start = pd.to_datetime(start_date)
-        df = df[df['timestamp'] >= start]
+        start_ts = int(pd.to_datetime(start_date).timestamp())
+        df = df[df['timestamp'].notna() & (df['timestamp'] >= start_ts)]
     if end_date is not None:
-        end = pd.to_datetime(end_date)
-        df = df[df['timestamp'] <= end]
+        end_ts = int(pd.to_datetime(end_date).timestamp())
+        df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
         
     # flatten the subtitles column, a list of dicts, containing the channel name and video title
     subtitles = df['subtitles'].explode().apply(pd.Series)
@@ -83,14 +85,17 @@ def discover_history(filename, start_date=None, end_date=None):
             data = json.load(f)
     df = pd.json_normalize(data)
 
-    # convert time to timestamp and filter if requested
-    df['timestamp'] = pd.to_datetime(df['time'], errors='coerce')
+    # parse time -> timestamp (unix seconds)
+    dt = pd.to_datetime(df['time'], errors='coerce')
+    df['timestamp'] = dt.apply(lambda x: int(x.timestamp()) if pd.notnull(x) else pd.NA).astype('Int64')
+
+    # apply start/end filters (compare unix seconds)
     if start_date is not None:
-        start = pd.to_datetime(start_date)
-        df = df[df['timestamp'] >= start]
+        start_ts = int(pd.to_datetime(start_date).timestamp())
+        df = df[df['timestamp'].notna() & (df['timestamp'] >= start_ts)]
     if end_date is not None:
-        end = pd.to_datetime(end_date)
-        df = df[df['timestamp'] <= end]
+        end_ts = int(pd.to_datetime(end_date).timestamp())
+        df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
 
     # Activity controls to a comma separated string
     if 'activityControls' in df.columns:
@@ -127,20 +132,24 @@ def discover_liked_content(filename, start_date=None, end_date=None):
     if 'liked_date' in df.columns:
         df['liked_date'] = pd.to_datetime(df['liked_date'].astype(str).str.strip('"'), errors='coerce')
 
-    # filter by liked_date if requested
-    if start_date is not None and 'liked_date' in df.columns:
-        start = pd.to_datetime(start_date)
-        df = df[df['liked_date'] >= start]
-    if end_date is not None and 'liked_date' in df.columns:
-        end = pd.to_datetime(end_date)
-        df = df[df['liked_date'] <= end]
+    # create a unified timestamp column from liked_date if present (unix seconds)
+    if 'liked_date' in df.columns:
+        dt = pd.to_datetime(df['liked_date'], errors='coerce')
+        df['timestamp'] = dt.apply(lambda x: int(x.timestamp()) if pd.notnull(x) else pd.NA).astype('Int64')
+    else:
+        df['timestamp'] = pd.NA
+
+    # filter by timestamp if requested
+    if start_date is not None:
+        start_ts = int(pd.to_datetime(start_date).timestamp())
+        df = df[df['timestamp'].notna() & (df['timestamp'] >= start_ts)]
+    if end_date is not None:
+        end_ts = int(pd.to_datetime(end_date).timestamp())
+        df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
 
     df['platform'] = 'Discover'
     df['subtype'] = 'liked_content'
     df['type'] = 'liked'
-    # create a unified timestamp column from liked_date if present
-    if 'liked_date' in df.columns:
-        df['timestamp'] = pd.to_datetime(df['liked_date'], errors='coerce')
 
     return df
 
@@ -168,13 +177,17 @@ def discover_follows(filename, start_date=None, end_date=None):
             timestamp_col = c
             break
     if timestamp_col is not None:
-        df['timestamp'] = pd.to_datetime(df[timestamp_col], errors='coerce')
+        dt = pd.to_datetime(df[timestamp_col], errors='coerce')
+        df['timestamp'] = dt.apply(lambda x: int(x.timestamp()) if pd.notnull(x) else pd.NA).astype('Int64')
+        # apply start/end filters (compare unix seconds)
         if start_date is not None:
-            start = pd.to_datetime(start_date)
-            df = df[df['timestamp'] >= start]
+            start_ts = int(pd.to_datetime(start_date).timestamp())
+            df = df[df['timestamp'].notna() & (df['timestamp'] >= start_ts)]
         if end_date is not None:
-            end = pd.to_datetime(end_date)
-            df = df[df['timestamp'] <= end]
+            end_ts = int(pd.to_datetime(end_date).timestamp())
+            df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
+    else:
+        df['timestamp'] = pd.NA
 
     df['platform'] = 'Discover'
     df['subtype'] = 'follows'
@@ -207,13 +220,17 @@ def discover_not_interested_settings(filename, start_date=None, end_date=None):
             timestamp_col = c
             break
     if timestamp_col is not None:
-        df['timestamp'] = pd.to_datetime(df[timestamp_col], errors='coerce')
+        dt = pd.to_datetime(df[timestamp_col], errors='coerce')
+        df['timestamp'] = dt.apply(lambda x: int(x.timestamp()) if pd.notnull(x) else pd.NA).astype('Int64')
+        # apply start/end filters (compare unix seconds)
         if start_date is not None:
-            start = pd.to_datetime(start_date)
-            df = df[df['timestamp'] >= start]
+            start_ts = int(pd.to_datetime(start_date).timestamp())
+            df = df[df['timestamp'].notna() & (df['timestamp'] >= start_ts)]
         if end_date is not None:
-            end = pd.to_datetime(end_date)
-            df = df[df['timestamp'] <= end]
+            end_ts = int(pd.to_datetime(end_date).timestamp())
+            df = df[df['timestamp'].notna() & (df['timestamp'] <= end_ts)]
+    else:
+        df['timestamp'] = pd.NA
 
     df['platform'] = 'Discover'
     df['subtype'] = 'not_interested'
