@@ -1,5 +1,5 @@
 import configparser
-import os 
+import os
 
 cwd = os.path.dirname(__file__)
 config_ini = os.path.join(cwd, 'config.ini')
@@ -28,3 +28,6 @@ MHEALTH_GEOLOCATION_PATH = os.path.join(ROOT, config['sample_paths']['mhealth_ge
 
 GOOGLE_TAKEOUT_PATH = os.path.join(ROOT, config['sample_paths']['google_takeout'])
 GOOGLE_TAKEOUT_DIR = os.path.join(ROOT, config['sample_paths']['google_takeout_dir'])
+
+TIKTOK_USER_DATA_PATH = os.path.join(ROOT, config['sample_paths']['tiktok_user_data'])
+TIKTOK_USER_DATA_2_PATH = os.path.join(ROOT, config['sample_paths']['tiktok_user_data_2'])

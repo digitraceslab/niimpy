@@ -28,8 +28,9 @@ The on-disk format is currently irrelevant, as long as the producers
 can create a DataFrame of the necessary format.  Currently, we provide
 support sqlite3 and csv.
 
-Additionally, we provide readers for MHealth data and Google Takeout
-data. These readers convert the data to the standard DataFrame format.
+Additionally, we provide readers for MHealth data, Google Takeout data,
+and TikTok data exports. These readers convert the data to the standard
+DataFrame format.
 
 
 
@@ -82,6 +83,5 @@ Standard columns in on-disk formats
 For the most part, this maps directly to the columns you see above.
 An on-disk format should have a ``time`` column (unixtime, integer)
 and data columns as described above.
-
 
 
