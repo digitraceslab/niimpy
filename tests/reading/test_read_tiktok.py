@@ -16,7 +16,7 @@ def test_read_tiktok_watch_history():
     assert data.index[0] == pd.to_datetime("2024-02-02 11:00:00+00:00")
     assert data.iloc[0]["video_id"] == data.iloc[2]["video_id"]
     assert data.iloc[0]["video_id"] != data.iloc[1]["video_id"]
-    assert data.iloc[0]["event_type"] == "watch"
+    assert data.iloc[0]["type"] == "watch"
     assert data.iloc[0]["user"] == "user1"
     assert "link" not in data.columns
 
@@ -104,7 +104,7 @@ def test_read_tiktok_profile_login_and_share_events():
     shares = niimpy.reading.tiktok.share_history(config.TIKTOK_USER_DATA_PATH)
 
     assert followers.shape == (1, 7)
-    assert followers.iloc[0]["event_type"] == "follower"
+    assert followers.iloc[0]["type"] == "follower"
     assert profile_views.shape == (1, 7)
     assert profile_views.index[0] == pd.to_datetime("2024-01-08 15:00:00+00:00")
     assert logins.shape == (2, 11)
@@ -158,8 +158,8 @@ def test_read_tiktok_events():
     )
 
     assert data.shape[0] == 20
-    assert data.iloc[0]["event_type"] == "comment"
-    assert set(data["event_type"]) == {
+    assert data.iloc[0]["type"] == "comment"
+    assert set(data["type"]) == {
         "comment", "direct_message", "favorite_collection",
         "favorite_video", "follower", "like", "login", "post",
         "profile_view", "share",

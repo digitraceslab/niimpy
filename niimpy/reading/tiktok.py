@@ -155,8 +155,8 @@ def _finish_timeseries(
     if user is None:
         user = uuid.uuid1()
     df["user"] = user
-    df["application_name"] = "TikTok"
-    df["event_type"] = event_type
+    df["platform"] = "TikTok"
+    df["type"] = event_type
     df["event_count"] = 1
     df["source_section"] = source_section
     df["datetime"] = df.index
