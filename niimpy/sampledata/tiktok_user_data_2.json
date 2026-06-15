@@ -1,0 +1,365 @@
+{
+  "Comment": {
+    "Comments": {
+      "App": 1233,
+      "CommentsList": []
+    }
+  },
+  "Direct Message": {
+    "Direct Messages": {
+      "ChatHistory": {}
+    },
+    "Group Chat": {
+      "GroupChat": {}
+    },
+    "Tako Chat History": {}
+  },
+  "Income+ Wallet": {
+    "Coin Purchase History": {
+      "CoinPurchaseHistoryList": null
+    },
+    "Transaction History": {
+      "TransactionsList": null
+    }
+  },
+  "Likes and Favorites": {
+    "Collection": {},
+    "Favorite Collection": {
+      "FavoriteCollectionList": []
+    },
+    "Favorite Comment": {
+      "FavoriteCommentList": []
+    },
+    "Favorite Effects": {
+      "FavoriteEffectsList": null
+    },
+    "Favorite Hashtags": {
+      "FavoriteHashtagList": []
+    },
+    "Favorite Location": {
+      "FavoriteLocationList": []
+    },
+    "Favorite Sounds": {
+      "FavoriteSoundList": null
+    },
+    "Favorite Videos": {
+      "App": 1233,
+      "FavoriteVideoList": null
+    },
+    "Like List": {
+      "App": 1233,
+      "ItemFavoriteList": []
+    }
+  },
+  "Location Review": {
+    "Location Reviews": {
+      "ReviewsList": null
+    }
+  },
+  "Post": {
+    "Posts": {
+      "VideoList": null
+    },
+    "Recently Deleted Posts": {
+      "PostList": []
+    },
+    "Story": {}
+  },
+  "Profile And Settings": {
+    "AI-Moji": {
+      "CreateDate": "",
+      "AIMojiList": null
+    },
+    "AISelfImage": {},
+    "Autofill": {
+      "PhoneNumber": "",
+      "Email": "",
+      "FirstName": "",
+      "LastName": "",
+      "Address": "",
+      "ZipCode": "",
+      "Unit": "",
+      "City": "",
+      "State": "",
+      "Country": ""
+    },
+    "Block List": {
+      "App": 1233,
+      "BlockList": null
+    },
+    "Follower": {
+      "App": 1233,
+      "IsFastLane": false,
+      "FansList": []
+    },
+    "Following": {
+      "App": 1233,
+      "IsFastLane": false,
+      "Following": []
+    },
+    "Off TikTok Activity": {
+      "OffTikTokActivityDataList": null
+    },
+    "Profile Info": {
+      "App": 1233,
+      "ProfileMap": {
+        "PlatformInfo": [
+          {
+            "Description": "sample platform description",
+            "Name": "Sample User",
+            "Platform": "TikTok",
+            "Profile Photo": "https://example.invalid/profile.webp"
+          }
+        ],
+        "accountRegion": "FI",
+        "aiSelf": "https://example.invalid/avatar.webp",
+        "bioDescription": "sample bio",
+        "birthDate": "01-Jan-1990",
+        "displayName": "Sample User",
+        "emailAddress": "sample@example.invalid",
+        "followerCount": 0,
+        "followingCount": 0,
+        "fundraiser": "",
+        "inferredGender": "",
+        "instagramLink": "",
+        "lemon8Link": "",
+        "likesReceived": "0",
+        "profilePhoto": "https://example.invalid/profile.webp",
+        "profileVideo": "",
+        "telephoneNumber": "",
+        "userName": "sample_user",
+        "youtubeLink": ""
+      }
+    },
+    "ProfileViews": {
+      "ProfileViewList": null
+    },
+    "Settings": {
+      "App": 1233,
+      "SettingsMap": {
+        "Allow DownLoad": "Off",
+        "Allow Others to Find Me": "On",
+        "Allow Reuse of Content": "Everyone",
+        "App Language": "English",
+        "Autofill contact information": "Off",
+        "Autofill payment information": "Off",
+        "Content Preferences": {
+          "Keyword filters for videos in Following feed": [],
+          "Keyword filters for videos in For You feed": [],
+          "Video Languages Preferences": []
+        },
+        "Family Content Preferences": {},
+        "Filter Comments": "Enabled",
+        "Interests": "",
+        "Personalized Ads": "Off",
+        "Private Account": "Off",
+        "Push Notification": {
+          "Desktop notification": "Default",
+          "New Comments on My Video": "Default",
+          "New Fans": "Default",
+          "New Likes on My Video": "Default"
+        },
+        "Suggest your account to Facebook friends": "Off",
+        "Suggest your account to contacts": "Off",
+        "Suggest your account to people who open or send links to you": "Off",
+        "Web Language": "English",
+        "Who Can Duet With Me": "Everyone",
+        "Who Can Post Comments": "Everyone",
+        "Who Can Send Me Message": "Friends",
+        "Who Can Stitch with your videos": "Everyone",
+        "Who Can View Videos I Liked": "Only me",
+        "Who can see your following list:": "Everyone"
+      }
+    }
+  },
+  "TikTok Live": {
+    "Go Live History": {
+      "GoLiveList": null
+    },
+    "Go Live Settings": {
+      "SettingsMap": {
+        "Allow agencies to find and invite you": "Off",
+        "Allow others to invite you to co-host in LIVE": "Off",
+        "Allow people to send and receive comments during your LIVE": "On",
+        "Allow suggested LIVE hosts to invite you to co-host in LIVE": "Off",
+        "Allow viewers to request to go LIVE with you": "Off",
+        "Allow viewers to see and send questions and answers in your LIVE": "On",
+        "Allow viewers to send you gifts during your LIVE": "Off",
+        "Hide comments that contain the following keywords from your LIVE": [],
+        "Hide potential spam or offensive comments from your LIVE": "On",
+        "People you assigned to moderate your LIVE": null,
+        "Show your username and gift information in features with ranking lists": "Off"
+      }
+    },
+    "Watch Live History": {
+      "WatchLiveMap": {}
+    },
+    "Watch Live Settings": {
+      "WatchLiveSettingsMap": {
+        "app": "Off",
+        "web": "Off"
+      },
+      "MostRecentModificationTimeInApp": "0",
+      "MostRecentModificationTimeInWeb": "0"
+    }
+  },
+  "TikTok Shop": {
+    "Communication With Shops": {
+      "CommunicationHistories": null
+    },
+    "Current Payment Information": {
+      "PayCard": null
+    },
+    "Customer Support History": {
+      "CustomerSupportHistories": null
+    },
+    "Order Dispute History": {
+      "OrderDisputeHistories": null
+    },
+    "Order History": {
+      "OrderHistories": null
+    },
+    "Product Browsing History": {
+      "ProductBrowsingHistories": null
+    },
+    "Product Reviews": {
+      "ProductReviewHistories": null
+    },
+    "Returns and Refunds History": {
+      "ReturnAndRefundHistories": null
+    },
+    "Saved Address Information": {
+      "SavedAddress": null
+    },
+    "Shopping Cart List": {
+      "ShoppingCart": null
+    },
+    "TikTokFavoriteItem": {
+      "TikTokFavoriteItemResult": {
+        "TikTokFavoriteItemList": null
+      }
+    },
+    "Vouchers": {
+      "Vouchers": null
+    }
+  },
+  "Your Activity": {
+    "Activity Summary": {
+      "ActivitySummaryMap": {
+        "note": "sample summary",
+        "videosCommentedOnSinceAccountRegistration": 0,
+        "videosSharedSinceAccountRegistration": 0,
+        "videosWatchedToTheEndSinceAccountRegistration": 2
+      }
+    },
+    "Ad Interests": {
+      "AdInterestCategories": ""
+    },
+    "Ads Visit History": {
+      "AdsVisitHistoryList": []
+    },
+    "Donation": {
+      "DonationList": null
+    },
+    "Fundraiser": {
+      "FundraiserList": null
+    },
+    "Hashtag": {
+      "HashtagList": null
+    },
+    "Instant Form Ads Responses": {
+      "ResponsesList": null
+    },
+    "Login History": {
+      "LoginHistoryList": [
+        {
+          "Carrier": "Carrier B",
+          "Date": "2024-02-01 08:00:00",
+          "DeviceModel": "Phone B",
+          "DeviceSystem": "iOS",
+          "IP": "192.0.2.10",
+          "NetworkType": "WiFi"
+        },
+        {
+          "Carrier": "Carrier B",
+          "Date": "2024-02-01 09:00:00",
+          "DeviceModel": "Phone B",
+          "DeviceSystem": "iOS",
+          "IP": "192.0.2.11",
+          "NetworkType": "Mobile"
+        }
+      ]
+    },
+    "Mini Drama Watch History": {},
+    "Off TikTok Activity": {
+      "OffTikTokActivityDataList": null
+    },
+    "Purchases": {
+      "SendGifts": {
+        "SendGifts": null
+      },
+      "BuyGifts": {
+        "BuyGifts": null
+      }
+    },
+    "Reposts": {
+      "RepostList": null
+    },
+    "Searches": {
+      "SearchList": [
+        {
+          "Date": "2024-02-02 10:00:00",
+          "SearchTerm": "coffee"
+        }
+      ]
+    },
+    "Share History": {
+      "ShareHistoryList": null
+    },
+    "Status": {
+      "Status List": [
+        {
+          "Android ID": "",
+          "App Version": "1.0.0",
+          "DID": "did-2",
+          "GAID": "",
+          "IDFA": "idfa-2",
+          "IDFV": "idfv-2",
+          "Resolution": "1170x2532",
+          "UID": 223456789,
+          "Web ID": "web-id-2"
+        },
+        {
+          "Android ID": "",
+          "App Version": "1.0.1",
+          "DID": "did-3",
+          "GAID": "",
+          "IDFA": "idfa-3",
+          "IDFV": "idfv-3",
+          "Resolution": "1170x2532",
+          "UID": 323456789,
+          "Web ID": "web-id-3"
+        }
+      ]
+    },
+    "Stickers": {
+      "StickerList": null
+    },
+    "Watch History": {
+      "VideoList": [
+        {
+          "Date": "2024-02-02 11:00:00",
+          "Link": "https://www.tiktokv.com/share/video/7000000000000000010/"
+        },
+        {
+          "Date": "2024-02-02 11:05:00",
+          "Link": "https://www.tiktokv.com/share/video/7000000000000000011/"
+        },
+        {
+          "Date": "2024-02-02 11:10:00",
+          "Link": "https://www.tiktokv.com/share/video/7000000000000000010/"
+        }
+      ]
+    }
+  }
+}

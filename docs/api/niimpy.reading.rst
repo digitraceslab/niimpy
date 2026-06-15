@@ -10,6 +10,7 @@ Submodules
    niimpy.reading.database
    niimpy.reading.mhealth
    niimpy.reading.read
+   niimpy.reading.tiktok
 
 Module contents
 ---------------
