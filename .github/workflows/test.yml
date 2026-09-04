@@ -12,7 +12,7 @@ jobs:
           - '3.11'
           - '3.12'
         pandas-version:
-          - '2.*'
+          - '2'
           - '3'
     steps:
       - uses: actions/checkout@v2
@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: install deps
         run: |
-          pip install .[test] pandas==${{ matrix.pandas-version }}
+          pip install .[test] pandas==${{ matrix.pandas-version }}.*
       - name: pytest
         run: |
           pytest
