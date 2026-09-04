@@ -33,7 +33,8 @@ dependencies = [
     "pyarrow",
     "google_takeout_email",
     "tqdm",
-    "tzfpy"
+    "tzfpy",
+    "pytz"
 ]
 
 [project.optional-dependencies]
