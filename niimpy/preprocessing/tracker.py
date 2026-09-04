@@ -102,7 +102,10 @@ def tracker_step_distribution(steps_df, steps_column='steps', resample_args={'ru
 
     # time frame must be longer than resample_args["rule"]
     to_offset = pd.tseries.frequencies.to_offset
-    if to_offset(timeframe) <= to_offset(resample_args["rule"]):
+    reference = pd.Timestamp("2000-01-01")
+    timeframe_length = (reference + to_offset(timeframe)) - reference
+    rule_length = (reference + to_offset(resample_args["rule"])) - reference
+    if timeframe_length <= rule_length:
         raise ValueError("Time frame must be longer than resample rule")
 
     # Extract date and time columns from timestamp

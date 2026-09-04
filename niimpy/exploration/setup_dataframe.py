@@ -149,7 +149,9 @@ def create_missing_dataframe(nrows, ncols, density=.9, random_state=None, index_
             raise ValueError("Can't recognize index_type. Try the following values: 'dt', 'int'.")
             
     i_idx, j_idx = _create_missing_idx(nrows, ncols, density, random_state)
-    df.values[i_idx, j_idx] = None
+    mask = np.zeros(df.shape, dtype=bool)
+    mask[i_idx, j_idx] = True
+    df = df.mask(mask)
     return df
 
 def _makeDatetimeIndex(k=10, freq='B', name=None):

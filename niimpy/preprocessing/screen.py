@@ -42,8 +42,8 @@ def util_screen(df, bat=None, screen_column_name = "screen_status", **kwargs):
         
         if not shutdown.empty:
             df = pd.concat([df, shutdown])
-            df.fillna(0, inplace=True)
             df = df[id_columns + [screen_column_name]]
+            df[screen_column_name] = df[screen_column_name].fillna(0)
 
     #Sort the dataframe
     df.sort_index(inplace=True)
